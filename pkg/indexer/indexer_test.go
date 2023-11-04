@@ -1,4 +1,4 @@
-package io
+package indexer
 
 import (
 	"crypto/rand"
@@ -22,7 +22,7 @@ func TestIndexDirectoryWithFilesInRoot(t *testing.T) {
 	}
 
 	indexer := NewConfigured(exclude_dir, exclude_file)
-	indexer.IndexDirectory(fs, fsq)
+	indexer.WalkDirectory(fs, fsq)
 
 	expected := len(fs)
 	actual := len(fsq)
@@ -47,7 +47,7 @@ func TestIndexDirectoryWithFilesAcrossFolders(t *testing.T) {
 	}
 
 	indexer := NewConfigured(exclude_dir, exclude_file)
-	indexer.IndexDirectory(fs, fsq)
+	indexer.WalkDirectory(fs, fsq)
 
 	expected := len(fs)
 	actual := len(fsq)
@@ -72,7 +72,7 @@ func TestIndexDirectoryWithDirExclusions(t *testing.T) {
 	}
 
 	indexer := NewConfigured(exclude_dir, exclude_file)
-	indexer.IndexDirectory(fs, fsq)
+	indexer.WalkDirectory(fs, fsq)
 
 	expected := len(fs) - 4
 	actual := len(fsq)
@@ -94,7 +94,7 @@ func TestIndexDirectoryWithFileExclusions(t *testing.T) {
 	}
 
 	indexer := NewConfigured(exclude_dir, exclude_file)
-	indexer.IndexDirectory(fs, fsq)
+	indexer.WalkDirectory(fs, fsq)
 
 	expected := len(fs) - 1
 	actual := len(fsq)
@@ -117,7 +117,7 @@ func TestIndexDirectoryWithFileAndDirExclusions(t *testing.T) {
 	}
 
 	indexer := NewConfigured(exclude_dir, exclude_file)
-	indexer.IndexDirectory(fs, fsq)
+	indexer.WalkDirectory(fs, fsq)
 
 	expected := len(fs) - 2
 	actual := len(fsq)

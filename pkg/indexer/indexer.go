@@ -1,4 +1,4 @@
-package io
+package indexer
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *Index
 	}
 }
 
-func (config *IndexerConfig) IndexDirectory(fsys fs.FS, files chan string) {
+func (config *IndexerConfig) WalkDirectory(fsys fs.FS, files chan string) {
 
 	walkErr := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -49,6 +49,6 @@ func (config *IndexerConfig) IndexDirectory(fsys fs.FS, files chan string) {
 		return nil
 	})
 	if walkErr != nil {
-		fmt.Fprintln(os.Stderr, walkErr)
+		fmt.Fprintln(os.Stderr, "Walk Failed: ", walkErr)
 	}
 }
