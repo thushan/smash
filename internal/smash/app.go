@@ -15,5 +15,8 @@ func (app *App) Run() error {
 	if !app.Flags.Silent {
 		app.printConfiguration()
 	}
+
+	app.setMaxThreads()
+	
 	return nil
 }

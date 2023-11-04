@@ -3,6 +3,7 @@ package smash
 import (
 	. "github.com/logrusorgru/aurora/v3"
 	"log"
+	"runtime"
 	"strings"
 )
 
@@ -20,4 +21,14 @@ func (app *App) printConfiguration() {
 			log.Println(Bold("      Files: "), Yellow(strings.Join(f.ExcludeFile, ", ")))
 		}
 	}
+}
+
+func (app *App) setMaxThreads() {
+	var maxThreads = app.Flags.MaxThreads
+	if maxThreads < 1 || maxThreads > runtime.NumCPU() {
+		return
+	}
+	runtime.GOMAXPROCS(maxThreads)
+	app.printVerbose("Max Threads set to ", Magenta(runtime.GOMAXPROCS(0)))
+
 }
