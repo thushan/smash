@@ -1,4 +1,4 @@
-package smash
+package app
 
 import (
 	"github.com/logrusorgru/aurora/v3"

@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Use:          "smash [flags] [locations-to-smash]",
 	Short:        "Find duplicates fast!",
 	Long:         "",
-	Version:      smash.Version,
+	Version:      app.Version,
 	SilenceUsage: true,
 	RunE:         runE,
 }
@@ -38,7 +38,7 @@ func init() {
 
 func Main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
-	smash.PrintVersionInfo(false)
+	app.PrintVersionInfo(false)
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

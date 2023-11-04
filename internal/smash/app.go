@@ -10,6 +10,10 @@ type App struct {
 	Flags     *app.Flags
 }
 
-func (a *App) Run() error {
+func (app *App) Run() error {
+
+	if !app.Flags.Silent {
+		app.printConfiguration()
+	}
 	return nil
 }
