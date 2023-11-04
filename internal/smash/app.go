@@ -20,6 +20,7 @@ func (app *App) Run() error {
 	var locations = app.Locations
 	var excludeDirs = app.Flags.ExcludeDir
 	var excludeFiles = app.Flags.ExcludeFile
+	var walker = indexer.NewConfigured(excludeDirs, excludeFiles)
 
 	if !app.Flags.Silent {
 		app.printConfiguration()
@@ -32,8 +33,7 @@ func (app *App) Run() error {
 	go func() {
 		for _, location := range locations {
 			app.printVerbose("Indexing location ", aurora.Cyan(location))
-			indexer := indexer.NewConfigured(excludeDirs, excludeFiles)
-			indexer.WalkDirectory(os.DirFS(location), fsq)
+			walker.WalkDirectory(os.DirFS(location), fsq)
 		}
 		close(fsq)
 	}()

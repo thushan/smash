@@ -17,6 +17,14 @@ type IndexerConfig struct {
 	fileMatcher *regexp.Regexp
 }
 
+func New() *IndexerConfig {
+	return &IndexerConfig{
+		ExcludeFileFilter: nil,
+		ExcludeDirFilter:  nil,
+		dirMatcher:        nil,
+		fileMatcher:       nil,
+	}
+}
 func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *IndexerConfig {
 	return &IndexerConfig{
 		ExcludeDirFilter:  excludeDirFilter,

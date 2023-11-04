@@ -13,15 +13,13 @@ func randomBytes(length int) []byte {
 }
 func TestIndexDirectoryWithFilesInRoot(t *testing.T) {
 	fsq := make(chan string, 10)
-	exclude_dir := []string{}
-	exclude_file := []string{}
 
 	fs := fstest.MapFS{
 		"DSC19841.ARW": {Data: randomBytes(1024)},
 		"DSC19842.ARW": {Data: randomBytes(2048)},
 	}
 
-	indexer := NewConfigured(exclude_dir, exclude_file)
+	indexer := New()
 	indexer.WalkDirectory(fs, fsq)
 
 	expected := len(fs)
@@ -34,8 +32,6 @@ func TestIndexDirectoryWithFilesInRoot(t *testing.T) {
 
 func TestIndexDirectoryWithFilesAcrossFolders(t *testing.T) {
 	fsq := make(chan string, 10)
-	exclude_dir := []string{}
-	exclude_file := []string{}
 
 	fs := fstest.MapFS{
 		"DSC19841.ARW":             {Data: randomBytes(1024)},
@@ -46,7 +42,7 @@ func TestIndexDirectoryWithFilesAcrossFolders(t *testing.T) {
 		"subfolder-2/DSC19848.ARW": {Data: randomBytes(1024)},
 	}
 
-	indexer := NewConfigured(exclude_dir, exclude_file)
+	indexer := New()
 	indexer.WalkDirectory(fs, fsq)
 
 	expected := len(fs)
