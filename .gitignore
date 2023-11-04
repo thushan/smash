@@ -19,3 +19,11 @@
 
 # Go workspace file
 go.work
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+/bin
+/coverage.*
+/vendor
+/.idea
+/.code
