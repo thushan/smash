@@ -12,15 +12,17 @@ import (
 	"github.com/thushan/smash/internal/smash"
 )
 
-var af *app.Flags
-var rootCmd = &cobra.Command{
-	Use:          "smash [flags] [locations-to-smash]",
-	Short:        "Find duplicates fast!",
-	Long:         "",
-	Version:      app.Version,
-	SilenceUsage: true,
-	RunE:         runE,
-}
+var (
+	af      *app.Flags
+	rootCmd = &cobra.Command{
+		Use:          "smash [flags] [locations-to-smash]",
+		Short:        "Find duplicates fast!",
+		Long:         "",
+		Version:      app.Version,
+		SilenceUsage: true,
+		RunE:         runE,
+	}
+)
 
 func init() {
 	af = &app.Flags{}
@@ -44,6 +46,7 @@ func Main() {
 		os.Exit(1)
 	}
 }
+
 func runE(command *cobra.Command, args []string) error {
 	var locations []string
 	if len(args) == 0 {
@@ -60,8 +63,9 @@ func runE(command *cobra.Command, args []string) error {
 	}
 	return a.Run()
 }
+
 func verifyLocations(locations []string, silent bool) []string {
-	var vl = locations[:0]
+	vl := locations[:0]
 	for _, location := range locations {
 		if _, err := os.Stat(location); os.IsNotExist(err) {
 			if !silent {

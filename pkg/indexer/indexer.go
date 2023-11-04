@@ -25,6 +25,7 @@ func New() *IndexerConfig {
 		fileMatcher:       nil,
 	}
 }
+
 func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *IndexerConfig {
 	return &IndexerConfig{
 		ExcludeDirFilter:  excludeDirFilter,
@@ -35,7 +36,6 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *Index
 }
 
 func (config *IndexerConfig) WalkDirectory(fsys fs.FS, files chan string) {
-
 	walkErr := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -47,7 +47,7 @@ func (config *IndexerConfig) WalkDirectory(fsys fs.FS, files chan string) {
 				return filepath.SkipDir
 			}
 		} else {
-			var filename = filepath.Base(path)
+			filename := filepath.Base(path)
 			if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(filename) {
 				return nil
 			}

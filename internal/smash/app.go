@@ -17,7 +17,6 @@ type App struct {
 }
 
 func (app *App) Run() error {
-
 	var locations = app.Locations
 	var excludeDirs = app.Flags.ExcludeDir
 	var excludeFiles = app.Flags.ExcludeFile
@@ -39,7 +38,7 @@ func (app *App) Run() error {
 		close(fsq)
 	}()
 
-	var totalFiles = 0
+	totalFiles := 0
 
 	for filename := range fsq {
 		totalFiles++

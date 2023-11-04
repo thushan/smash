@@ -9,7 +9,7 @@ import (
 )
 
 func (app *App) printConfiguration() {
-	var f = app.Flags
+	f := app.Flags
 	log.Println(Bold(Cyan("Configuration")))
 	log.Println(Bold("Max Threads: "), Magenta(f.MaxThreads))
 	log.Println(Bold("Locations:   "), Magenta(strings.Join(app.Locations, ", ")))
@@ -25,11 +25,10 @@ func (app *App) printConfiguration() {
 }
 
 func (app *App) setMaxThreads() {
-	var maxThreads = app.Flags.MaxThreads
+	maxThreads := app.Flags.MaxThreads
 	if maxThreads < 1 || maxThreads > runtime.NumCPU() {
 		return
 	}
 	runtime.GOMAXPROCS(maxThreads)
 	app.printVerbose("Max Threads set to ", Magenta(runtime.GOMAXPROCS(0)))
-
 }

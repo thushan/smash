@@ -4,8 +4,10 @@ import (
 	"log"
 )
 
-const TreeLastChild = "└── "
-const TreeNextChild = "├── "
+const (
+	TreeLastChild = "└── "
+	TreeNextChild = "├── "
+)
 
 func (app *App) printVerbose(message ...any) {
 	if app.Flags.Verbose {

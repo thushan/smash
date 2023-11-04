@@ -10,6 +10,7 @@ linters:
         - forcetypeassert
         - goimports
         - gosec
+        - govet
         - makezero
         - misspell
         - nakedret
@@ -48,6 +49,7 @@ linters-settings:
             toml: camel
             env: upperSnake
 run:
-    timeout: 2m
-    skip-dirs:
-        - doc
+  concurrency: 8
+  timeout: 2m
+  skip-dirs:
+    - doc
