@@ -21,7 +21,8 @@ func TestIndexDirectoryWithFilesInRoot(t *testing.T) {
 		"DSC19842.ARW": {Data: randomBytes(2048)},
 	}
 
-	IndexDirectory(fs, exclude_dir, exclude_file, fsq)
+	indexer := NewConfigured(exclude_dir, exclude_file)
+	indexer.IndexDirectory(fs, fsq)
 
 	expected := len(fs)
 	actual := len(fsq)
@@ -45,7 +46,8 @@ func TestIndexDirectoryWithFilesAcrossFolders(t *testing.T) {
 		"subfolder-2/DSC19848.ARW": {Data: randomBytes(1024)},
 	}
 
-	IndexDirectory(fs, exclude_dir, exclude_file, fsq)
+	indexer := NewConfigured(exclude_dir, exclude_file)
+	indexer.IndexDirectory(fs, fsq)
 
 	expected := len(fs)
 	actual := len(fsq)
@@ -69,7 +71,8 @@ func TestIndexDirectoryWithDirExclusions(t *testing.T) {
 		"subfolder-2/DSC19848.ARW": {Data: randomBytes(1024)},
 	}
 
-	IndexDirectory(fs, exclude_dir, exclude_file, fsq)
+	indexer := NewConfigured(exclude_dir, exclude_file)
+	indexer.IndexDirectory(fs, fsq)
 
 	expected := len(fs) - 4
 	actual := len(fsq)
@@ -90,7 +93,8 @@ func TestIndexDirectoryWithFileExclusions(t *testing.T) {
 		"exclude.me":   {Data: randomBytes(1024)},
 	}
 
-	IndexDirectory(fs, exclude_dir, exclude_file, fsq)
+	indexer := NewConfigured(exclude_dir, exclude_file)
+	indexer.IndexDirectory(fs, fsq)
 
 	expected := len(fs) - 1
 	actual := len(fsq)
@@ -112,7 +116,8 @@ func TestIndexDirectoryWithFileAndDirExclusions(t *testing.T) {
 		"exclude-dir/random.file": {Data: randomBytes(1024)},
 	}
 
-	IndexDirectory(fs, exclude_dir, exclude_file, fsq)
+	indexer := NewConfigured(exclude_dir, exclude_file)
+	indexer.IndexDirectory(fs, fsq)
 
 	expected := len(fs) - 2
 	actual := len(fsq)

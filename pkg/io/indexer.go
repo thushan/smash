@@ -9,10 +9,24 @@ import (
 	"strings"
 )
 
-func IndexDirectory(fsys fs.FS, excludeDirFilter []string, excludeFileFilter []string, files chan string) {
+type IndexerConfig struct {
+	ExcludeDirFilter  []string
+	ExcludeFileFilter []string
 
-	var dirMatcher = regexp.MustCompile(strings.Join(excludeDirFilter, "|"))
-	var fileMatcher = regexp.MustCompile(strings.Join(excludeFileFilter, "|"))
+	dirMatcher  *regexp.Regexp
+	fileMatcher *regexp.Regexp
+}
+
+func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *IndexerConfig {
+	return &IndexerConfig{
+		ExcludeDirFilter:  excludeDirFilter,
+		ExcludeFileFilter: excludeFileFilter,
+		dirMatcher:        regexp.MustCompile(strings.Join(excludeDirFilter, "|")),
+		fileMatcher:       regexp.MustCompile(strings.Join(excludeFileFilter, "|")),
+	}
+}
+
+func (config *IndexerConfig) IndexDirectory(fsys fs.FS, files chan string) {
 
 	walkErr := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -21,12 +35,12 @@ func IndexDirectory(fsys fs.FS, excludeDirFilter []string, excludeFileFilter []s
 
 		// Index just the files
 		if d.IsDir() {
-			if len(excludeDirFilter) > 0 && dirMatcher.MatchString(path) {
+			if len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path) {
 				return filepath.SkipDir
 			}
 		} else {
 			var filename = filepath.Base(path)
-			if len(excludeFileFilter) > 0 && fileMatcher.MatchString(filename) {
+			if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(filename) {
 				return nil
 			}
 			files <- path
