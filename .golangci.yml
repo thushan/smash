@@ -19,7 +19,7 @@ linters:
         - nosprintfhostport
         - predeclared
         - revive
-        - tagliatelle
+        # - tagliatelle
         - unconvert
         - unparam
         - wastedassign
@@ -38,7 +38,15 @@ linters-settings:
     misspell:
         ignore-words:
             - thushan
-
+    tagliatelle:
+        case:
+          # Default: false
+          use-field-name: true
+          rules:
+            json: camel
+            yaml: camel
+            toml: camel
+            env: upperSnake
 run:
     timeout: 2m
     skip-dirs:
