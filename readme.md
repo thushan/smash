@@ -7,11 +7,11 @@ It is ideally suited to finding duplicates on bandwidth constrained devices (or 
 # Usage
 
 ```
-$  smash [flags] <locations-to-scan>
+$  smash [flags] <locations-to-smash>
 
 Flags:
   --max-threads         Maximum number of threads to utilise
-  -h, --help            Shows help for smarthash
+  -h, --help            Shows help for smash
   -v, --version         Print version information
 ```
 
