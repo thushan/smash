@@ -1,14 +1,15 @@
 package cli
 
 import (
+	"log"
+	"os"
+	"runtime"
+
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/spf13/cobra"
 	"github.com/thediveo/enumflag/v2"
 	"github.com/thushan/smash/internal/app"
 	"github.com/thushan/smash/internal/smash"
-	"log"
-	"os"
-	"runtime"
 )
 
 var af *app.Flags
@@ -29,8 +30,8 @@ func init() {
 		"Algorithm to use, can be 'xxhash' (default)")
 	flags := rootCmd.Flags()
 	flags.StringSliceVarP(&af.Base, "base", "", nil, "Base directories to use for comparison. Eg. --base=/c/dos,/c/run/dos/")
-	flags.StringSliceVarP(&af.ExcludeFile, "exclude-file", "", nil, "Files to exclude seperated by comma. Eg. --exclude-file=.gitignore,*.csv")
-	flags.StringSliceVarP(&af.ExcludeDir, "exclude-dir", "", nil, "Directories to exclude seperated by comma. Eg. --exclude-dir=.git,.idea")
+	flags.StringSliceVarP(&af.ExcludeFile, "exclude-file", "", nil, "Files to exclude separated by comma. Eg. --exclude-file=.gitignore,*.csv")
+	flags.StringSliceVarP(&af.ExcludeDir, "exclude-dir", "", nil, "Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea")
 	flags.IntVarP(&af.MaxThreads, "max-threads", "p", runtime.NumCPU(), "Maximum threads to utilise.")
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode.")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode.")

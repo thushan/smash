@@ -1,10 +1,11 @@
 package smash
 
 import (
+	"os"
+
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/internal/app"
 	"github.com/thushan/smash/pkg/indexer"
-	"os"
 )
 
 var FileQueueSize = 1000

@@ -1,10 +1,11 @@
 package smash
 
 import (
-	. "github.com/logrusorgru/aurora/v3"
 	"log"
 	"runtime"
 	"strings"
+
+	. "github.com/logrusorgru/aurora/v3"
 )
 
 func (app *App) printConfiguration() {
