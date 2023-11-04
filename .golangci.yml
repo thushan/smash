@@ -1,0 +1,45 @@
+linters:
+    enable:
+        - asciicheck
+        - bodyclose
+        - durationcheck
+        - errname
+        - errorlint
+        - exhaustive
+        - exportloopref
+        - forcetypeassert
+        - goimports
+        - gosec
+        - makezero
+        - misspell
+        - nakedret
+        - nilerr
+        - noctx
+        - nolintlint
+        - nosprintfhostport
+        - predeclared
+        - revive
+        - tagliatelle
+        - unconvert
+        - unparam
+        - wastedassign
+
+linters-settings:
+    revive:
+        rules:
+            - name: unused-parameter
+              disabled: true
+    exhaustive:
+        default-signifies-exhaustive: true
+    gosec:
+        excludes:
+            - G401
+            - G501
+    misspell:
+        ignore-words:
+            - thushan
+
+run:
+    timeout: 2m
+    skip-dirs:
+        - doc
