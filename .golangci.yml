@@ -1,4 +1,5 @@
 linters:
+    disable-all: true
     enable:
         - asciicheck
         - bodyclose
@@ -8,7 +9,12 @@ linters:
         - exhaustive
         - exportloopref
         - forcetypeassert
+        - gocognit
+        - goconst
+        - gocritic
         - goimports
+        - gomodguard
+        - goprintffuncname
         - gosec
         - govet
         - makezero
@@ -36,6 +42,11 @@ linters-settings:
         excludes:
             - G401
             - G501
+    govet:
+      check-shadowing: true
+      enable-all: true
+    gocyclo:
+      min-complexity: 10
     misspell:
         ignore-words:
             - thushan

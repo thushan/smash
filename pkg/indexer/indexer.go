@@ -10,11 +10,11 @@ import (
 )
 
 type IndexerConfig struct {
-	ExcludeDirFilter  []string
-	ExcludeFileFilter []string
-
 	dirMatcher  *regexp.Regexp
 	fileMatcher *regexp.Regexp
+
+	ExcludeDirFilter  []string
+	ExcludeFileFilter []string
 }
 
 func New() *IndexerConfig {

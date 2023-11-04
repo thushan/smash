@@ -11,9 +11,9 @@ import (
 var FileQueueSize = 1000
 
 type App struct {
+	Flags     *app.Flags
 	Args      []string
 	Locations []string
-	Flags     *app.Flags
 }
 
 func (app *App) Run() error {
