@@ -1,8 +1,13 @@
 package app
 
 type Flags struct {
-	Silent  bool `yaml:"silent"`
-	Verbose bool `yaml:"verbose"`
+	Base        []string `yaml:"base"`
+	ExcludeDir  []string `yaml:"exclude-dir"`
+	ExcludeFile []string `yaml:"exclude-file"`
+	Algorithm   int      `yaml:"algorithm"`
+	MaxThreads  int      `yaml:"max-threads"`
+	Silent      bool     `yaml:"silent"`
+	Verbose     bool     `yaml:"verbose"`
 }
 
 var HashAlgorithms = map[int][]string{
