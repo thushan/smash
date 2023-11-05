@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	Version = "v1.0.0"
+	Version = "v0.0.1"
 	Edition = "open-source"
 	Home    = "github.com/thushan/smash"
 	Time    string
@@ -15,7 +15,7 @@ var (
 )
 
 func PrintVersionInfo(extendedInfo bool) {
-	log.Println(aurora.Green(`        
+	log.Println(aurora.Green(`
 ╔───────────────────────────────────────────────╗
 │  ███████╗███╗   ███╗ █████╗ ███████╗██╗  ██╗  │
 │  ██╔════╝████╗ ████║██╔══██╗██╔════╝██║  ██║  │
