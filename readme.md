@@ -1,4 +1,5 @@
 # smash
+[![CI](https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/ci.yml)
 
 aka SmartHash, a tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments and computing a 128-bit hash using [xxhash](https://xxhash.com/).
 
