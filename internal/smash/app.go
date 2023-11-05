@@ -1,22 +1,22 @@
 package smash
 
 import (
+	"os"
+
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/internal/app"
 	"github.com/thushan/smash/pkg/indexer"
-	"os"
 )
 
 var FileQueueSize = 1000
 
 type App struct {
+	Flags     *app.Flags
 	Args      []string
 	Locations []string
-	Flags     *app.Flags
 }
 
 func (app *App) Run() error {
-
 	var locations = app.Locations
 	var excludeDirs = app.Flags.ExcludeDir
 	var excludeFiles = app.Flags.ExcludeFile
@@ -38,7 +38,7 @@ func (app *App) Run() error {
 		close(fsq)
 	}()
 
-	var totalFiles = 0
+	totalFiles := 0
 
 	for filename := range fsq {
 		totalFiles++

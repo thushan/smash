@@ -1,0 +1,66 @@
+linters:
+    disable-all: true
+    enable:
+        - asciicheck
+        - bodyclose
+        - durationcheck
+        - errname
+        - errorlint
+        - exhaustive
+        - exportloopref
+        - forcetypeassert
+        - gocognit
+        - goconst
+        - gocritic
+        - goimports
+        - gomodguard
+        - goprintffuncname
+        - gosec
+        - govet
+        - makezero
+        - misspell
+        - nakedret
+        - nilerr
+        - noctx
+        - nolintlint
+        - nosprintfhostport
+        - predeclared
+        - revive
+        # - tagliatelle
+        - unconvert
+        - unparam
+        - wastedassign
+
+linters-settings:
+    revive:
+        rules:
+            - name: unused-parameter
+              disabled: true
+    exhaustive:
+        default-signifies-exhaustive: true
+    gosec:
+        excludes:
+            - G401
+            - G501
+    govet:
+      check-shadowing: true
+      enable-all: true
+    gocyclo:
+      min-complexity: 10
+    misspell:
+        ignore-words:
+            - thushan
+    tagliatelle:
+        case:
+          # Default: false
+          use-field-name: true
+          rules:
+            json: camel
+            yaml: camel
+            toml: camel
+            env: upperSnake
+run:
+  concurrency: 8
+  timeout: 2m
+  skip-dirs:
+    - doc

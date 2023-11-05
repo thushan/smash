@@ -11,6 +11,7 @@ func randomBytes(length int) []byte {
 	_, _ = rand.Read(buffer)
 	return buffer
 }
+
 func TestIndexDirectoryWithFilesInRoot(t *testing.T) {
 	fsq := make(chan string, 10)
 

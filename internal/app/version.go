@@ -1,8 +1,9 @@
 package app
 
 import (
-	"github.com/logrusorgru/aurora/v3"
 	"log"
+
+	"github.com/logrusorgru/aurora/v3"
 )
 
 var (
