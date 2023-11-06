@@ -123,3 +123,27 @@ func TestIndexDirectoryWithFileAndDirExclusions(t *testing.T) {
 		t.Errorf("expected %d, got %d files", expected, actual)
 	}
 }
+
+func TestIndexDirectoryWhichContainsWindowsSystemFiles(t *testing.T) {
+	fsq := make(chan string, 10)
+
+	exclude_dir := []string{}
+	exclude_file := []string{}
+
+	fs := fstest.MapFS{
+		"DSC19841.ARW":          {Data: randomBytes(1024)},
+		"DSC19842.ARW":          {Data: randomBytes(2048)},
+		"$RECYCLE.BIN/test.txt": {Data: randomBytes(1024)},
+		"$MFT/random.file":      {Data: randomBytes(1024)},
+	}
+
+	indexer := NewConfigured(exclude_dir, exclude_file)
+	indexer.WalkDirectory(fs, fsq)
+
+	expected := 2
+	actual := len(fsq)
+
+	if actual != expected {
+		t.Errorf("expected %v, got %v files", expected, actual)
+	}
+}

@@ -43,7 +43,7 @@ func (config *IndexerConfig) WalkDirectory(fsys fs.FS, files chan string) {
 
 		// Index just the files
 		if d.IsDir() {
-			if len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path) {
+			if isSystemFolder(d.Name()) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
 				return filepath.SkipDir
 			}
 		} else {
@@ -59,4 +59,19 @@ func (config *IndexerConfig) WalkDirectory(fsys fs.FS, files chan string) {
 	if walkErr != nil {
 		fmt.Fprintln(os.Stderr, "Walk Failed: ", walkErr)
 	}
+}
+
+func isSystemFolder(path string) bool {
+	folder := filepath.Clean(path)
+	skipDirs := []string{
+		"System Volume Information", "$RECYCLE.BIN", "$MFT", /* Windows */
+		".Trash", ".Trash-1000", /* Linux */
+		".Trashes", /* macOS */
+	}
+	for _, v := range skipDirs {
+		if folder == v {
+			return true
+		}
+	}
+	return false
 }
