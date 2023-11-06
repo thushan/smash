@@ -1,14 +1,13 @@
 package smash
 
 import (
+	"io/fs"
 	"os"
 
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/internal/app"
 	"github.com/thushan/smash/pkg/indexer"
 )
-
-var FileQueueSize = 1000
 
 type App struct {
 	Flags     *app.Flags
@@ -20,6 +19,7 @@ func (app *App) Run() error {
 	var locations = app.Locations
 	var excludeDirs = app.Flags.ExcludeDir
 	var excludeFiles = app.Flags.ExcludeFile
+
 	var walker = indexer.NewConfigured(excludeDirs, excludeFiles)
 
 	if !app.Flags.Silent {
@@ -28,22 +28,30 @@ func (app *App) Run() error {
 
 	app.setMaxThreads()
 
-	fsq := make(chan string, FileQueueSize)
+	list := make(chan indexer.FileFS)
+	done := make(chan struct{})
+	defer close(done)
 
-	go func() {
-		for _, location := range locations {
-			app.printVerbose("Indexing location ", aurora.Cyan(location))
-			walker.WalkDirectory(os.DirFS(location), fsq)
-		}
-		close(fsq)
-	}()
+	for _, location := range locations {
+		app.printVerbose("Indexing location ", aurora.Cyan(location))
+		files, _ := walker.WalkDirectory(buildLocations, done)
+	}
 
 	totalFiles := 0
 
-	for filename := range fsq {
+	for file := range list {
 		totalFiles++
-		app.printVerbose("Indexed file ", aurora.Blue(filename))
+		app.printVerbose("Indexed file ", aurora.Blue(file.Name))
 	}
 
 	return nil
+}
+func buildLocations(locations []string) []fs.FS {
+	paths := make([]fs.FS, len(locations))
+
+	for _, location := range locations {
+		// we support local for now
+		paths = append(paths, os.DirFS(location))
+	}
+	return paths
 }

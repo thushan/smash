@@ -1,14 +1,18 @@
 package indexer
 
 import (
-	"fmt"
+	"errors"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
 
+type FileFS struct {
+	FileSystem fs.FS
+	Path       string
+	Name       string
+}
 type IndexerConfig struct {
 	dirMatcher  *regexp.Regexp
 	fileMatcher *regexp.Regexp
@@ -35,30 +39,42 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *Index
 	}
 }
 
-func (config *IndexerConfig) WalkDirectory(fsys fs.FS, files chan string) {
-	walkErr := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Index just the files
-		if d.IsDir() {
-			if isSystemFolder(d.Name()) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
-				return filepath.SkipDir
+func (config *IndexerConfig) WalkDirectory(f fs.FS, done <-chan struct{}) (<-chan FileFS, <-chan error) {
+	files := make(chan FileFS)
+	errrs := make(chan error, 1)
+	go func() {
+		// Clean up after we walk
+		defer close(files)
+		errrs <- fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
 			}
-		} else {
-			filename := filepath.Base(path)
-			if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(filename) {
-				return nil
-			}
-			files <- path
-		}
 
-		return nil
-	})
-	if walkErr != nil {
-		fmt.Fprintln(os.Stderr, "Walk Failed: ", walkErr)
-	}
+			// Index just the files
+			if d.IsDir() {
+				if isSystemFolder(d.Name()) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
+					return filepath.SkipDir
+				}
+			} else {
+				filename := filepath.Base(path)
+				if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(filename) {
+					return nil
+				}
+
+				select {
+				case files <- FileFS{
+					FileSystem: f,
+					Path:       path,
+					Name:       filename,
+				}:
+				case <-done:
+					return errors.New("operation cancelled")
+				}
+			}
+			return nil
+		})
+	}()
+	return files, errrs
 }
 
 func isSystemFolder(path string) bool {
