@@ -1,7 +1,7 @@
 package smash
 
 import (
-	"io/fs"
+	"log"
 	"os"
 
 	"github.com/logrusorgru/aurora/v3"
@@ -30,28 +30,27 @@ func (app *App) Run() error {
 
 	list := make(chan indexer.FileFS)
 	done := make(chan struct{})
+
 	defer close(done)
 
-	for _, location := range locations {
-		app.printVerbose("Indexing location ", aurora.Cyan(location))
-		files, _ := walker.WalkDirectory(buildLocations, done)
-	}
+	go func() {
+		defer close(list)
+		for _, location := range locations {
+			app.printVerbose("Indexing location ", aurora.Cyan(location))
+			errc := walker.WalkDirectory(os.DirFS(location), list, done)
+
+			if err := <-errc; err != nil {
+				log.Println("Failed to walk location ", aurora.Magenta(location), " because ", aurora.Red(errc))
+			}
+		}
+	}()
 
 	totalFiles := 0
-
 	for file := range list {
 		totalFiles++
 		app.printVerbose("Indexed file ", aurora.Blue(file.Name))
 	}
 
+	app.printVerbose("Total Files: ", aurora.Blue(totalFiles))
 	return nil
-}
-func buildLocations(locations []string) []fs.FS {
-	paths := make([]fs.FS, len(locations))
-
-	for _, location := range locations {
-		// we support local for now
-		paths = append(paths, os.DirFS(location))
-	}
-	return paths
 }

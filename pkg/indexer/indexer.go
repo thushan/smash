@@ -39,12 +39,9 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *Index
 	}
 }
 
-func (config *IndexerConfig) WalkDirectory(f fs.FS, done <-chan struct{}) (<-chan FileFS, <-chan error) {
-	files := make(chan FileFS)
+func (config *IndexerConfig) WalkDirectory(f fs.FS, files chan FileFS, done <-chan struct{}) <-chan error {
 	errrs := make(chan error, 1)
 	go func() {
-		// Clean up after we walk
-		defer close(files)
 		errrs <- fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
@@ -74,7 +71,7 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, done <-chan struct{}) (<-cha
 			return nil
 		})
 	}()
-	return files, errrs
+	return errrs
 }
 
 func isSystemFolder(path string) bool {
