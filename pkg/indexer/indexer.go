@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"errors"
 	"io/fs"
 	"path/filepath"
 	"regexp"
@@ -12,6 +11,7 @@ type FileFS struct {
 	FileSystem fs.FS
 	Path       string
 	Name       string
+	FullName   string
 }
 type IndexerConfig struct {
 	dirMatcher  *regexp.Regexp
@@ -39,39 +39,30 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *Index
 	}
 }
 
-func (config *IndexerConfig) WalkDirectory(f fs.FS, files chan FileFS, done <-chan struct{}) <-chan error {
-	errrs := make(chan error, 1)
-	go func() {
-		errrs <- fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
+func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan FileFS) error {
+	walkErr := fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if isSystemFolder(d.Name()) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
+				return filepath.SkipDir
 			}
-
-			// Index just the files
-			if d.IsDir() {
-				if isSystemFolder(d.Name()) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
-					return filepath.SkipDir
-				}
-			} else {
-				filename := filepath.Base(path)
-				if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(filename) {
-					return nil
-				}
-
-				select {
-				case files <- FileFS{
-					FileSystem: f,
-					Path:       path,
-					Name:       filename,
-				}:
-				case <-done:
-					return errors.New("operation cancelled")
-				}
+		} else {
+			filename := filepath.Base(path)
+			if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(filename) {
+				return nil
 			}
-			return nil
-		})
-	}()
-	return errrs
+			files <- FileFS{
+				FileSystem: f,
+				Path:       path,
+				Name:       filename,
+				FullName:   filepath.Join(root, path),
+			}
+		}
+		return nil
+	})
+	return walkErr
 }
 
 func isSystemFolder(path string) bool {

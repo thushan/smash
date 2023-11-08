@@ -28,25 +28,22 @@ func (app *App) Run() error {
 
 	app.setMaxThreads()
 
-	list := make(chan indexer.FileFS)
-	done := make(chan struct{})
-
-	defer close(done)
+	files := make(chan indexer.FileFS)
 
 	go func() {
-		defer close(list)
 		for _, location := range locations {
 			app.printVerbose("Indexing location ", aurora.Cyan(location))
-			errc := walker.WalkDirectory(os.DirFS(location), list, done)
+			err := walker.WalkDirectory(os.DirFS(location), location, files)
 
-			if err := <-errc; err != nil {
-				log.Println("Failed to walk location ", aurora.Magenta(location), " because ", aurora.Red(errc))
+			if err != nil {
+				log.Println("Failed to walk location ", aurora.Magenta(location), " because ", aurora.Red(err))
 			}
 		}
+		defer close(files)
 	}()
 
 	totalFiles := 0
-	for file := range list {
+	for file := range files {
 		totalFiles++
 		app.printVerbose("Indexed file ", aurora.Blue(file.Name))
 	}
