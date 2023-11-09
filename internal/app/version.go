@@ -6,12 +6,12 @@ import (
 	"github.com/logrusorgru/aurora/v3"
 )
 
-var (
-	Version = "v0.0.1"
-	Edition = "open-source"
-	Home    = "github.com/thushan/smash"
-	Time    string
-	User    string
+const (
+	Version        = "v0.0.1"
+	Edition        = "open-source"
+	Home           = "github.com/thushan/smash"
+	Time    string = "nowish"
+	User    string = "local"
 )
 
 func PrintVersionInfo(extendedInfo bool) {

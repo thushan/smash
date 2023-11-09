@@ -1,125 +1,199 @@
 package indexer
 
 import (
-	"crypto/rand"
+	"reflect"
 	"testing"
 	"testing/fstest"
 )
 
-func randomBytes(length int) []byte {
-	buffer := make([]byte, length)
-	_, _ = rand.Read(buffer)
-	return buffer
-}
-
 func TestIndexDirectoryWithFilesInRoot(t *testing.T) {
-	fsq := make(chan string, 10)
-
-	fs := fstest.MapFS{
-		"DSC19841.ARW": {Data: randomBytes(1024)},
-		"DSC19842.ARW": {Data: randomBytes(2048)},
+	mockFiles := []string{
+		"DSC19841.ARW",
+		"DSC19842.ARW",
 	}
 
-	indexer := New()
-	indexer.WalkDirectory(fs, fsq)
+	walkedFiles := walkDirectoryTestRunner(mockFiles, nil, nil, t)
 
-	expected := len(fs)
-	actual := len(fsq)
+	expected := mockFiles
+	actual := walkedFiles
 
-	if actual != expected {
-		t.Errorf("expected %d, got %d files", expected, actual)
+	if len(actual) != len(expected) {
+		t.Errorf("expected %d, got %d files", len(expected), len(actual))
+	}
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected %v, got %v files", expected, actual)
 	}
 }
 
 func TestIndexDirectoryWithFilesAcrossFolders(t *testing.T) {
-	fsq := make(chan string, 10)
-
-	fs := fstest.MapFS{
-		"DSC19841.ARW":             {Data: randomBytes(1024)},
-		"DSC19842.ARW":             {Data: randomBytes(2048)},
-		"subfolder-1/DSC19845.ARW": {Data: randomBytes(1024)},
-		"subfolder-1/DSC19846.ARW": {Data: randomBytes(1024)},
-		"subfolder-2/DSC19847.ARW": {Data: randomBytes(1024)},
-		"subfolder-2/DSC19848.ARW": {Data: randomBytes(1024)},
+	mockFiles := []string{
+		"DSC19841.ARW",
+		"DSC19842.ARW",
+		"subfolder-1/DSC19845.ARW",
+		"subfolder-1/DSC19846.ARW",
+		"subfolder-2/DSC19847.ARW",
+		"subfolder-2/DSC19848.ARW",
 	}
 
-	indexer := New()
-	indexer.WalkDirectory(fs, fsq)
+	walkedFiles := walkDirectoryTestRunner(mockFiles, nil, nil, t)
 
-	expected := len(fs)
-	actual := len(fsq)
+	expected := mockFiles
+	actual := walkedFiles
 
-	if actual != expected {
-		t.Errorf("expected %d, got %d files", expected, actual)
+	if len(actual) != len(expected) {
+		t.Errorf("expected %d, got %d files", len(expected), len(actual))
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected %v, got %v files", expected, actual)
 	}
 }
 
 func TestIndexDirectoryWithDirExclusions(t *testing.T) {
-	fsq := make(chan string, 10)
 	exclude_dir := []string{"subfolder-1", "subfolder-2", "subfolder-not-found"}
 	exclude_file := []string{}
 
-	fs := fstest.MapFS{
-		"DSC19841.ARW":             {Data: randomBytes(1024)},
-		"DSC19842.ARW":             {Data: randomBytes(2048)},
-		"subfolder-1/DSC19845.ARW": {Data: randomBytes(1024)},
-		"subfolder-1/DSC19846.ARW": {Data: randomBytes(1024)},
-		"subfolder-2/DSC19847.ARW": {Data: randomBytes(1024)},
-		"subfolder-2/DSC19848.ARW": {Data: randomBytes(1024)},
+	mockFiles := []string{
+		"DSC19841.ARW",
+		"DSC19842.ARW",
+		"subfolder-1/DSC19845.ARW",
+		"subfolder-1/DSC19846.ARW",
+		"subfolder-2/DSC19847.ARW",
+		"subfolder-2/DSC19848.ARW",
 	}
 
-	indexer := NewConfigured(exclude_dir, exclude_file)
-	indexer.WalkDirectory(fs, fsq)
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, t)
 
-	expected := len(fs) - 4
-	actual := len(fsq)
+	expected := []string{
+		mockFiles[0],
+		mockFiles[1],
+	}
 
-	if actual != expected {
-		t.Errorf("expected %d, got %d files", expected, actual)
+	actual := walkedFiles
+
+	if len(actual) != len(expected) {
+		t.Errorf("expected %d, got %d files", len(expected), len(actual))
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected %v, got %v files", expected, actual)
 	}
 }
 
 func TestIndexDirectoryWithFileExclusions(t *testing.T) {
-	fsq := make(chan string, 10)
 	exclude_dir := []string{}
 	exclude_file := []string{"exclude.me"}
 
-	fs := fstest.MapFS{
-		"DSC19841.ARW": {Data: randomBytes(1024)},
-		"DSC19842.ARW": {Data: randomBytes(2048)},
-		"exclude.me":   {Data: randomBytes(1024)},
+	mockFiles := []string{
+		"DSC19841.ARW",
+		"DSC19842.ARW",
+		"exclude.me",
 	}
 
-	indexer := NewConfigured(exclude_dir, exclude_file)
-	indexer.WalkDirectory(fs, fsq)
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, t)
 
-	expected := len(fs) - 1
-	actual := len(fsq)
+	expected := []string{
+		mockFiles[0],
+		mockFiles[1],
+	}
 
-	if actual != expected {
-		t.Errorf("expected %d, got %d files", expected, actual)
+	actual := walkedFiles
+
+	if len(actual) != len(expected) {
+		t.Errorf("expected %d, got %d files", len(expected), len(actual))
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected %v, got %v files", expected, actual)
 	}
 }
 
 func TestIndexDirectoryWithFileAndDirExclusions(t *testing.T) {
-	fsq := make(chan string, 10)
+
 	exclude_dir := []string{"exclude-dir"}
 	exclude_file := []string{"exclude.me"}
 
-	fs := fstest.MapFS{
-		"DSC19841.ARW":            {Data: randomBytes(1024)},
-		"DSC19842.ARW":            {Data: randomBytes(2048)},
-		"exclude.me":              {Data: randomBytes(1024)},
-		"exclude-dir/random.file": {Data: randomBytes(1024)},
+	mockFiles := []string{
+		"DSC19841.ARW",
+		"DSC19842.ARW",
+		"exclude.me",
+		"exclude-dir/random.file",
 	}
 
-	indexer := NewConfigured(exclude_dir, exclude_file)
-	indexer.WalkDirectory(fs, fsq)
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, t)
 
-	expected := len(fs) - 2
-	actual := len(fsq)
-
-	if actual != expected {
-		t.Errorf("expected %d, got %d files", expected, actual)
+	expected := []string{
+		mockFiles[0],
+		mockFiles[1],
 	}
+
+	actual := walkedFiles
+
+	if len(actual) != len(expected) {
+		t.Errorf("expected %d, got %d files", len(expected), len(actual))
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected %v, got %v files", expected, actual)
+	}
+}
+
+func TestIndexDirectoryWhichContainsWindowsSystemFiles(t *testing.T) {
+	exclude_dir := []string{}
+	exclude_file := []string{}
+
+	mockFiles := []string{
+		"DSC19841.ARW",
+		"DSC19842.ARW",
+		"$RECYCLE.BIN/test.txt",
+		"$MFT/random.file",
+	}
+
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, t)
+
+	expected := []string{
+		mockFiles[0],
+		mockFiles[1],
+	}
+
+	actual := walkedFiles
+
+	if len(actual) != len(expected) {
+		t.Errorf("expected %d, got %d files", len(expected), len(actual))
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected %v, got %v files", expected, actual)
+	}
+}
+func channelFileToSliceOfFiles(ch <-chan FileFS) []string {
+	var result []string
+	for f := range ch {
+		result = append(result, f.Path)
+	}
+	return result
+}
+
+func walkDirectoryTestRunner(files []string, excludeDir []string, excludeFiles []string, t *testing.T) []string {
+	fr := "mock://"
+	fs := createMockFS(files)
+	ch := make(chan FileFS)
+
+	go func() {
+		defer close(ch)
+		indexer := NewConfigured(excludeDir, excludeFiles)
+		err := indexer.WalkDirectory(fs, fr, ch)
+		if err != nil {
+			t.Errorf("WalkDirectory returned an error: %v", err)
+		}
+	}()
+
+	return channelFileToSliceOfFiles(ch)
+}
+func createMockFS(files []string) fstest.MapFS {
+	var fs fstest.MapFS = make(map[string]*fstest.MapFile)
+	for _, file := range files {
+		fs[file] = &fstest.MapFile{}
+	}
+	return fs
 }
