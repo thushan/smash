@@ -53,19 +53,19 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan File
 		if err != nil {
 			return err
 		}
+		name := filepath.Clean(d.Name())
 		if d.IsDir() {
-			if config.isSystemFolder(d.Name()) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
+			if config.isSystemFolder(name) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
 				return filepath.SkipDir
 			}
 		} else {
-			filename := filepath.Base(path)
-			if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(filename) {
+			if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(name) {
 				return nil
 			}
 			files <- FileFS{
 				FileSystem: f,
 				Path:       path,
-				Name:       filename,
+				Name:       name,
 				FullName:   filepath.Join(root, path),
 			}
 		}
@@ -74,8 +74,7 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan File
 	return walkErr
 }
 
-func (config *IndexerConfig) isSystemFolder(path string) bool {
-	folder := filepath.Clean(path)
+func (config *IndexerConfig) isSystemFolder(folder string) bool {
 	for _, v := range config.excludeSysFilter {
 		if folder == v {
 			return true
