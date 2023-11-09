@@ -1,6 +1,9 @@
 package smash
 
 import (
+	"encoding/hex"
+	slicer2 "github.com/thushan/smash/pkg/slicer"
+	"hash/fnv"
 	"log"
 	"os"
 
@@ -20,8 +23,6 @@ func (app *App) Run() error {
 	var excludeDirs = app.Flags.ExcludeDir
 	var excludeFiles = app.Flags.ExcludeFile
 
-	var walker = indexer.NewConfigured(excludeDirs, excludeFiles)
-
 	if !app.Flags.Silent {
 		app.printConfiguration()
 	}
@@ -29,6 +30,9 @@ func (app *App) Run() error {
 	app.setMaxThreads()
 
 	files := make(chan indexer.FileFS)
+
+	slicer := slicer2.New(fnv.New128a())
+	walker := indexer.NewConfigured(excludeDirs, excludeFiles)
 
 	go func() {
 		defer close(files)
@@ -45,7 +49,10 @@ func (app *App) Run() error {
 	totalFiles := 0
 	for file := range files {
 		totalFiles++
-		app.printVerbose("Indexed file ", aurora.Blue(file.Path))
+		app.printVerbose("Smashing file ", aurora.Blue(file.Path))
+		hash, _ := slicer.SliceFS(file.FileSystem, file.Path)
+		hashText := hex.EncodeToString(hash[:])
+		app.printVerbose(" Hash: ", aurora.Magenta(hashText))
 	}
 
 	app.printVerbose("Total Files: ", aurora.Blue(totalFiles))
