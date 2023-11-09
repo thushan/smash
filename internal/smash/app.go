@@ -31,6 +31,7 @@ func (app *App) Run() error {
 	files := make(chan indexer.FileFS)
 
 	go func() {
+		defer close(files)
 		for _, location := range locations {
 			app.printVerbose("Indexing location ", aurora.Cyan(location))
 			err := walker.WalkDirectory(os.DirFS(location), location, files)
@@ -39,7 +40,6 @@ func (app *App) Run() error {
 				log.Println("Failed to walk location ", aurora.Magenta(location), " because ", aurora.Red(err))
 			}
 		}
-		defer close(files)
 	}()
 
 	totalFiles := 0

@@ -1,28 +1,11 @@
 package indexer
 
 import (
-	"crypto/rand"
 	"reflect"
 	"testing"
 	"testing/fstest"
 )
 
-func walkDirectoryTestRunner(files []string, excludeDir []string, excludeFiles []string, t *testing.T) []string {
-	fr := "mock://"
-	fs := createMockFS(files)
-	ch := make(chan FileFS)
-
-	go func() {
-		defer close(ch)
-		indexer := NewConfigured(excludeDir, excludeFiles)
-		err := indexer.WalkDirectory(fs, fr, ch)
-		if err != nil {
-			t.Errorf("WalkDirectory returned an error: %v", err)
-		}
-	}()
-
-	return channelFileToSliceOfFiles(ch)
-}
 func TestIndexDirectoryWithFilesInRoot(t *testing.T) {
 	mockFiles := []string{
 		"DSC19841.ARW",
@@ -191,15 +174,26 @@ func channelFileToSliceOfFiles(ch <-chan FileFS) []string {
 	return result
 }
 
+func walkDirectoryTestRunner(files []string, excludeDir []string, excludeFiles []string, t *testing.T) []string {
+	fr := "mock://"
+	fs := createMockFS(files)
+	ch := make(chan FileFS)
+
+	go func() {
+		defer close(ch)
+		indexer := NewConfigured(excludeDir, excludeFiles)
+		err := indexer.WalkDirectory(fs, fr, ch)
+		if err != nil {
+			t.Errorf("WalkDirectory returned an error: %v", err)
+		}
+	}()
+
+	return channelFileToSliceOfFiles(ch)
+}
 func createMockFS(files []string) fstest.MapFS {
 	var fs fstest.MapFS = make(map[string]*fstest.MapFile)
 	for _, file := range files {
 		fs[file] = &fstest.MapFile{}
 	}
 	return fs
-}
-func randomBytes(length int) []byte {
-	buffer := make([]byte, length)
-	_, _ = rand.Read(buffer)
-	return buffer
 }
