@@ -45,7 +45,7 @@ func (app *App) Run() error {
 	totalFiles := 0
 	for file := range files {
 		totalFiles++
-		app.printVerbose("Indexed file ", aurora.Blue(file.Name))
+		app.printVerbose("Indexed file ", aurora.Blue(file.Path))
 	}
 
 	app.printVerbose("Total Files: ", aurora.Blue(totalFiles))

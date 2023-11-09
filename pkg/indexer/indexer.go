@@ -17,6 +17,7 @@ type IndexerConfig struct {
 	dirMatcher  *regexp.Regexp
 	fileMatcher *regexp.Regexp
 
+	excludeSysFilter  []string
 	ExcludeDirFilter  []string
 	ExcludeFileFilter []string
 }
@@ -27,16 +28,24 @@ func New() *IndexerConfig {
 		ExcludeDirFilter:  nil,
 		dirMatcher:        nil,
 		fileMatcher:       nil,
+		excludeSysFilter: []string{
+			"System Volume Information", "$RECYCLE.BIN", "$MFT", /* Windows */
+			".Trash", ".Trash-1000", /* Linux */
+			".Trashes", /* macOS */
+		},
 	}
 }
-
 func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *IndexerConfig {
-	return &IndexerConfig{
-		ExcludeDirFilter:  excludeDirFilter,
-		ExcludeFileFilter: excludeFileFilter,
-		dirMatcher:        regexp.MustCompile(strings.Join(excludeDirFilter, "|")),
-		fileMatcher:       regexp.MustCompile(strings.Join(excludeFileFilter, "|")),
+	indexer := New()
+	if len(excludeFileFilter) > 0 {
+		indexer.ExcludeFileFilter = excludeFileFilter
+		indexer.fileMatcher = regexp.MustCompile(strings.Join(excludeFileFilter, "|"))
 	}
+	if len(excludeDirFilter) > 0 {
+		indexer.ExcludeDirFilter = excludeDirFilter
+		indexer.dirMatcher = regexp.MustCompile(strings.Join(excludeDirFilter, "|"))
+	}
+	return indexer
 }
 
 func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan FileFS) error {
@@ -45,7 +54,7 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan File
 			return err
 		}
 		if d.IsDir() {
-			if isSystemFolder(d.Name()) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
+			if config.isSystemFolder(d.Name()) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
 				return filepath.SkipDir
 			}
 		} else {
@@ -65,14 +74,9 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan File
 	return walkErr
 }
 
-func isSystemFolder(path string) bool {
+func (config *IndexerConfig) isSystemFolder(path string) bool {
 	folder := filepath.Clean(path)
-	skipDirs := []string{
-		"System Volume Information", "$RECYCLE.BIN", "$MFT", /* Windows */
-		".Trash", ".Trash-1000", /* Linux */
-		".Trashes", /* macOS */
-	}
-	for _, v := range skipDirs {
+	for _, v := range config.excludeSysFilter {
 		if folder == v {
 			return true
 		}
