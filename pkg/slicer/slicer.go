@@ -10,11 +10,12 @@ import (
 )
 
 type Slicer struct {
-	algorithm hash.Hash
-	sliceSize uint64
-	threshold uint64
-	slices    int
-	buffer    []byte
+	algorithm    hash.Hash
+	sliceSize    uint64
+	threshold    uint64
+	slices       int
+	buffer       []byte
+	defaultBytes [HashSize]byte
 }
 type MetaSlice struct {
 	Size uint64
@@ -30,14 +31,15 @@ func New(algorithm hash.Hash) Slicer {
 }
 func NewConfigured(algorithm hash.Hash, slices int, size, maxSlice uint64) Slicer {
 	return Slicer{
-		slices:    slices,
-		sliceSize: size,
-		threshold: maxSlice,
-		algorithm: algorithm,
-		buffer:    make([]byte, size),
+		slices:       slices,
+		sliceSize:    size,
+		threshold:    maxSlice,
+		algorithm:    algorithm,
+		buffer:       make([]byte, size),
+		defaultBytes: [HashSize]byte{},
 	}
 }
-func (slicer *Slicer) SliceFS(fs fs.FS, name string) ([HashSize]byte, error) {
+func (slicer *Slicer) SliceFS(fs fs.FS, name string) ([HashSize]byte, uint64, error) {
 
 	f, err := fs.Open(name)
 
@@ -48,20 +50,21 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string) ([HashSize]byte, error) {
 	}()
 
 	if err != nil {
-		return [HashSize]byte{}, nil
+		return slicer.defaultBytes, 0, nil
 	}
 
 	fi, err := f.Stat()
 
 	if err != nil {
-		return [HashSize]byte{}, nil
+		return slicer.defaultBytes, 0, nil
 	}
+	size := fi.Size()
 
 	if fr, ok := f.(io.ReaderAt); ok {
-		sr := io.NewSectionReader(fr, 0, fi.Size())
-		return slicer.Slice(sr, false), nil
+		sr := io.NewSectionReader(fr, 0, size)
+		return slicer.Slice(sr, false), uint64(size), nil
 	} else {
-		return [HashSize]byte{}, nil
+		return slicer.defaultBytes, uint64(size), nil
 	}
 }
 func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool) [HashSize]byte {
