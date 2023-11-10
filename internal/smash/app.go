@@ -2,15 +2,16 @@ package smash
 
 import (
 	"encoding/hex"
-	"github.com/dustin/go-humanize"
-	"github.com/thushan/smash/pkg/slicer"
-	"hash/fnv"
 	"log"
 	"os"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/dustin/go-humanize"
+	"github.com/thushan/smash/internal/algorithms"
+	"github.com/thushan/smash/pkg/slicer"
 
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/internal/app"
@@ -37,7 +38,7 @@ func (app *App) Run() error {
 
 	files := make(chan indexer.FileFS)
 
-	sl := slicer.New(fnv.New128a())
+	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
 	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
 
 	go func() {
@@ -67,7 +68,7 @@ func (app *App) Run() error {
 				startTime := time.Now().UnixMilli()
 				hash, size, _ := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
 				elapsedMs := time.Now().UnixMilli() - startTime
-				hashText := hex.EncodeToString(hash[:])
+				hashText := hex.EncodeToString(hash)
 				app.printVerbose("Smashed: ", aurora.Magenta(file.Path), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
 				app.printVerbose("   Size: ", aurora.Cyan(humanize.Bytes(size)))
 				app.printVerbose("   Hash: ", aurora.Blue(hashText))

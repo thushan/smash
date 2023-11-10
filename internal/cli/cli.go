@@ -5,6 +5,8 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/thushan/smash/internal/algorithms"
+
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/spf13/cobra"
 	"github.com/thediveo/enumflag/v2"
@@ -27,9 +29,9 @@ var (
 func init() {
 	af = &app.Flags{}
 	rootCmd.PersistentFlags().Var(
-		enumflag.New(&af.Algorithm, "algorithm", app.HashAlgorithms, enumflag.EnumCaseInsensitive),
+		enumflag.New(&af.Algorithm, "algorithm", algorithms.HashAlgorithms, enumflag.EnumCaseInsensitive),
 		"algorithm",
-		"Algorithm to use, can be 'xxhash' (default)")
+		"Algorithm to use, can be 'xxhash' (default), 'fnv128', 'fnv128a'")
 	flags := rootCmd.Flags()
 	flags.StringSliceVarP(&af.Base, "base", "", nil, "Base directories to use for comparison. Eg. --base=/c/dos,/c/run/dos/")
 	flags.StringSliceVarP(&af.ExcludeFile, "exclude-file", "", nil, "Files to exclude separated by comma. Eg. --exclude-file=.gitignore,*.csv")

@@ -2,44 +2,45 @@ package slicer
 
 import (
 	"encoding/gob"
-	"github.com/logrusorgru/aurora/v3"
-	"hash"
 	"io"
 	"io/fs"
 	"log"
+
+	"github.com/logrusorgru/aurora/v3"
+	"github.com/thushan/smash/internal/algorithms"
 )
 
 type Slicer struct {
-	algorithm    hash.Hash
+	buffer       []byte
+	defaultBytes []byte
+	slices       int
 	sliceSize    uint64
 	threshold    uint64
-	slices       int
-	buffer       []byte
-	defaultBytes [HashSize]byte
+	algorithm    algorithms.Algorithm
 }
+
 type MetaSlice struct {
 	Size uint64
 }
 
-const HashSize = 16
 const DefaultSlices = 8
 const DefaultSliceSize = 8 * 1024
 const DefaultThreshold = 100 * 1024
 
-func New(algorithm hash.Hash) Slicer {
+func New(algorithm algorithms.Algorithm) Slicer {
 	return NewConfigured(algorithm, DefaultSlices, DefaultSliceSize, DefaultThreshold)
 }
-func NewConfigured(algorithm hash.Hash, slices int, size, maxSlice uint64) Slicer {
+func NewConfigured(algorithm algorithms.Algorithm, slices int, size, maxSlice uint64) Slicer {
 	return Slicer{
 		slices:       slices,
 		sliceSize:    size,
 		threshold:    maxSlice,
 		algorithm:    algorithm,
 		buffer:       make([]byte, size),
-		defaultBytes: [HashSize]byte{},
+		defaultBytes: []byte{},
 	}
 }
-func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) ([HashSize]byte, uint64, error) {
+func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) ([]byte, uint64, error) {
 
 	f, err := fs.Open(name)
 
@@ -50,24 +51,25 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) ([Hash
 	}()
 
 	if err != nil {
-		return slicer.defaultBytes, 0, nil
+		return slicer.defaultBytes, 0, err
 	}
 
 	fi, err := f.Stat()
 
 	if err != nil {
-		return slicer.defaultBytes, 0, nil
+		return slicer.defaultBytes, 0, err
 	}
 	size := fi.Size()
 
 	if fr, ok := f.(io.ReaderAt); ok {
 		sr := io.NewSectionReader(fr, 0, size)
-		return slicer.Slice(sr, disableSlicing), uint64(size), nil
+		slice, err := slicer.Slice(sr, disableSlicing)
+		return slice, uint64(size), err
 	} else {
 		return slicer.defaultBytes, uint64(size), nil
 	}
 }
-func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool) [HashSize]byte {
+func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool) ([]byte, error) {
 
 	/*
 		Check the bytes are within the threshold for a full blob hash.
@@ -91,23 +93,23 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool) [HashSize
 
 	size := uint64(sr.Size())
 	meta := MetaSlice{Size: size}
-
-	algo := slicer.algorithm
+	algo := slicer.algorithm.New()
 	algo.Reset()
 
 	// TODO: Detect text documents and force full hash
 	if size < slicer.threshold || slicer.slices <= 0 || disableSlicing /* force full hashes */ {
-		sliceFull := make([]byte, size)
-		sr.Read(sliceFull)
-		algo.Write(sliceFull)
+		if _, err := io.Copy(algo, sr); err != nil {
+			return slicer.defaultBytes, err
+		}
 	} else {
-		offset := int64(0)
 		slice := slicer.buffer
 		midSize := size - (slicer.sliceSize * 2)
 		sliceFirstSize := int64(midSize / uint64(slicer.slices+1))
 
+		offset := int64(0)
+
 		// head
-		sr.Seek(offset /* 0 */, io.SeekStart)
+		sr.Seek(offset, io.SeekStart)
 		sr.Read(slice)
 		algo.Write(slice)
 
@@ -124,13 +126,10 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool) [HashSize
 		sr.Seek(tailOffset, io.SeekEnd)
 		sr.Read(slice)
 		algo.Write(slice)
+
+		// meta
+		enc := gob.NewEncoder(algo)
+		enc.Encode(meta)
 	}
-
-	// meta
-	enc := gob.NewEncoder(algo)
-	enc.Encode(meta)
-
-	var hashBytes [HashSize]byte
-	copy(hashBytes[:], algo.Sum(nil))
-	return hashBytes
+	return algo.Sum(nil), nil
 }
