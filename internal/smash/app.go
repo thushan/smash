@@ -25,10 +25,11 @@ type App struct {
 }
 
 func (app *App) Run() error {
+
 	var locations = app.Locations
 	var excludeDirs = app.Flags.ExcludeDir
 	var excludeFiles = app.Flags.ExcludeFile
-	var disableSlicing = true
+	var disableSlicing = app.Flags.DisableSlicing
 
 	if !app.Flags.Silent {
 		app.printConfiguration()

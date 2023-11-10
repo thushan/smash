@@ -1,11 +1,10 @@
 package cli
 
 import (
+	"github.com/thushan/smash/internal/algorithms"
 	"log"
 	"os"
 	"runtime"
-
-	"github.com/thushan/smash/internal/algorithms"
 
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/spf13/cobra"
@@ -38,6 +37,7 @@ func init() {
 	flags.StringSliceVarP(&af.ExcludeDir, "exclude-dir", "", nil, "Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea")
 	flags.IntVarP(&af.MaxThreads, "max-threads", "p", runtime.NumCPU(), "Maximum threads to utilise.")
 	flags.IntVarP(&af.MaxWorkers, "max-workers", "w", bestMaxWorkers(), "Maximum workers to utilise when smashing.")
+	flags.BoolVarP(&af.DisableSlicing, "disable-slicing", "", false, "Disable slicing (hashes full file).")
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode.")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode.")
 }
