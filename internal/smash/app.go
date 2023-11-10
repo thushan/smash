@@ -65,14 +65,23 @@ func (app *App) Run() error {
 		go func() {
 			defer wg.Done()
 			for file := range files {
+
 				atomic.AddInt32(&totalFiles, 1)
+
 				startTime := time.Now().UnixMilli()
-				hash, size, _ := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
+				stats, err := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
 				elapsedMs := time.Now().UnixMilli() - startTime
-				hashText := hex.EncodeToString(hash)
+
 				app.printVerbose("Smashed: ", aurora.Magenta(file.Path), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
-				app.printVerbose("   Size: ", aurora.Cyan(humanize.Bytes(size)))
-				app.printVerbose("   Hash: ", aurora.Blue(hashText))
+
+				if err != nil {
+					app.printVerbose(" ERR:", aurora.Red(err))
+				} else {
+					hashText := hex.EncodeToString(stats.Hash)
+					app.printVerbose("   Size: ", aurora.Cyan(humanize.Bytes(stats.FileSize)))
+					app.printVerbose("   Full: ", aurora.Blue(stats.HashedFullFile))
+					app.printVerbose("   Hash: ", aurora.Blue(hashText))
+				}
 			}
 		}()
 	}

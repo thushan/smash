@@ -1,10 +1,11 @@
 package cli
 
 import (
-	"github.com/thushan/smash/internal/algorithms"
 	"log"
 	"os"
 	"runtime"
+
+	"github.com/thushan/smash/internal/algorithms"
 
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/spf13/cobra"
