@@ -39,7 +39,7 @@ func NewConfigured(algorithm hash.Hash, slices int, size, maxSlice uint64) Slice
 		defaultBytes: [HashSize]byte{},
 	}
 }
-func (slicer *Slicer) SliceFS(fs fs.FS, name string) ([HashSize]byte, uint64, error) {
+func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) ([HashSize]byte, uint64, error) {
 
 	f, err := fs.Open(name)
 
@@ -62,7 +62,7 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string) ([HashSize]byte, uint64, er
 
 	if fr, ok := f.(io.ReaderAt); ok {
 		sr := io.NewSectionReader(fr, 0, size)
-		return slicer.Slice(sr, false), uint64(size), nil
+		return slicer.Slice(sr, disableSlicing), uint64(size), nil
 	} else {
 		return slicer.defaultBytes, uint64(size), nil
 	}

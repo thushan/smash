@@ -11,8 +11,9 @@ import (
 func (app *App) printConfiguration() {
 	f := app.Flags
 	log.Println(Bold(Cyan("Configuration")))
-	log.Println(Bold("Max Threads: "), Magenta(f.MaxThreads))
 	log.Println(Bold("Locations:   "), Magenta(strings.Join(app.Locations, ", ")))
+	log.Println(Bold("Max Threads: "), Magenta(f.MaxThreads))
+	log.Println(Bold("Max Workers: "), Magenta(f.MaxWorkers))
 	if len(f.ExcludeDir) > 0 || len(f.ExcludeFile) > 0 {
 		log.Println(Bold("Excluded"))
 		if len(f.ExcludeDir) > 0 {

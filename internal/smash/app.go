@@ -7,8 +7,10 @@ import (
 	"hash/fnv"
 	"log"
 	"os"
+	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/internal/app"
@@ -25,6 +27,7 @@ func (app *App) Run() error {
 	var locations = app.Locations
 	var excludeDirs = app.Flags.ExcludeDir
 	var excludeFiles = app.Flags.ExcludeFile
+	var disableSlicing = true
 
 	if !app.Flags.Silent {
 		app.printConfiguration()
@@ -49,20 +52,26 @@ func (app *App) Run() error {
 		}
 	}()
 
+	/**
+	 * Good times: https://go-review.googlesource.com/c/go/+/293349
+	 */
+
 	totalFiles := int32(0)
 	var wg sync.WaitGroup
 	for i := 0; i < app.Flags.MaxWorkers; i++ {
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			for file := range files {
 				atomic.AddInt32(&totalFiles, 1)
-				hash, size, _ := sl.SliceFS(file.FileSystem, file.Path)
+				startTime := time.Now().UnixMilli()
+				hash, size, _ := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
+				elapsedMs := time.Now().UnixMilli() - startTime
 				hashText := hex.EncodeToString(hash[:])
-				app.printVerbose("Smashed: ", aurora.Blue(file.Path))
+				app.printVerbose("Smashed: ", aurora.Magenta(file.Path), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
 				app.printVerbose("   Size: ", aurora.Cyan(humanize.Bytes(size)))
-				app.printVerbose("   Hash: ", aurora.Magenta(hashText))
+				app.printVerbose("   Hash: ", aurora.Blue(hashText))
 			}
-			wg.Done()
 		}()
 	}
 
