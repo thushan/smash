@@ -35,10 +35,18 @@ func init() {
 	flags.StringSliceVarP(&af.ExcludeFile, "exclude-file", "", nil, "Files to exclude separated by comma. Eg. --exclude-file=.gitignore,*.csv")
 	flags.StringSliceVarP(&af.ExcludeDir, "exclude-dir", "", nil, "Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea")
 	flags.IntVarP(&af.MaxThreads, "max-threads", "p", runtime.NumCPU(), "Maximum threads to utilise.")
+	flags.IntVarP(&af.MaxWorkers, "max-workers", "w", bestMaxWorkers(), "Maximum workers to utilise when smashing.")
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode.")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode.")
 }
-
+func bestMaxWorkers() int {
+	cpus := runtime.NumCPU()
+	if cpus < 6 {
+		return 2
+	} else {
+		return cpus / 2
+	}
+}
 func Main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	app.PrintVersionInfo(false)

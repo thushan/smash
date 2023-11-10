@@ -6,6 +6,7 @@ type Flags struct {
 	ExcludeFile []string `yaml:"exclude-file"`
 	Algorithm   int      `yaml:"algorithm"`
 	MaxThreads  int      `yaml:"max-threads"`
+	MaxWorkers  int      `yaml:"max-workers"`
 	Silent      bool     `yaml:"silent"`
 	Verbose     bool     `yaml:"verbose"`
 }
