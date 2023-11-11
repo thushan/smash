@@ -1,10 +1,10 @@
 # smash
 
 [![CI](https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/ci.yml)
-[![Lint](https://github.com/thushan/smash/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/lint.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/thushan/smash)](https://goreportcard.com/report/github.com/thushan/smash)
 [![Maintainability](https://api.codeclimate.com/v1/badges/944834a9d91128fa690d/maintainability)](https://codeclimate.com/github/thushan/smash/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/944834a9d91128fa690d/test_coverage)](https://codeclimate.com/github/thushan/smash/test_coverage)
+
 [![GitHub license](https://img.shields.io/github/license/thushan/smash)](https://github.com/thushan/smash/blob/master/LICENSE)
 [![Tag](https://img.shields.io/github/v/tag/thushan/smash?sort=semver)](https://github.com/thushan/smash/tags)
 [![GitHub release](https://img.shields.io/github/release/thushan/smash)](https://github.com/thushan/smash/releases/latest)
@@ -13,21 +13,31 @@ Tool to `smash` through to find duplicate files efficiently by slicing a file (o
 and computing a hash using [xxhash](https://xxhash.com/) or another algorithm. Algorithms used are non-cryptographic and are utilised
 for its speed & efficiency over other attributes. You can read [further about xxhash](https://xxhash.com/).
 
-The name comes from a prototype tool called SmartHash (written many years ago in C+ASM that's now lost in source & too hard to modernise) that operated on a similar concept.
+<p align="center">
+    <a href="https://asciinema.org/a/620493"><img src="docs/artefacts/smash-v0.0.1-demo.png"></a><br/>
+    <small>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code>. Watch the <a href="https://asciinema.org/a/620493">🍿 full demo</a> at <a href="https://asciinema.org/">asciinema</a>.</small>
+</p>
 
-It is ideally suited to finding duplicates on bandwidth constrained devices (or networks) or very large files but is ridiculously fast on SSDs/NVMe's where you want to quickly determine duplicate files.
+`smash` has a read-only view of the underlying filesystem and only reports duplicates - currently, we do not remove 
+duplicates and instead leave that for you to do via the output.
+
+The name comes from a prototype tool called SmartHash (written many years ago in C/ASM that's now lost in source & 
+too hard to modernise) which operated on a similar concept (with CRC32 then later MD5).
+
+It is ideally suited to finding duplicates on bandwidth constrained devices (or networks) or very large files but 
+it's ludicrously fast on SSDs/NVMe's where you want to quickly determine duplicate files.
 
 # Installation
 
 [![Operating Systems](https://img.shields.io/badge/platform-windows%20%7C%20macos%20%7C%20linux%20%7C%20freebsd-informational?style=for-the-badge)](https://github.com/thushan/smash/releases/latest)
 
+You can download the latest binaries from the [Releases](https://github.com/thushan/smash/releases) page and extract & use on your chosen operating system. We
+currently only support 64-bit binaries.
 
-You can download the latest binaries from the [Releases](https://github.com/thushan/smash/releases) page and extract & use on your chosen operating system.
-
-Alternatively, you can clone the repo and compile it from source - go will download dependencies.
+Alternatively, you can install it via go:
 
 ```bash
-$ go run .
+$ go install github.com/thushan/smash@latest
 ```
 
 `smash` has been developed on Linux (Pop!_OS & Fedora), tested on macOS, FreeBSD & Windows.
