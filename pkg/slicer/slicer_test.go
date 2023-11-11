@@ -1,4 +1,4 @@
-//nolint
+// nolint
 package slicer
 
 import (
@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"github.com/thushan/smash/internal/algorithms"
 	"io"
+	"io/fs"
 	"os"
 	"reflect"
 	"strings"
@@ -67,6 +68,22 @@ func TestSlice_New_NoOffsetMapWith1KbBlob(t *testing.T) {
 		t.Errorf("offset not expected for small file, got %v", len(actual))
 	}
 }
+func TestSliceFS_New_FileSystemTestFile_Test1mb_WithSlicing(t *testing.T) {
+	fsys := os.DirFS("./artefacts")
+	filename := "test.1mb"
+	algorithm := algorithms.Xxhash
+	expected := "bb83f43630ee546f"
+	disableSlicing := false
+	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, disableSlicing, expected, t)
+}
+func TestSliceFS_New_FileSystemTestFile_TestManipulated1mb_WithSlicing(t *testing.T) {
+	fsys := os.DirFS("./artefacts")
+	filename := "test-manipulated.1mb"
+	algorithm := algorithms.Xxhash
+	expected := "4f595576799edcd9"
+	disableSlicing := false
+	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, disableSlicing, expected, t)
+}
 func TestSlice_New_FileSystemTestFile_Test1mb_WithSlicing(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "bb83f43630ee546f"
@@ -90,6 +107,26 @@ func TestSlice_New_FileSystemTestFile_TestManipulated1mb_WithoutSlicing(t *testi
 	expected := "4a1960f16a88960c"
 	disableSlicing := true
 	runHashCheckTestsForFileSystemFile("./artefacts/test-manipulated.1mb", algorithm, disableSlicing, expected, t)
+}
+func runHashCheckTestsForFileSystemFile_WithSliceFS(fs fs.FS, filename string, algorithm algorithms.Algorithm, disableSlicing bool, expected string, t *testing.T) {
+
+	slicer := New(algorithm)
+
+	if stats, err := slicer.SliceFS(fs, filename, disableSlicing); err != nil {
+		t.Errorf("Unexpected Slicer error %v", err)
+	} else {
+
+		actual := hex.EncodeToString(stats.Hash)
+
+		if len(expected) != len(actual) {
+			t.Errorf("hash length expected %d, got %d", len(expected), len(actual))
+		}
+
+		if !strings.EqualFold(actual, expected) {
+			t.Errorf("expected hash %s, got %s for %s", expected, actual, filename)
+		}
+	}
+
 }
 func runHashCheckTestsForFileSystemFile(filename string, algorithm algorithms.Algorithm, disableSlicing bool, expected string, t *testing.T) {
 	if binary, err := os.ReadFile(filename); err != nil {
