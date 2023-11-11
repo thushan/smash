@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -38,9 +37,18 @@ type App struct {
 	Args      []string
 	Locations []string
 }
+type RunSummary struct {
+	DuplicateFileSizeF string
+	DuplicateFileSize  uint64
+	TotalFiles         int64
+	ElapsedTime        int64
+	UniqueFiles        int64
+	DuplicateFiles     int64
+}
 type SmashFile struct {
 	Filename    string
 	Hash        string
+	FileSizeF   string
 	FileSize    uint64
 	ElapsedTime int64
 	FullHash    bool
@@ -52,6 +60,11 @@ func (app *App) Run() error {
 	var excludeDirs = app.Flags.ExcludeDir
 	var excludeFiles = app.Flags.ExcludeFile
 	var disableSlicing = app.Flags.DisableSlicing
+
+	/**
+	 * Good times: https://go-review.googlesource.com/c/go/+/293349
+	 */
+	appStartTime := time.Now().UnixMilli()
 
 	if !app.Flags.Silent {
 		PrintVersionInfo(false)
@@ -78,60 +91,62 @@ func (app *App) Run() error {
 		}
 	}()
 
-	/**
-	 * Good times: https://go-review.googlesource.com/c/go/+/293349
-	 */
-
-	totalFiles := int32(0)
+	totalFiles := int64(0)
 	var wg sync.WaitGroup
 	for i := 0; i < app.Flags.MaxWorkers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for file := range files {
-				smashedFilename := resolveFilename(file)
+				sf := resolveFilename(file)
 
-				atomic.AddInt32(&totalFiles, 1)
+				atomic.AddInt64(&totalFiles, 1)
 
 				startTime := time.Now().UnixMilli()
 				stats, err := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
 				elapsedMs := time.Now().UnixMilli() - startTime
 
-				app.printVerbose("Smashed: ", aurora.Magenta(smashedFilename), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
-
 				if err != nil {
 					app.printVerbose(" ERR: ", aurora.Red(err))
 				} else {
-					app.sumariseSmashedFile(cache, stats, smashedFilename, elapsedMs)
+					app.summariseSmashedFile(cache, stats, sf, elapsedMs)
 				}
 			}
 		}()
 	}
 	wg.Wait()
-	app.printSmashHits(cache)
-	log.Println("Total Files: ", aurora.Blue(totalFiles))
-	log.Println("Total Unique: ", aurora.Blue(cache.Len()))
+
+	summary := RunSummary{
+		TotalFiles:     totalFiles,
+		UniqueFiles:    int64(cache.Len()),
+		DuplicateFiles: totalFiles - int64(cache.Len()),
+		ElapsedTime:    time.Now().UnixMilli() - appStartTime,
+	}
+
+	totalDuplicateSize := app.printSmashHits(cache)
+	summary.DuplicateFileSize = totalDuplicateSize
+	summary.DuplicateFileSizeF = humanize.Bytes(totalDuplicateSize)
+
+	app.printSmashRunSummary(summary)
+
 	return nil
 }
 
-func (app *App) sumariseSmashedFile(cache *haxmap.Map[string, []SmashFile], stats slicer.SlicerStats, filename string, ms int64) {
-	smashedHash := hex.EncodeToString(stats.Hash)
-	smashedFile := SmashFile{
+func (app *App) summariseSmashedFile(cache *haxmap.Map[string, []SmashFile], stats slicer.SlicerStats, filename string, ms int64) {
+	sf := SmashFile{
 		Filename:    filename,
-		Hash:        smashedHash,
+		Hash:        hex.EncodeToString(stats.Hash),
 		FileSize:    stats.FileSize,
-		FullHash:    false,
+		FullHash:    stats.HashedFullFile,
+		FileSizeF:   humanize.Bytes(stats.FileSize),
 		ElapsedTime: ms,
 	}
-	if v, existing := cache.Get(smashedHash); existing {
-		v = append(v, smashedFile)
-		cache.Set(smashedHash, v)
+	if v, existing := cache.Get(sf.Hash); existing {
+		v = append(v, sf)
+		cache.Set(sf.Hash, v)
 	} else {
-		cache.Set(smashedHash, []SmashFile{smashedFile})
+		cache.Set(sf.Hash, []SmashFile{sf})
 	}
-	app.printVerbose("   Size: ", aurora.Cyan(humanize.Bytes(stats.FileSize)))
-	app.printVerbose("   Full: ", aurora.Blue(stats.HashedFullFile))
-	app.printVerbose("   Hash: ", aurora.Blue(smashedHash))
 }
 
 func resolveFilename(file indexer.FileFS) string {
