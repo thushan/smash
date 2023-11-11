@@ -5,14 +5,18 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/thushan/smash/internal/algorithms"
+
 	. "github.com/logrusorgru/aurora/v3"
 )
 
 func (app *App) printConfiguration() {
 	f := app.Flags
 	log.Println(Bold(Cyan("Configuration")))
-	log.Println(Bold("Max Threads: "), Magenta(f.MaxThreads))
 	log.Println(Bold("Locations:   "), Magenta(strings.Join(app.Locations, ", ")))
+	log.Println(Bold("Algorithm:   "), Magenta(algorithms.Algorithm(f.Algorithm)))
+	log.Println(Bold("Max Workers: "), Magenta(f.MaxWorkers))
+	log.Println(Bold("Max Threads: "), Magenta(f.MaxThreads))
 	if len(f.ExcludeDir) > 0 || len(f.ExcludeFile) > 0 {
 		log.Println(Bold("Excluded"))
 		if len(f.ExcludeDir) > 0 {
