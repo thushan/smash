@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/alphadose/haxmap v1.3.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

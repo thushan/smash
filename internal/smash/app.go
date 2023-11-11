@@ -2,6 +2,7 @@ package smash
 
 import (
 	"encoding/hex"
+	"github.com/alphadose/haxmap"
 	"log"
 	"os"
 	"path/filepath"
@@ -51,6 +52,7 @@ func (app *App) Run() error {
 	app.setMaxThreads()
 
 	files := make(chan indexer.FileFS)
+	cache := haxmap.New[string, []string]()
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
 	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
@@ -88,9 +90,12 @@ func (app *App) Run() error {
 				app.printVerbose("Smashed: ", aurora.Magenta(resolveFilename(file)), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
 
 				if err != nil {
-					app.printVerbose(" ERR:", aurora.Red(err))
+					app.printVerbose(" ERR: ", aurora.Red(err))
 				} else {
 					hashText := hex.EncodeToString(stats.Hash)
+					if v, existing := cache.GetOrSet(hashText, []string{stats.Filename}); existing {
+						v = append(v, stats.Filename)
+					}
 					app.printVerbose("   Size: ", aurora.Cyan(humanize.Bytes(stats.FileSize)))
 					app.printVerbose("   Full: ", aurora.Blue(stats.HashedFullFile))
 					app.printVerbose("   Hash: ", aurora.Blue(hashText))
@@ -101,6 +106,7 @@ func (app *App) Run() error {
 
 	wg.Wait()
 	log.Println("Total Files: ", aurora.Blue(totalFiles))
+	log.Println("Total Unique: ", aurora.Blue(cache.Len()))
 	return nil
 }
 
