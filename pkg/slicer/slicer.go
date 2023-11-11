@@ -21,16 +21,16 @@ type Slicer struct {
 }
 
 type SlicerStats struct {
-	SliceSize      uint64
-	FileSize       uint64
-	Slices         int
+	SliceOffsets   map[int]int64
+	Hash           []byte
+	Filename       string
 	ReaderSize     int64
 	MidSize        int64
 	SliceOffset    int64
+	SliceSize      uint64
+	FileSize       uint64
+	Slices         int32
 	HashedFullFile bool
-	Hash           []byte
-	Filename       string
-	SliceOffsets   map[int]int64
 }
 
 type MetaSlice struct {

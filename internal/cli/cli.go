@@ -10,24 +10,23 @@ import (
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/spf13/cobra"
 	"github.com/thediveo/enumflag/v2"
-	"github.com/thushan/smash/internal/app"
 	"github.com/thushan/smash/internal/smash"
 )
 
 var (
-	af      *app.Flags
+	af      *smash.Flags
 	rootCmd = &cobra.Command{
 		Use:          "smash [flags] [locations-to-smash]",
 		Short:        "Find duplicates fast!",
 		Long:         "",
-		Version:      app.Version,
+		Version:      smash.Version,
 		SilenceUsage: true,
 		RunE:         runE,
 	}
 )
 
 func init() {
-	af = &app.Flags{}
+	af = &smash.Flags{}
 	rootCmd.PersistentFlags().Var(
 		enumflag.New(&af.Algorithm, "algorithm", algorithms.HashAlgorithms, enumflag.EnumCaseInsensitive),
 		"algorithm",
@@ -52,7 +51,6 @@ func bestMaxWorkers() int {
 }
 func Main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
-	app.PrintVersionInfo(false)
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

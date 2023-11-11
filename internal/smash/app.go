@@ -14,12 +14,23 @@ import (
 	"github.com/thushan/smash/pkg/slicer"
 
 	"github.com/logrusorgru/aurora/v3"
-	"github.com/thushan/smash/internal/app"
 	"github.com/thushan/smash/pkg/indexer"
 )
 
+type Flags struct {
+	Base           []string `yaml:"base"`
+	ExcludeDir     []string `yaml:"exclude-dir"`
+	ExcludeFile    []string `yaml:"exclude-file"`
+	Algorithm      int      `yaml:"algorithm"`
+	MaxThreads     int      `yaml:"max-threads"`
+	MaxWorkers     int      `yaml:"max-workers"`
+	DisableSlicing bool     `yaml:"disable-slicing"`
+	Silent         bool     `yaml:"silent"`
+	Verbose        bool     `yaml:"verbose"`
+}
+
 type App struct {
-	Flags     *app.Flags
+	Flags     *Flags
 	Args      []string
 	Locations []string
 }
@@ -32,6 +43,7 @@ func (app *App) Run() error {
 	var disableSlicing = app.Flags.DisableSlicing
 
 	if !app.Flags.Silent {
+		PrintVersionInfo(false)
 		app.printConfiguration()
 	}
 
@@ -87,6 +99,6 @@ func (app *App) Run() error {
 	}
 
 	wg.Wait()
-	app.printVerbose("Total Files: ", aurora.Blue(totalFiles))
+	log.Println("Total Files: ", aurora.Blue(totalFiles))
 	return nil
 }

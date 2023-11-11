@@ -30,10 +30,10 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X "github.com/thushan/smash/internal/app.Version=v{{.Version}}"
-      - -X "github.com/thushan/smash/internal/app.Commit={{.Commit}}"
-      - -X "github.com/thushan/smash/internal/app.Date={{.CommitDate}}"
-      - -X "github.com/thushan/smash/internal/app.User=goreleaser"
+      - -X "github.com/thushan/smash/internal/smash.Version=v{{.Version}}"
+      - -X "github.com/thushan/smash/internal/smash.Commit={{.Commit}}"
+      - -X "github.com/thushan/smash/internal/smash.Date={{.CommitDate}}"
+      - -X "github.com/thushan/smash/internal/smash.User=goreleaser"
 checksum:
   name_template: "checksums.txt"
 
