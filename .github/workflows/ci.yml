@@ -26,4 +26,3 @@ jobs:
     - name: Run Tests
       run: |
         go test -v -race -covermode atomic -coverprofile=covprofile ./..
-      working-directory: src/github.com/thushan/smash
