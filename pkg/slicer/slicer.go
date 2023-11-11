@@ -5,9 +5,7 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"log"
 
-	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/internal/algorithms"
 )
 
@@ -59,12 +57,7 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) (Slice
 
 	stats := SlicerStats{Hash: slicer.defaultBytes, Filename: name}
 	f, err := fs.Open(name)
-
-	defer func() {
-		if err = f.Close(); err != nil {
-			log.Fatal(name, " failed to close because of ", aurora.Red(err))
-		}
-	}()
+	defer f.Close()
 
 	if err != nil {
 		return stats, err
@@ -84,13 +77,13 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) (Slice
 
 	if fr, ok := f.(io.ReaderAt); ok {
 		sr := io.NewSectionReader(fr, 0, size)
-		err := slicer.Slice(sr, disableSlicing, &stats)
+		err := slicer.Slice(sr, disableSlicing, false, &stats)
 		return stats, err
 	} else {
 		return stats, errors.New("the File System does not support readers")
 	}
 }
-func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, stat *SlicerStats) error {
+func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, disableMeta bool, stat *SlicerStats) error {
 
 	/*
 		Check the bytes are within the threshold for a full blob hash.
@@ -184,10 +177,12 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, stat *Sli
 		}
 		algo.Write(slice)
 
-		// meta
-		enc := gob.NewEncoder(algo)
-		if err := enc.Encode(meta); err != nil {
-			return err
+		// metadata
+		if !disableMeta {
+			enc := gob.NewEncoder(algo)
+			if err := enc.Encode(meta); err != nil {
+				return err
+			}
 		}
 	}
 	stat.Hash = algo.Sum(nil)

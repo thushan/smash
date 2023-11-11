@@ -10,9 +10,9 @@ import (
 type Algorithm int
 
 const (
-	xxhash Algorithm = iota
-	fnv128
-	fnv128a
+	Xxhash Algorithm = iota
+	Fnv128
+	Fnv128a
 )
 
 // HashAlgorithms Used by CLI for validating --algorithm flag
@@ -25,11 +25,11 @@ var HashAlgorithms = map[int][]string{
 // New Instantiates a new representation of the Hash Algorithm.
 func (a Algorithm) New() hash.Hash {
 	switch a {
-	case xxhash:
+	case Xxhash:
 		return cxHash.New()
-	case fnv128:
+	case Fnv128:
 		return fnvh.New128()
-	case fnv128a:
+	case Fnv128a:
 		return fnvh.New128a()
 	}
 	return fnvh.New128a()
