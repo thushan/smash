@@ -1,9 +1,9 @@
 # smash
 
+[![CI](https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/ci.yml)
+[![Lint](https://github.com/thushan/smash/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/lint.yml)
 [![GitHub license](https://img.shields.io/github/license/thushan/smash)](https://github.com/thushan/smash/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/thushan/smash)](https://github.com/thushan/smash/releases/latest)
-[![CI](https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/ci.yml)
-[![Lint](https://github.com/thushan/smash/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/ci.yml)
 
 Tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments and computing a hash using [xxhash](https://xxhash.com/) or another algorithm. The name comes from a prototype tool called SmartHash (written many years ago in C+ASM that's now lost in source & too hard to modernise) that operated on a similar concept.
 
