@@ -60,7 +60,11 @@ func runE(command *cobra.Command, args []string) error {
 	var locations []string
 	if len(args) == 0 {
 		// If no path found take the current path
-		locations = []string{"."}
+		if wd, err := os.Getwd(); err != nil {
+			locations = []string{"."}
+		} else {
+			locations = []string{wd}
+		}
 	} else {
 		locations = verifyLocations(append(args, af.Base...), af.Silent)
 	}
