@@ -16,7 +16,7 @@ Usage:
   smash [flags] [locations-to-smash]
 
 Flags:
-      --algorithm algorithm    Algorithm to use, can be 'xxhash' (default), 'fnv128', 'fnv128a' (default xxhash)
+      --algorithm algorithm    Algorithm to use, can be 'xxhash', 'fnv128', 'fnv128a' (default xxhash)
       --disable-slicing        Disable slicing (hashes full file).
       --exclude-dir strings    Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea
       --exclude-file strings   Files to exclude separated by comma. Eg. --exclude-file=.gitignore,*.csv
