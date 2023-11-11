@@ -2,7 +2,6 @@ package smash
 
 import (
 	"encoding/hex"
-	"github.com/alphadose/haxmap"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,6 +11,9 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+
+	"github.com/alphadose/haxmap"
+
 	"github.com/thushan/smash/internal/algorithms"
 	"github.com/thushan/smash/pkg/slicer"
 
@@ -36,6 +38,13 @@ type App struct {
 	Args      []string
 	Locations []string
 }
+type SmashFile struct {
+	Filename    string
+	Hash        string
+	FileSize    uint64
+	ElapsedTime int64
+	FullHash    bool
+}
 
 func (app *App) Run() error {
 
@@ -52,7 +61,7 @@ func (app *App) Run() error {
 	app.setMaxThreads()
 
 	files := make(chan indexer.FileFS)
-	cache := haxmap.New[string, []string]()
+	cache := haxmap.New[string, []SmashFile]()
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
 	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
@@ -80,6 +89,7 @@ func (app *App) Run() error {
 		go func() {
 			defer wg.Done()
 			for file := range files {
+				smashedFilename := resolveFilename(file)
 
 				atomic.AddInt32(&totalFiles, 1)
 
@@ -87,27 +97,41 @@ func (app *App) Run() error {
 				stats, err := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
 				elapsedMs := time.Now().UnixMilli() - startTime
 
-				app.printVerbose("Smashed: ", aurora.Magenta(resolveFilename(file)), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
+				app.printVerbose("Smashed: ", aurora.Magenta(smashedFilename), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
 
 				if err != nil {
 					app.printVerbose(" ERR: ", aurora.Red(err))
 				} else {
-					hashText := hex.EncodeToString(stats.Hash)
-					if v, existing := cache.GetOrSet(hashText, []string{stats.Filename}); existing {
-						v = append(v, stats.Filename)
-					}
-					app.printVerbose("   Size: ", aurora.Cyan(humanize.Bytes(stats.FileSize)))
-					app.printVerbose("   Full: ", aurora.Blue(stats.HashedFullFile))
-					app.printVerbose("   Hash: ", aurora.Blue(hashText))
+					app.sumariseSmashedFile(cache, stats, smashedFilename, elapsedMs)
 				}
 			}
 		}()
 	}
-
 	wg.Wait()
+	app.printSmashHits(cache)
 	log.Println("Total Files: ", aurora.Blue(totalFiles))
 	log.Println("Total Unique: ", aurora.Blue(cache.Len()))
 	return nil
+}
+
+func (app *App) sumariseSmashedFile(cache *haxmap.Map[string, []SmashFile], stats slicer.SlicerStats, filename string, ms int64) {
+	smashedHash := hex.EncodeToString(stats.Hash)
+	smashedFile := SmashFile{
+		Filename:    filename,
+		Hash:        smashedHash,
+		FileSize:    stats.FileSize,
+		FullHash:    false,
+		ElapsedTime: ms,
+	}
+	if v, existing := cache.Get(smashedHash); existing {
+		v = append(v, smashedFile)
+		cache.Set(smashedHash, v)
+	} else {
+		cache.Set(smashedHash, []SmashFile{smashedFile})
+	}
+	app.printVerbose("   Size: ", aurora.Cyan(humanize.Bytes(stats.FileSize)))
+	app.printVerbose("   Full: ", aurora.Blue(stats.HashedFullFile))
+	app.printVerbose("   Hash: ", aurora.Blue(smashedHash))
 }
 
 func resolveFilename(file indexer.FileFS) string {
