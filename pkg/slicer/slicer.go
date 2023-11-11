@@ -10,7 +10,6 @@ import (
 )
 
 type Slicer struct {
-	buffer       []byte
 	defaultBytes []byte
 	slices       int
 	sliceSize    uint64
@@ -49,7 +48,6 @@ func NewConfigured(algorithm algorithms.Algorithm, slices int, size, maxSlice ui
 		sliceSize:    size,
 		threshold:    maxSlice,
 		algorithm:    algorithm,
-		buffer:       make([]byte, size),
 		defaultBytes: []byte{},
 	}
 }
@@ -133,7 +131,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, disableMe
 			return err
 		}
 	} else {
-		slice := slicer.buffer
+		slice := make([]byte, slicer.sliceSize)
 		midSize := size - (slicer.sliceSize * 2)
 		sliceOffset := int64((midSize / uint64(slicer.slices)) - slicer.sliceSize)
 
