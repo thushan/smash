@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -84,7 +85,7 @@ func (app *App) Run() error {
 				stats, err := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
 				elapsedMs := time.Now().UnixMilli() - startTime
 
-				app.printVerbose("Smashed: ", aurora.Magenta(file.Path), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
+				app.printVerbose("Smashed: ", aurora.Magenta(resolveFilename(file)), aurora.Green(strconv.FormatInt(elapsedMs, 10)+"ms"))
 
 				if err != nil {
 					app.printVerbose(" ERR:", aurora.Red(err))
@@ -101,4 +102,12 @@ func (app *App) Run() error {
 	wg.Wait()
 	log.Println("Total Files: ", aurora.Blue(totalFiles))
 	return nil
+}
+
+func resolveFilename(file indexer.FileFS) string {
+	if file.Path == "." {
+		return filepath.Base(file.FullName)
+	} else {
+		return file.Path
+	}
 }

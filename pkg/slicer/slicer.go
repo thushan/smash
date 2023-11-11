@@ -25,11 +25,11 @@ type SlicerStats struct {
 	Filename       string
 	Hash           []byte
 	ReaderSize     int64
-	MidSize        int64
 	SliceOffset    int64
+	MidSize        uint64
 	SliceSize      uint64
 	FileSize       uint64
-	Slices         int32
+	Slices         int
 	HashedFullFile bool
 }
 
@@ -79,6 +79,8 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) (Slice
 	size := fi.Size()
 
 	stats.FileSize = uint64(size)
+	stats.Slices = slicer.slices
+	stats.SliceSize = slicer.sliceSize
 
 	if fr, ok := f.(io.ReaderAt); ok {
 		sr := io.NewSectionReader(fr, 0, size)
@@ -142,7 +144,12 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, stat *Sli
 		midSize := size - (slicer.sliceSize * 2)
 		sliceOffset := int64((midSize / uint64(slicer.slices)) - slicer.sliceSize)
 
+		stat.SliceOffset = sliceOffset
+		stat.MidSize = midSize
+		stat.SliceOffsets = make(map[int]int64)
+
 		// head
+		stat.SliceOffsets[0] = 0
 		if _, err := sr.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
@@ -153,19 +160,24 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, stat *Sli
 
 		// mid-slice crisis
 		for i := 0; i < slicer.slices; i++ {
-			if _, err := sr.Seek(sliceOffset, io.SeekCurrent); err != nil {
+			if offset, err := sr.Seek(sliceOffset, io.SeekCurrent); err != nil {
 				return err
+			} else {
+				stat.SliceOffsets[i+1] = offset
 			}
 			if _, err := sr.Read(slice); err != nil {
 				return err
 			}
+
 			algo.Write(slice)
 		}
 
 		// tail
 		tailOffset := int64(-slicer.sliceSize)
-		if _, err := sr.Seek(tailOffset, io.SeekEnd); err != nil {
+		if offset, err := sr.Seek(tailOffset, io.SeekEnd); err != nil {
 			return err
+		} else {
+			stat.SliceOffsets[len(stat.SliceOffsets)] = offset
 		}
 		if _, err := sr.Read(slice); err != nil {
 			return err
