@@ -186,7 +186,9 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, stat *Sli
 
 		// meta
 		enc := gob.NewEncoder(algo)
-		enc.Encode(meta)
+		if err := enc.Encode(meta); err != nil {
+			return err
+		}
 	}
 	stat.Hash = algo.Sum(nil)
 	return nil
