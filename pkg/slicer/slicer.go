@@ -22,8 +22,8 @@ type Slicer struct {
 
 type SlicerStats struct {
 	SliceOffsets   map[int]int64
-	Hash           []byte
 	Filename       string
+	Hash           []byte
 	ReaderSize     int64
 	MidSize        int64
 	SliceOffset    int64
