@@ -2,11 +2,10 @@ package smash
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/alphadose/haxmap"
 	"github.com/dustin/go-humanize"
 	"github.com/logrusorgru/aurora/v3"
+	"log"
 )
 
 const (
@@ -57,7 +56,7 @@ func (app *App) printSmashRunSummary(rs RunSummary) {
 	log.Println("Total Unique: ", aurora.Blue(rs.UniqueFiles))
 	log.Println("Total Duplicates:  ", aurora.Blue(rs.DuplicateFiles))
 	if rs.DuplicateFileSize > 0 {
-		log.Println("Total Reclaimable: ", aurora.Cyan(rs.DuplicateFileSizeF))
+		log.Println("Approx Reclaimable: ", aurora.Cyan(rs.DuplicateFileSizeF))
 	}
 
 }
