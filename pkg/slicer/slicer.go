@@ -3,11 +3,12 @@ package slicer
 import (
 	"encoding/gob"
 	"errors"
-	"github.com/logrusorgru/aurora/v3"
-	"github.com/thushan/smash/internal/algorithms"
 	"io"
 	"io/fs"
 	"log"
+
+	"github.com/logrusorgru/aurora/v3"
+	"github.com/thushan/smash/internal/algorithms"
 )
 
 type Slicer struct {
@@ -61,8 +62,8 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) (Slice
 			// Ignore ReadOnly issues.
 			return
 		}
-		if err := fs.Close(); err != nil {
-			log.Println(aurora.Red("ERR"), aurora.Blue(name), err)
+		if ferr := fs.Close(); ferr != nil {
+			log.Println(aurora.Red("ERR"), aurora.Blue(name), ferr)
 		}
 	}(f)
 
