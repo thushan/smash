@@ -11,15 +11,15 @@
 
 Tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments
 and computing a hash using [xxhash](https://xxhash.com/) or another algorithm. Algorithms used are non-cryptographic and are utilised
-for its speed & efficiency over other attributes. You can read [further about xxhash](https://xxhash.com/).
+for its speed & efficiency over other attributes. You can learn more about [xxhash](https://xxhash.com/) on their site.
 
 <p align="center">
-    <a href="https://asciinema.org/a/620493"><img src="docs/artefacts/smash-v0.0.1-demo.png"></a><br/>
+    <a href="https://asciinema.org/a/620513"><img src="docs/artefacts/smash-v0.0.2-demo.png"></a><br/>
     <small>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code>. Watch the <a href="https://asciinema.org/a/620493">🍿 full demo</a> at <a href="https://asciinema.org/">asciinema</a>.</small>
 </p>
 
 `smash` has a read-only view of the underlying filesystem and only reports duplicates - currently, we do not remove 
-duplicates and instead leave that for you to do via the output.
+duplicates and instead leave that for you to do via the output. We also don't support symlinks or NT Junction Points (Windows Symlinks) and ignore them.
 
 The name comes from a prototype tool called SmartHash (written many years ago in C/ASM that's now lost in source & 
 too hard to modernise) which operated on a similar concept (with CRC32 then later MD5).
