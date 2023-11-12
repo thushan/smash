@@ -51,6 +51,7 @@ func bestMaxWorkers() int {
 }
 func Main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	log.SetOutput(os.Stdout)
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

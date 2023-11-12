@@ -2,6 +2,8 @@ package smash
 
 import (
 	"encoding/hex"
+	"fmt"
+	"github.com/thushan/smash/internal/theme"
 	"log"
 	"os"
 	"path/filepath"
@@ -65,6 +67,7 @@ func (app *App) Run() error {
 	 * Good times: https://go-review.googlesource.com/c/go/+/293349
 	 */
 	appStartTime := time.Now().UnixMilli()
+	UpdateTicker := int64(1000)
 
 	if !app.Flags.Silent {
 		PrintVersionInfo(false)
@@ -79,10 +82,17 @@ func (app *App) Run() error {
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
 	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
 
+	pap := theme.MultiWriter()
+	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
+
+	pap.Start()
 	go func() {
-		defer close(files)
+		defer func() {
+			close(files)
+			psi.Success("Indexing locations...Done!")
+		}()
 		for _, location := range locations {
-			app.printVerbose("Indexing location ", aurora.Cyan(location))
+			psi.UpdateText("Indexing location: " + location)
 			err := wk.WalkDirectory(os.DirFS(location), location, files)
 
 			if err != nil {
@@ -92,6 +102,9 @@ func (app *App) Run() error {
 	}()
 
 	totalFiles := int64(0)
+
+	pss, _ := theme.SmashingSpinner().WithWriter(pap.NewWriter()).Start("Finding duplicates...")
+
 	var wg sync.WaitGroup
 	for i := 0; i < app.Flags.MaxWorkers; i++ {
 		wg.Add(1)
@@ -100,7 +113,11 @@ func (app *App) Run() error {
 			for file := range files {
 				sf := resolveFilename(file)
 
-				atomic.AddInt64(&totalFiles, 1)
+				currentFileCount := atomic.AddInt64(&totalFiles, 1)
+
+				if currentFileCount%UpdateTicker == 0 {
+					pss.UpdateText(fmt.Sprintf("Finding duplicates... (%d Files)", currentFileCount))
+				}
 
 				startTime := time.Now().UnixMilli()
 				stats, err := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
@@ -115,6 +132,9 @@ func (app *App) Run() error {
 		}()
 	}
 	wg.Wait()
+
+	pss.Success("Finding duplicates...Done!")
+	pap.Stop()
 
 	summary := RunSummary{
 		TotalFiles:     totalFiles,

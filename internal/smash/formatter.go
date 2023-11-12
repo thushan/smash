@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	TreeLastChild = "└── "
-	TreeNextChild = "├── "
+	TreeLastChild = "└─"
+	TreeNextChild = "├─"
 )
 
 func (app *App) printVerbose(message ...any) {
