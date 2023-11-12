@@ -44,6 +44,9 @@ func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 		}
 		return true
 	})
+	if cache.Len() == 0 {
+		log.Println(aurora.Green("No duplicates found :-)"))
+	}
 	return totalDuplicateSize
 }
 
