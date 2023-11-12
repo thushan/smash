@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"errors"
 	"io/fs"
 	"path/filepath"
 	"regexp"
@@ -51,12 +52,15 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string) *Index
 func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan FileFS) error {
 	walkErr := fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
+			if errors.Is(err, fs.ErrPermission) {
+				return fs.SkipDir
+			}
 			return err
 		}
 		name := filepath.Clean(d.Name())
 		if d.IsDir() {
 			if config.isSystemFolder(name) || (len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)) {
-				return filepath.SkipDir
+				return fs.SkipDir
 			}
 		} else {
 			if len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(name) {
