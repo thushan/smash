@@ -134,7 +134,8 @@ func (app *App) Run() error {
 	wg.Wait()
 
 	pss.Success("Finding duplicates...Done!")
-	pap.Stop()
+
+	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
 
 	summary := RunSummary{
 		TotalFiles:     totalFiles,
@@ -142,6 +143,9 @@ func (app *App) Run() error {
 		DuplicateFiles: totalFiles - int64(cache.Len()),
 		ElapsedTime:    time.Now().UnixMilli() - appStartTime,
 	}
+
+	psr.Success("Finding smash hits...Done!")
+	pap.Stop()
 
 	totalDuplicateSize := app.printSmashHits(cache)
 	summary.DuplicateFileSize = totalDuplicateSize

@@ -17,7 +17,8 @@ func MultiWriter() pterm.MultiPrinter {
 	return pterm.DefaultMultiPrinter
 }
 func DefaultSpinner() pterm.SpinnerPrinter {
-	return pterm.DefaultSpinner
+	spinner := pterm.DefaultSpinner
+	return spinner
 }
 func IndexingSpinner() pterm.SpinnerPrinter {
 	spinner := DefaultSpinner()
