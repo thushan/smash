@@ -5,7 +5,9 @@ import (
 	"errors"
 	"io"
 	"io/fs"
+	"log"
 
+	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/internal/algorithms"
 )
 
@@ -55,7 +57,15 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) (Slice
 
 	stats := SlicerStats{Hash: slicer.defaultBytes, Filename: name}
 	f, err := fs.Open(name)
-	defer f.Close()
+	defer func(fs io.Closer) {
+		if fs == nil {
+			// Ignore ReadOnly issues.
+			return
+		}
+		if ferr := fs.Close(); ferr != nil {
+			log.Println(aurora.Red("ERR"), aurora.Blue(name), ferr)
+		}
+	}(f)
 
 	if err != nil {
 		return stats, err

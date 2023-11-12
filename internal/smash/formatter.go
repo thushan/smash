@@ -22,6 +22,7 @@ func (app *App) printVerbose(message ...any) {
 
 func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 	totalDuplicateSize := uint64(0)
+	log.Println(aurora.Cyan(aurora.Bold("---| Duplicates")))
 	cache.ForEach(func(hash string, files []SmashFile) bool {
 		mainFile := files[0]
 		lastIndex := len(files)
@@ -43,12 +44,20 @@ func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 		}
 		return true
 	})
+	if cache.Len() == 0 {
+		log.Println(aurora.Green("No duplicates found :-)"))
+	}
 	return totalDuplicateSize
 }
 
 func (app *App) printSmashRunSummary(rs RunSummary) {
+	log.Println(aurora.Cyan(aurora.Bold("---| Summary")))
 	log.Println("Total Time:   ", aurora.Green(fmt.Sprintf("%dms", rs.ElapsedTime)))
 	log.Println("Total Files:  ", aurora.Blue(rs.TotalFiles))
 	log.Println("Total Unique: ", aurora.Blue(rs.UniqueFiles))
-	log.Println("Total Duplicates: ", aurora.Blue(rs.DuplicateFiles), "(", aurora.Cyan(rs.DuplicateFileSizeF), " can be reclaimed).")
+	log.Println("Total Duplicates:  ", aurora.Blue(rs.DuplicateFiles))
+	if rs.DuplicateFileSize > 0 {
+		log.Println("Total Reclaimable: ", aurora.Cyan(rs.DuplicateFileSizeF))
+	}
+
 }
