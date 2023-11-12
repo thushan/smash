@@ -26,7 +26,6 @@ func (app *App) printConfiguration() {
 			log.Println(Bold("      Files: "), Yellow(strings.Join(f.ExcludeFile, ", ")))
 		}
 	}
-	log.Println(Bold(Cyan("------------------")))
 }
 
 func (app *App) setMaxThreads() {
