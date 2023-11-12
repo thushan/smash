@@ -10,7 +10,10 @@ before:
     - go mod download
 
 release:
-  draft: true
+  name_template: "{{.ProjectName}}-v{{.Version}}"
+  draft: false
+  prerelease: auto
+  make_latest: true
 
 builds:
   - env:

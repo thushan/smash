@@ -1,8 +1,5 @@
 name: ci
 
-env:
-  GO_VERSION: 1.21.x
-
 on:
   push:
     branches: [ main ]
@@ -10,6 +7,13 @@ on:
     branches: [ main ]
     paths-ignore:
     - '**.md'
+env:
+  GO_VERSION: 1.21.x
+  GOLANGCILINT_VERSION: "1.55.2"
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   test:
@@ -26,3 +30,18 @@ jobs:
     - name: Run Tests
       run: |
         go test -v -race -covermode atomic -coverprofile=covprofile ./...
+
+  golangci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/checkout@v4
+        name: Checkout
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v${{ env.GOLANGCILINT_VERSION }}
+          args: --verbose --max-same-issues=0 --max-issues-per-linter=0
