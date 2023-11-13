@@ -50,3 +50,7 @@ func TimeLongSpinner() pterm.SpinnerPrinter {
 	spinner.Sequence = SequenceTimeLong
 	return spinner
 }
+
+var Error = pterm.Error
+var Info = pterm.Info
+var Fatal = pterm.Error.WithFatal(true)

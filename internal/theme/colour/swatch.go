@@ -14,8 +14,16 @@ func Splash(message ...any) string {
 	return pterm.LightGreen(message...)
 }
 
+func Path(message ...any) string {
+	return pterm.Blue(message...)
+}
+
 func Url(message ...any) string {
 	return pterm.LightBlue(message...)
+}
+
+func Meta(message ...any) string {
+	return pterm.Magenta(message...)
 }
 
 func Version(message ...any) string {

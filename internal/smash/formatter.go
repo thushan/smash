@@ -2,10 +2,12 @@ package smash
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/alphadose/haxmap"
 	"github.com/dustin/go-humanize"
 	"github.com/logrusorgru/aurora/v3"
-	"log"
+	"github.com/pterm/pterm"
 )
 
 const (
@@ -13,9 +15,15 @@ const (
 	TreeNextChild = "├─"
 )
 
+var verbose = pterm.PrefixPrinter{
+	Prefix: pterm.Prefix{
+		Text: " VERBOSE ",
+	},
+}
+
 func (app *App) printVerbose(message ...any) {
 	if app.Flags.Verbose {
-		log.Print(message...)
+		verbose.Println(message...)
 	}
 }
 

@@ -3,15 +3,15 @@ package smash
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/pterm/pterm"
-	"github.com/thushan/smash/internal/theme"
-	"github.com/thushan/smash/internal/theme/colour"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/pterm/pterm"
+	"github.com/thushan/smash/internal/theme"
+	"github.com/thushan/smash/internal/theme/colour"
 
 	"github.com/dustin/go-humanize"
 
@@ -20,7 +20,6 @@ import (
 	"github.com/thushan/smash/internal/algorithms"
 	"github.com/thushan/smash/pkg/slicer"
 
-	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/pkg/indexer"
 )
 
@@ -98,7 +97,7 @@ func (app *App) Run() error {
 			err := wk.WalkDirectory(os.DirFS(location), location, files)
 
 			if err != nil {
-				log.Println("Failed to walk location ", colour.Url(location), " because ", aurora.Red(err))
+				theme.Error.Println("Failed to walk location ", colour.Path(location), " because ", err)
 			}
 		}
 	}()
@@ -126,7 +125,7 @@ func (app *App) Run() error {
 				elapsedMs := time.Now().UnixMilli() - startTime
 
 				if err != nil {
-					app.printVerbose(" ERR: ", aurora.Red(err))
+					theme.Error.Println("Failed to smash ", colour.Path(file.Path), " because ", err)
 				} else {
 					app.summariseSmashedFile(cache, stats, sf, elapsedMs)
 				}

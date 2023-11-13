@@ -1,17 +1,18 @@
 package smash
 
 import (
-	"github.com/thushan/smash/internal/theme/colour"
 	"log"
+
+	"github.com/thushan/smash/internal/theme/colour"
 )
 
 var (
-	Version string = "v0.0.2"
-	Commit  string = "none"
-	Date    string = "unknown"
-	Home    string = "github.com/thushan/smash"
-	Time    string = "nowish"
-	User    string = "local"
+	Version = "v0.0.3"
+	Commit  = "none"
+	Date    = "unknown"
+	Home    = "github.com/thushan/smash"
+	Time    = "nowish"
+	User    = "local"
 )
 
 func PrintVersionInfo(extendedInfo bool) {
@@ -25,7 +26,7 @@ func PrintVersionInfo(extendedInfo bool) {
 	log.Println(colour.Splash("│ "), colour.Url(Home), "           ", colour.Version(Version), colour.Splash(" │"))
 	log.Println(colour.Splash(`╚───────────────────────────────────────────────╝`))
 
-	if extendedInfo {
+	if !extendedInfo {
 		log.Println("Commit: ", colour.VersionMeta(Commit))
 		log.Println("Built:  ", colour.VersionMeta(Date))
 		log.Println("Using:  ", colour.VersionMeta(User))
