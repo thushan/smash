@@ -1,29 +1,29 @@
 package smash
 
 import (
-	"log"
 	"runtime"
 	"strings"
 
-	"github.com/thushan/smash/internal/algorithms"
+	"github.com/thushan/smash/internal/theme"
 
-	. "github.com/logrusorgru/aurora/v3"
+	"github.com/thushan/smash/internal/algorithms"
 )
 
 func (app *App) printConfiguration() {
 	f := app.Flags
-	log.Println(Bold(Cyan("---| Configuration")))
-	log.Println(Bold("Locations:   "), Magenta(strings.Join(app.Locations, ", ")))
-	log.Println(Bold("Algorithm:   "), Magenta(algorithms.Algorithm(f.Algorithm)))
-	log.Println(Bold("Max Workers: "), Magenta(f.MaxWorkers))
-	log.Println(Bold("Max Threads: "), Magenta(f.MaxThreads))
+	b := theme.StyleBold
+
+	theme.StyleHeading.Println("---| Configuration")
+	theme.Println(b.Sprint("Concurrency: "), theme.ColourConfig(f.MaxWorkers), "workers |", theme.ColourConfig(f.MaxThreads), "threads")
+	theme.Println(b.Sprint("Algorithm:   "), theme.ColourConfig(algorithms.Algorithm(f.Algorithm)))
+	theme.Println(b.Sprint("Locations:   "), theme.ColourConfig(strings.Join(app.Locations, ", ")))
 	if len(f.ExcludeDir) > 0 || len(f.ExcludeFile) > 0 {
-		log.Println(Bold("Excluded"))
+		theme.StyleBold.Println(b.Sprint("Excluded"))
 		if len(f.ExcludeDir) > 0 {
-			log.Println(Bold("       Dirs: "), Yellow(strings.Join(f.ExcludeDir, ", ")))
+			theme.Println(b.Sprint("       Dirs: "), theme.ColourConfigA(strings.Join(f.ExcludeDir, ", ")))
 		}
 		if len(f.ExcludeFile) > 0 {
-			log.Println(Bold("      Files: "), Yellow(strings.Join(f.ExcludeFile, ", ")))
+			theme.Println(b.Sprint("      Files: "), theme.ColourConfigA(strings.Join(f.ExcludeFile, ", ")))
 		}
 	}
 }
@@ -34,5 +34,5 @@ func (app *App) setMaxThreads() {
 		return
 	}
 	runtime.GOMAXPROCS(maxThreads)
-	app.printVerbose("Max Threads set to ", Magenta(runtime.GOMAXPROCS(0)))
+	app.printVerbose("Max Threads set to ", theme.ColourConfig(runtime.GOMAXPROCS(0)))
 }
