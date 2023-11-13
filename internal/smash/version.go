@@ -3,7 +3,7 @@ package smash
 import (
 	"log"
 
-	"github.com/thushan/smash/internal/theme/colour"
+	"github.com/thushan/smash/internal/theme"
 )
 
 var (
@@ -16,19 +16,19 @@ var (
 )
 
 func PrintVersionInfo(extendedInfo bool) {
-	log.Println(colour.Splash(`╔───────────────────────────────────────────────╗
+	log.Println(theme.ColourSplash(`╔───────────────────────────────────────────────╗
 │  ███████╗███╗   ███╗ █████╗ ███████╗██╗  ██╗  │
 │  ██╔════╝████╗ ████║██╔══██╗██╔════╝██║  ██║  │
 │  ███████╗██╔████╔██║███████║███████╗███████║  │
 │  ╚════██║██║╚██╔╝██║██╔══██║╚════██║██╔══██║  │
 │  ███████║██║ ╚═╝ ██║██║  ██║███████║██║  ██║  │
 │  ╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝  │`))
-	log.Println(colour.Splash("│ "), colour.Url(Home), "           ", colour.Version(Version), colour.Splash(" │"))
-	log.Println(colour.Splash(`╚───────────────────────────────────────────────╝`))
+	log.Println(theme.ColourSplash("│ "), theme.StyleUrl(Home), "           ", theme.ColourVersion(Version), theme.ColourSplash(" │"))
+	log.Println(theme.ColourSplash(`╚───────────────────────────────────────────────╝`))
 
-	if !extendedInfo {
-		log.Println("Commit: ", colour.VersionMeta(Commit))
-		log.Println("Built:  ", colour.VersionMeta(Date))
-		log.Println("Using:  ", colour.VersionMeta(User))
+	if extendedInfo {
+		log.Println("Commit: ", theme.ColourVersionMeta(Commit))
+		log.Println("Built:  ", theme.ColourVersionMeta(Date))
+		log.Println("Using:  ", theme.ColourVersionMeta(User))
 	}
 }

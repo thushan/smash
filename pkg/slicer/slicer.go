@@ -5,10 +5,9 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"log"
 
-	"github.com/logrusorgru/aurora/v3"
 	"github.com/thushan/smash/internal/algorithms"
+	"github.com/thushan/smash/internal/theme"
 )
 
 type Slicer struct {
@@ -63,7 +62,7 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) (Slice
 			return
 		}
 		if ferr := fs.Close(); ferr != nil {
-			log.Println(aurora.Red("ERR"), aurora.Blue(name), ferr)
+			theme.Error.Println(theme.ColourFilename(name), ferr)
 		}
 	}(f)
 

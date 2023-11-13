@@ -9,11 +9,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
-	"github.com/thushan/smash/internal/theme/colour"
-
-	"github.com/dustin/go-humanize"
 
 	"github.com/alphadose/haxmap"
 
@@ -44,6 +42,7 @@ type RunSummary struct {
 	DuplicateFileSizeF string
 	DuplicateFileSize  uint64
 	TotalFiles         int64
+	TotalFileErrors    int64
 	ElapsedTime        int64
 	UniqueFiles        int64
 	DuplicateFiles     int64
@@ -79,6 +78,7 @@ func (app *App) Run() error {
 
 	files := make(chan indexer.FileFS)
 	cache := haxmap.New[string, []SmashFile]()
+	fails := haxmap.New[string, error]()
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
 	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
@@ -97,7 +97,7 @@ func (app *App) Run() error {
 			err := wk.WalkDirectory(os.DirFS(location), location, files)
 
 			if err != nil {
-				theme.Error.Println("Failed to walk location ", colour.Path(location), " because ", err)
+				theme.Error.Println("Failed to walk location ", theme.ColourPath(location), " because ", err)
 			}
 		}
 	}()
@@ -125,7 +125,10 @@ func (app *App) Run() error {
 				elapsedMs := time.Now().UnixMilli() - startTime
 
 				if err != nil {
-					theme.Error.Println("Failed to smash ", colour.Path(file.Path), " because ", err)
+					if app.Flags.Verbose {
+						theme.WarnSkipping.Println(err)
+					}
+					_, _ = fails.GetOrSet(sf, err)
 				} else {
 					app.summariseSmashedFile(cache, stats, sf, elapsedMs)
 				}
@@ -139,10 +142,11 @@ func (app *App) Run() error {
 	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
 
 	summary := RunSummary{
-		TotalFiles:     totalFiles,
-		UniqueFiles:    int64(cache.Len()),
-		DuplicateFiles: totalFiles - int64(cache.Len()),
-		ElapsedTime:    time.Now().UnixMilli() - appStartTime,
+		TotalFiles:      totalFiles,
+		TotalFileErrors: int64(fails.Len()),
+		UniqueFiles:     int64(cache.Len()),
+		DuplicateFiles:  totalFiles - int64(cache.Len()),
+		ElapsedTime:     time.Now().UnixMilli() - appStartTime,
 	}
 
 	psr.Success("Finding smash hits...Done!")

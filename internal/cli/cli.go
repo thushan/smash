@@ -5,9 +5,10 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/thushan/smash/internal/theme"
+
 	"github.com/thushan/smash/internal/algorithms"
 
-	"github.com/logrusorgru/aurora/v3"
 	"github.com/spf13/cobra"
 	"github.com/thediveo/enumflag/v2"
 	"github.com/thushan/smash/internal/smash"
@@ -83,7 +84,7 @@ func verifyLocations(locations []string, silent bool) []string {
 	for _, location := range locations {
 		if _, err := os.Stat(location); os.IsNotExist(err) {
 			if !silent {
-				log.Printf(" Ignoring invalid path %s", aurora.Yellow(location))
+				theme.Warn.Println("Ignoring invalid path ", theme.ColourFilename(location))
 			}
 			continue
 		}

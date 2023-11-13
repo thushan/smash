@@ -6,7 +6,6 @@ require (
 	github.com/alphadose/haxmap v1.3.0
 	github.com/cespare/xxhash v1.1.0
 	github.com/dustin/go-humanize v1.0.1
-	github.com/logrusorgru/aurora/v3 v3.0.0
 	github.com/pterm/pterm v0.12.70
 	github.com/spf13/cobra v1.8.0
 	github.com/thediveo/enumflag/v2 v2.0.5

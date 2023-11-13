@@ -2,39 +2,32 @@ package smash
 
 import (
 	"fmt"
-	"log"
+
+	"github.com/thushan/smash/internal/theme"
 
 	"github.com/alphadose/haxmap"
 	"github.com/dustin/go-humanize"
-	"github.com/logrusorgru/aurora/v3"
-	"github.com/pterm/pterm"
 )
 
 const (
-	TreeLastChild = "└─"
 	TreeNextChild = "├─"
+	TreeLastChild = "└─"
 )
-
-var verbose = pterm.PrefixPrinter{
-	Prefix: pterm.Prefix{
-		Text: " VERBOSE ",
-	},
-}
 
 func (app *App) printVerbose(message ...any) {
 	if app.Flags.Verbose {
-		verbose.Println(message...)
+		theme.Verbose.Println(message...)
 	}
 }
 
 func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 	totalDuplicateSize := uint64(0)
-	log.Println(aurora.Cyan(aurora.Bold("---| Duplicates")))
+	theme.StyleHeading.Println("---| Duplicates")
 	cache.ForEach(func(hash string, files []SmashFile) bool {
 		mainFile := files[0]
 		lastIndex := len(files)
 		if lastIndex > 1 {
-			log.Println(aurora.Magenta(mainFile.Filename), " ", aurora.Cyan(humanize.Bytes(mainFile.FileSize)), " ", aurora.Blue(mainFile.Hash))
+			theme.Println(theme.ColourFilename(mainFile.Filename), " ", theme.ColourFileSize(humanize.Bytes(mainFile.FileSize)), " ", theme.ColourHash(mainFile.Hash))
 			for index, file := range files[1:] {
 				var subTree string
 				if (index + 2) == lastIndex {
@@ -42,7 +35,7 @@ func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 				} else {
 					subTree = TreeNextChild
 				}
-				log.Println(aurora.BrightYellow(subTree), file.Filename)
+				theme.Println(theme.ColourFolderHierarchy(subTree), theme.ColourFilenameA(file.Filename))
 			}
 			totalDuplicateSize += mainFile.FileSize * uint64(lastIndex-1)
 		} else {
@@ -52,19 +45,21 @@ func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 		return true
 	})
 	if cache.Len() == 0 {
-		log.Println(aurora.Green("No duplicates found :-)"))
+		theme.ColourSuccess("No duplicates found :-)")
 	}
 	return totalDuplicateSize
 }
 
 func (app *App) printSmashRunSummary(rs RunSummary) {
-	log.Println(aurora.Cyan(aurora.Bold("---| Summary")))
-	log.Println("Total Time:   ", aurora.Green(fmt.Sprintf("%dms", rs.ElapsedTime)))
-	log.Println("Total Files:  ", aurora.Blue(rs.TotalFiles))
-	log.Println("Total Unique: ", aurora.Blue(rs.UniqueFiles))
-	log.Println("Total Duplicates:  ", aurora.Blue(rs.DuplicateFiles))
+	theme.StyleHeading.Println("---| Summary")
+
+	theme.Println("Total Time:         ", theme.ColourTime(fmt.Sprintf("%dms", rs.ElapsedTime)))
+	theme.Println("Total Files:        ", theme.ColourNumber(rs.TotalFiles))
+	theme.Println("Total Unique:       ", theme.ColourNumber(rs.UniqueFiles))
+	theme.Println("Total Skipped:      ", theme.ColourError(rs.TotalFileErrors))
+	theme.Println("Total Duplicates:   ", theme.ColourNumber(rs.DuplicateFiles))
 	if rs.DuplicateFileSize > 0 {
-		log.Println("Approx Reclaimable: ", aurora.Cyan(rs.DuplicateFileSizeF))
+		theme.Println("Approx Reclaimable: ", theme.ColourFileSizeA(rs.DuplicateFileSizeF))
 	}
 
 }

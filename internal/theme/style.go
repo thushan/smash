@@ -1,6 +1,8 @@
 package theme
 
-import "github.com/pterm/pterm"
+import (
+	"github.com/pterm/pterm"
+)
 
 var (
 	SequenceIndexing = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
@@ -11,7 +13,32 @@ var (
 	SequenceTimeLong = []string{"🕐", "🕜", "🕑", "🕝", "🕒", "🕞", "🕓", "🕟", "🕔", "🕠", "🕕", "🕡", "🕖", "🕢", "🕗", "🕣", "🕘", "🕤", "🕙", "🕥", "🕚", "🕦", "🕛", "🕧"}
 
 	SequenceSmashingAlt = []string{"⬒", "⬔", "⬓", "⬕"}
+
+	Info  = pterm.Info
+	Error = pterm.Error
+	Warn  = pterm.Warning
+	Fatal = pterm.Error.WithFatal(true)
+
+	Verbose      *pterm.PrefixPrinter
+	WarnSkipping *pterm.PrefixPrinter
+
+	StyleBold    *pterm.Style
+	StyleHeading *pterm.Style
 )
+
+func init() {
+
+	skippingPrefix := pterm.Warning.Prefix
+	skippingPrefix.Text = "SKIP"
+	WarnSkipping = pterm.Warning.WithPrefix(skippingPrefix)
+
+	verbosePrefix := pterm.Info.Prefix
+	verbosePrefix.Text = "VERBOSE"
+	Verbose = pterm.Info.WithPrefix(verbosePrefix)
+
+	StyleHeading = pterm.NewStyle(pterm.FgCyan, pterm.Bold)
+	StyleBold = pterm.NewStyle(pterm.Bold)
+}
 
 func MultiWriter() pterm.MultiPrinter {
 	return pterm.DefaultMultiPrinter
@@ -50,7 +77,60 @@ func TimeLongSpinner() pterm.SpinnerPrinter {
 	spinner.Sequence = SequenceTimeLong
 	return spinner
 }
+func Println(message ...any) {
+	pterm.Println(message...)
+}
+func ColourError(message ...any) string {
+	return pterm.Red(message...)
+}
+func ColourSplash(message ...any) string {
+	return pterm.LightGreen(message...)
+}
 
-var Error = pterm.Error
-var Info = pterm.Info
-var Fatal = pterm.Error.WithFatal(true)
+func ColourPath(message ...any) string {
+	return pterm.Blue(message...)
+}
+
+func StyleUrl(message ...any) string {
+	return pterm.LightBlue(message...)
+}
+
+func ColourFilename(message ...any) string {
+	return pterm.LightMagenta(message...)
+}
+func ColourFilenameA(message ...any) string {
+	return pterm.Magenta(message...)
+}
+func ColourFileSize(message ...any) string {
+	return pterm.Blue(message...)
+}
+func ColourFileSizeA(message ...any) string {
+	return pterm.Cyan(message...)
+}
+func ColourHash(message ...any) string {
+	return pterm.Gray(message...)
+}
+func ColourVersion(message ...any) string {
+	return pterm.LightYellow(message...)
+}
+func ColourVersionMeta(message ...any) string {
+	return pterm.Magenta(message...)
+}
+func ColourFolderHierarchy(message ...any) string {
+	return pterm.Yellow(message...)
+}
+func ColourSuccess(message ...any) string {
+	return pterm.Green(message...)
+}
+func ColourTime(message ...any) string {
+	return pterm.Green(message...)
+}
+func ColourNumber(message ...any) string {
+	return pterm.Blue(message...)
+}
+func ColourConfig(message ...any) string {
+	return pterm.Magenta(message...)
+}
+func ColourConfigA(message ...any) string {
+	return pterm.LightYellow(message...)
+}
