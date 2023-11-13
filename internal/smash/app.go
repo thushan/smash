@@ -3,7 +3,9 @@ package smash
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
+	"github.com/thushan/smash/internal/theme/colour"
 	"log"
 	"os"
 	"path/filepath"
@@ -67,7 +69,7 @@ func (app *App) Run() error {
 	 * Good times: https://go-review.googlesource.com/c/go/+/293349
 	 */
 	appStartTime := time.Now().UnixMilli()
-	UpdateTicker := int64(1000)
+	updateTicker := int64(1000)
 
 	if !app.Flags.Silent {
 		PrintVersionInfo(false)
@@ -96,7 +98,7 @@ func (app *App) Run() error {
 			err := wk.WalkDirectory(os.DirFS(location), location, files)
 
 			if err != nil {
-				log.Println("Failed to walk location ", aurora.Magenta(location), " because ", aurora.Red(err))
+				log.Println("Failed to walk location ", colour.Url(location), " because ", aurora.Red(err))
 			}
 		}
 	}()
@@ -115,8 +117,8 @@ func (app *App) Run() error {
 
 				currentFileCount := atomic.AddInt64(&totalFiles, 1)
 
-				if currentFileCount%UpdateTicker == 0 {
-					pss.UpdateText(fmt.Sprintf("Finding duplicates... (%d Files)", currentFileCount))
+				if currentFileCount%updateTicker == 0 {
+					pss.UpdateText(fmt.Sprintf("Finding duplicates... (%s files smash'd)", pterm.Gray(currentFileCount)))
 				}
 
 				startTime := time.Now().UnixMilli()

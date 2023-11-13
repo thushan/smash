@@ -1,9 +1,8 @@
 package smash
 
 import (
+	"github.com/thushan/smash/internal/theme/colour"
 	"log"
-
-	"github.com/logrusorgru/aurora/v3"
 )
 
 var (
@@ -16,20 +15,19 @@ var (
 )
 
 func PrintVersionInfo(extendedInfo bool) {
-	log.Println(aurora.Green(`╔───────────────────────────────────────────────╗
+	log.Println(colour.Splash(`╔───────────────────────────────────────────────╗
 │  ███████╗███╗   ███╗ █████╗ ███████╗██╗  ██╗  │
 │  ██╔════╝████╗ ████║██╔══██╗██╔════╝██║  ██║  │
 │  ███████╗██╔████╔██║███████║███████╗███████║  │
 │  ╚════██║██║╚██╔╝██║██╔══██║╚════██║██╔══██║  │
 │  ███████║██║ ╚═╝ ██║██║  ██║███████║██║  ██║  │
 │  ╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝  │`))
-	log.Println(aurora.Green("│ "), aurora.Yellow(Home), "           ", aurora.Blue(Version), aurora.Green(" │"))
-	log.Println(aurora.Green(`╚───────────────────────────────────────────────╝`))
+	log.Println(colour.Splash("│ "), colour.Url(Home), "           ", colour.Version(Version), colour.Splash(" │"))
+	log.Println(colour.Splash(`╚───────────────────────────────────────────────╝`))
 
 	if extendedInfo {
-		log.Println("Commit: ", aurora.BrightBlack(Commit))
-		log.Println("Built:  ", aurora.BrightBlack(Date))
-		log.Println("Using:  ", aurora.BrightBlack(User))
-		log.Println("")
+		log.Println("Commit: ", colour.VersionMeta(Commit))
+		log.Println("Built:  ", colour.VersionMeta(Date))
+		log.Println("Using:  ", colour.VersionMeta(User))
 	}
 }
