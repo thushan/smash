@@ -59,12 +59,12 @@ func (app *App) printSmashRunSummary(rs RunSummary) {
 	if rs.TotalFileErrors > 0 {
 		theme.Println("Total Skipped:      ", theme.ColourError(rs.TotalFileErrors))
 	}
-	if rs.EmptyFiles > 0 {
-		theme.Println("Total Empty Files:  ", theme.ColourNumber(rs.EmptyFiles))
-	}
 	theme.Println("Total Duplicates:   ", theme.ColourNumber(rs.DuplicateFiles))
 	if rs.DuplicateFileSize > 0 {
 		theme.Println("Approx Reclaimable: ", theme.ColourFileSizeA(rs.DuplicateFileSizeF))
+	}
+	if rs.EmptyFiles > 0 {
+		theme.Println("Total Empty Files:  ", theme.ColourNumber(rs.EmptyFiles))
 	}
 
 }
