@@ -19,13 +19,19 @@ func TestSlice_New_OffsetMapWith1MbBlob(t *testing.T) {
 	binary := randomBytes(fsSize)
 	reader := bytes.NewReader(binary)
 
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
 
 	stats := SlicerStats{}
 
 	slicer := New(algorithms.Xxhash)
 
-	if err := slicer.Slice(sr, false, false, &stats); err != nil {
+	if err := slicer.Slice(sr, &options, &stats); err != nil {
 		t.Errorf("Unexpected Slicer error %v", err)
 	}
 	// For a 1024000 byte blob with 4 segments
@@ -52,13 +58,19 @@ func TestSlice_New_NoOffsetMapWith1KbBlob(t *testing.T) {
 	binary := randomBytes(fsSize)
 	reader := bytes.NewReader(binary)
 
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
 
 	stats := SlicerStats{}
 
 	slicer := New(algorithms.Xxhash)
 
-	if err := slicer.Slice(sr, false, false, &stats); err != nil {
+	if err := slicer.Slice(sr, &options, &stats); err != nil {
 		t.Errorf("Unexpected Slicer error %v", err)
 	}
 
@@ -68,51 +80,167 @@ func TestSlice_New_NoOffsetMapWith1KbBlob(t *testing.T) {
 		t.Errorf("offset not expected for small file, got %v", len(actual))
 	}
 }
+func TestSlice_New_WithTextBinaryBlob(t *testing.T) {
+	binary := []byte("OMG THIS IS TEXT!")
+	fsSize := len(binary)
+	reader := bytes.NewReader(binary)
+
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+
+	sr := io.NewSectionReader(reader, 0, int64(fsSize))
+
+	stats := SlicerStats{}
+
+	slicer := New(algorithms.Xxhash)
+
+	if err := slicer.Slice(sr, &options, &stats); err != nil {
+		t.Errorf("Unexpected Slicer error %v", err)
+	}
+
+	expected := "67938b74b221486b"
+	actual := hex.EncodeToString(stats.Hash)
+
+	if !strings.EqualFold(actual, expected) {
+		t.Errorf("expected hash %s, got %s", expected, actual)
+	}
+}
+func TestSlice_New_WithTextBlob(t *testing.T) {
+	stexty := "OMG THIS IS TEXT!"
+	fsSize := len(stexty)
+	reader := strings.NewReader(stexty)
+
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+
+	sr := io.NewSectionReader(reader, 0, int64(fsSize))
+
+	stats := SlicerStats{}
+
+	slicer := New(algorithms.Xxhash)
+
+	if err := slicer.Slice(sr, &options, &stats); err != nil {
+		t.Errorf("Unexpected Slicer error %v", err)
+	}
+
+	expected := "67938b74b221486b"
+	actual := hex.EncodeToString(stats.Hash)
+
+	if !strings.EqualFold(actual, expected) {
+		t.Errorf("expected hash %s, got %s", expected, actual)
+	}
+}
+func TestSliceFS_New_FileSystemTestFile_TestWordPdf_WithSlicing(t *testing.T) {
+	fsys := os.DirFS("./artefacts")
+	filename := "test.pdf"
+	algorithm := algorithms.Xxhash
+	expected := "bedd0999e968547e"
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
+}
+func TestSliceFS_New_FileSystemTestFile_TestAdobePdf_WithSlicing(t *testing.T) {
+	fsys := os.DirFS("./artefacts")
+	filename := "test-adobe.pdf"
+	algorithm := algorithms.Xxhash
+	expected := "41d4d0a83d10e962"
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
+}
 func TestSliceFS_New_FileSystemTestFile_Test1mb_WithSlicing(t *testing.T) {
 	fsys := os.DirFS("./artefacts")
 	filename := "test.1mb"
 	algorithm := algorithms.Xxhash
 	expected := "bb83f43630ee546f"
-	disableSlicing := false
-	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, disableSlicing, expected, t)
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
+}
+func TestSliceFS_New_FileSystemTestFile_Test1mb_WithoutMeta(t *testing.T) {
+	fsys := os.DirFS("./artefacts")
+	filename := "test.1mb"
+	algorithm := algorithms.Xxhash
+	expected := "913c30543271faaf"
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          true,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
 }
 func TestSliceFS_New_FileSystemTestFile_TestManipulated1mb_WithSlicing(t *testing.T) {
 	fsys := os.DirFS("./artefacts")
 	filename := "test-manipulated.1mb"
 	algorithm := algorithms.Xxhash
 	expected := "4f595576799edcd9"
-	disableSlicing := false
-	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, disableSlicing, expected, t)
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
 }
 func TestSlice_New_FileSystemTestFile_Test1mb_WithSlicing(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "bb83f43630ee546f"
-	disableSlicing := false
-	runHashCheckTestsForFileSystemFile("./artefacts/test.1mb", algorithm, disableSlicing, expected, t)
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile("./artefacts/test.1mb", algorithm, &options, expected, t)
 }
 func TestSlice_New_FileSystemTestFile_TestManipulated1mb_WithSlicing(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "4f595576799edcd9"
-	disableSlicing := false
-	runHashCheckTestsForFileSystemFile("./artefacts/test-manipulated.1mb", algorithm, disableSlicing, expected, t)
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile("./artefacts/test-manipulated.1mb", algorithm, &options, expected, t)
 }
 func TestSlice_New_FileSystemTestFile_Test1mb_WithoutSlicing(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "6b6255ee515dcc04"
-	disableSlicing := true
-	runHashCheckTestsForFileSystemFile("./artefacts/test.1mb", algorithm, disableSlicing, expected, t)
+	options := SlicerOptions{
+		DisableSlicing:       true,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile("./artefacts/test.1mb", algorithm, &options, expected, t)
 }
 func TestSlice_New_FileSystemTestFile_TestManipulated1mb_WithoutSlicing(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "4a1960f16a88960c"
-	disableSlicing := true
-	runHashCheckTestsForFileSystemFile("./artefacts/test-manipulated.1mb", algorithm, disableSlicing, expected, t)
+	options := SlicerOptions{
+		DisableSlicing:       true,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+	runHashCheckTestsForFileSystemFile("./artefacts/test-manipulated.1mb", algorithm, &options, expected, t)
 }
-func runHashCheckTestsForFileSystemFile_WithSliceFS(fs fs.FS, filename string, algorithm algorithms.Algorithm, disableSlicing bool, expected string, t *testing.T) {
+func runHashCheckTestsForFileSystemFile_WithSliceFS(fs fs.FS, filename string, algorithm algorithms.Algorithm, options *SlicerOptions, expected string, t *testing.T) {
 
 	slicer := New(algorithm)
 
-	if stats, err := slicer.SliceFS(fs, filename, disableSlicing); err != nil {
+	if stats, err := slicer.SliceFS(fs, filename, options); err != nil {
 		t.Errorf("Unexpected Slicer error %v", err)
 	} else {
 
@@ -128,21 +256,20 @@ func runHashCheckTestsForFileSystemFile_WithSliceFS(fs fs.FS, filename string, a
 	}
 
 }
-func runHashCheckTestsForFileSystemFile(filename string, algorithm algorithms.Algorithm, disableSlicing bool, expected string, t *testing.T) {
+func runHashCheckTestsForFileSystemFile(filename string, algorithm algorithms.Algorithm, options *SlicerOptions, expected string, t *testing.T) {
 	if binary, err := os.ReadFile(filename); err != nil {
 		t.Errorf("Unexpected io error %v", err)
 	} else {
 
 		fsSize := len(binary)
 		reader := bytes.NewReader(binary)
-
 		sr := io.NewSectionReader(reader, 0, int64(fsSize))
 
 		stats := SlicerStats{}
 
 		slicer := New(algorithm)
 
-		if err := slicer.Slice(sr, disableSlicing, false, &stats); err != nil {
+		if err := slicer.Slice(sr, options, &stats); err != nil {
 			t.Errorf("Unexpected Slicer error %v", err)
 		}
 
@@ -174,11 +301,17 @@ func runHashAlgorithmTest(algorithm algorithms.Algorithm, t *testing.T) {
 
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
 
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+
 	stats := SlicerStats{}
 
 	slicer := New(algorithm)
 
-	if err := slicer.Slice(sr, false, false, &stats); err != nil {
+	if err := slicer.Slice(sr, &options, &stats); err != nil {
 		t.Errorf("Unexpected Slicer error %v", err)
 	}
 

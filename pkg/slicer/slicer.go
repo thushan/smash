@@ -34,6 +34,11 @@ type SlicerStats struct {
 type MetaSlice struct {
 	Size uint64
 }
+type SlicerOptions struct {
+	DisableSlicing       bool
+	DisableMeta          bool
+	DisableFileDetection bool
+}
 
 const DefaultSlices = 4
 const DefaultSliceSize = 8 * 1024
@@ -52,7 +57,7 @@ func NewConfigured(algorithm algorithms.Algorithm, slices int, size, maxSlice ui
 		defaultBytes: []byte{},
 	}
 }
-func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) (SlicerStats, error) {
+func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *SlicerOptions) (SlicerStats, error) {
 
 	stats := SlicerStats{Hash: slicer.defaultBytes, Filename: name}
 	f, err := fs.Open(name)
@@ -84,13 +89,13 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, disableSlicing bool) (Slice
 
 	if fr, ok := f.(io.ReaderAt); ok {
 		sr := io.NewSectionReader(fr, 0, size)
-		err := slicer.Slice(sr, disableSlicing, false, &stats)
+		err := slicer.Slice(sr, options, &stats)
 		return stats, err
 	} else {
 		return stats, errors.New("the File System does not support readers")
 	}
 }
-func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, disableMeta bool, stat *SlicerStats) error {
+func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *SlicerStats) error {
 
 	/*
 		Check the bytes are within the threshold for a full blob hash.
@@ -127,15 +132,23 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, disableMe
 	stat.ReaderSize = sr.Size()
 
 	// checks
+	canSliceFile := !options.DisableFileDetection && slicingSupported(sr, size)
 	greaterThanMinimumFileSize := uint64(slicer.slices+2)*slicer.sliceSize > size
 	greaterThanMinimumThreshold := size < slicer.threshold
 	invalidNumberOfSlices := slicer.slices <= 0
-	fullFileHash := disableSlicing || greaterThanMinimumThreshold || greaterThanMinimumFileSize || invalidNumberOfSlices
+	// fullHash only those times we have to
+	fullHash := options.DisableSlicing ||
+		greaterThanMinimumThreshold ||
+		greaterThanMinimumFileSize ||
+		invalidNumberOfSlices ||
+		!canSliceFile
 
-	stat.HashedFullFile = fullFileHash
+	stat.HashedFullFile = fullHash
 
-	// TODO: Detect text documents and force full hash
-	if fullFileHash {
+	// Reset after text detection
+	sr.Seek(0, io.SeekStart)
+
+	if fullHash {
 		if _, err := io.Copy(algo, sr); err != nil {
 			return err
 		}
@@ -185,7 +198,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, disableSlicing bool, disableMe
 		algo.Write(slice)
 
 		// metadata
-		if !disableMeta {
+		if !options.DisableMeta {
 			enc := gob.NewEncoder(algo)
 			if err := enc.Encode(meta); err != nil {
 				return err
