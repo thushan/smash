@@ -90,6 +90,11 @@ func (app *App) Run() error {
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
 	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
 
+	slo := slicer.SlicerOptions{
+		DisableSlicing:       disableSlicing,
+		DisableMeta:          false, // TODO: Flag this
+		DisableFileDetection: false, // TODO: Flag this
+	}
 	pap := theme.MultiWriter()
 	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
 
@@ -131,7 +136,7 @@ func (app *App) Run() error {
 				}
 
 				startTime := time.Now().UnixMilli()
-				stats, err := sl.SliceFS(file.FileSystem, file.Path, disableSlicing)
+				stats, err := sl.SliceFS(file.FileSystem, file.Path, &slo)
 				elapsedMs := time.Now().UnixMilli() - startTime
 
 				if err != nil {
