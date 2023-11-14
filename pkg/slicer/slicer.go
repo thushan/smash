@@ -45,6 +45,11 @@ const DefaultSliceSize = 8 * 1024
 const DefaultThreshold = 100 * 1024
 const DefaultMinimumSize = (DefaultSlices + 2) * DefaultSliceSize
 
+var DefaultEmptyFileCookie []byte
+
+func init() {
+	DefaultEmptyFileCookie = []byte{0xC0, 0xFF, 0xEE}
+}
 func New(algorithm algorithms.Algorithm) Slicer {
 	return NewConfigured(algorithm, DefaultSlices, DefaultSliceSize, DefaultThreshold)
 }
@@ -130,6 +135,13 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *
 	algo.Reset()
 
 	stat.ReaderSize = sr.Size()
+
+	if size == 0 {
+		// Zero byte file, nothing we can do
+		stat.Hash = DefaultEmptyFileCookie
+		stat.HashedFullFile = true
+		return nil
+	}
 
 	// checks
 	canSliceFile := !options.DisableFileDetection && slicingSupported(sr, size)

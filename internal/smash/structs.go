@@ -24,6 +24,7 @@ type RunSummary struct {
 	TotalFileErrors    int64
 	ElapsedTime        int64
 	UniqueFiles        int64
+	EmptyFiles         int64
 	DuplicateFiles     int64
 }
 type SmashFile struct {

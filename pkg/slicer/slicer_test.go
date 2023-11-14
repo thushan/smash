@@ -53,6 +53,37 @@ func TestSlice_New_OffsetMapWith1MbBlob(t *testing.T) {
 	}
 }
 
+func TestSlice_New_With0KbBlob(t *testing.T) {
+	binary := []byte{}
+	reader := bytes.NewReader(binary)
+
+	options := SlicerOptions{
+		DisableSlicing:       false,
+		DisableMeta:          false,
+		DisableFileDetection: false,
+	}
+
+	sr := io.NewSectionReader(reader, 0, 0)
+
+	stats := SlicerStats{}
+
+	slicer := New(algorithms.Xxhash)
+
+	if err := slicer.Slice(sr, &options, &stats); err != nil {
+		t.Errorf("Unexpected Slicer error %v", err)
+	}
+
+	expected := hex.EncodeToString(DefaultEmptyFileCookie)
+	actual := hex.EncodeToString(stats.Hash)
+
+	if !strings.EqualFold(actual, expected) {
+		t.Errorf("expected hash %s, got %s", expected, actual)
+	}
+
+	if stats.HashedFullFile != true {
+		t.Errorf("expected HashedFullFile to be %v, got %v", true, stats.HashedFullFile)
+	}
+}
 func TestSlice_New_NoOffsetMapWith1KbBlob(t *testing.T) {
 	fsSize := 1024 // 1Kb
 	binary := randomBytes(fsSize)

@@ -121,10 +121,13 @@ func (app *App) Run() error {
 
 	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
 
+	emptyFileCount := getEmptyFileCount(cache)
+
 	summary := RunSummary{
 		TotalFiles:      totalFiles,
 		TotalFileErrors: int64(fails.Len()),
 		UniqueFiles:     int64(cache.Len()),
+		EmptyFiles:      int64(emptyFileCount),
 		DuplicateFiles:  totalFiles - int64(cache.Len()),
 		ElapsedTime:     time.Now().UnixMilli() - appStartTime,
 	}
@@ -139,6 +142,16 @@ func (app *App) Run() error {
 	app.printSmashRunSummary(summary)
 
 	return nil
+}
+
+func getEmptyFileCount(cache *haxmap.Map[string, []SmashFile]) int {
+
+	zeroByteCookie := hex.EncodeToString(slicer.DefaultEmptyFileCookie)
+	if v, ok := cache.Get(zeroByteCookie); ok {
+		return len(v)
+	} else {
+		return 0
+	}
 }
 
 func (app *App) summariseSmashedFile(cache *haxmap.Map[string, []SmashFile], stats slicer.SlicerStats, filename string, ms int64) {
