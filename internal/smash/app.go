@@ -3,12 +3,13 @@ package smash
 import (
 	"encoding/hex"
 	"fmt"
-	"golang.org/x/term"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"golang.org/x/term"
 
 	"github.com/dustin/go-humanize"
 	"github.com/pterm/pterm"

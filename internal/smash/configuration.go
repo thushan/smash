@@ -1,10 +1,11 @@
 package smash
 
 import (
-	"github.com/dustin/go-humanize"
-	"github.com/thushan/smash/pkg/slicer"
 	"runtime"
 	"strings"
+
+	"github.com/dustin/go-humanize"
+	"github.com/thushan/smash/pkg/slicer"
 
 	"github.com/thushan/smash/internal/theme"
 
@@ -51,8 +52,7 @@ func enabledOrDisabled(value bool) string {
 func (app *App) setMaxThreads() {
 	maxThreads := app.Flags.MaxThreads
 	if maxThreads < 1 || maxThreads > runtime.NumCPU() {
-		return
+		maxThreads = runtime.NumCPU()
 	}
 	runtime.GOMAXPROCS(maxThreads)
-	app.printVerbose("Max Threads set to ", theme.ColourConfig(runtime.GOMAXPROCS(0)))
 }
