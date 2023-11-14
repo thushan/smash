@@ -3,6 +3,7 @@ package smash
 import (
 	"encoding/hex"
 	"fmt"
+	"golang.org/x/term"
 	"os"
 	"path/filepath"
 	"sync"
@@ -69,6 +70,11 @@ func (app *App) Run() error {
 	appStartTime := time.Now().UnixMilli()
 	updateTicker := int64(1000)
 
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		pterm.DisableColor()
+		pterm.DisableStyling()
+	}
+
 	if !app.Flags.Silent {
 		PrintVersionInfo(false)
 		app.printConfiguration()
@@ -126,7 +132,8 @@ func (app *App) Run() error {
 
 				if err != nil {
 					if app.Flags.Verbose {
-						theme.WarnSkipping.Println(err)
+						theme.WarnSkipping.Println(file.FullName)
+						// theme.WithContext.Info(theme.WithContext.Args("speed", 88, "measures", "mph"))
 					}
 					_, _ = fails.GetOrSet(sf, err)
 				} else {
