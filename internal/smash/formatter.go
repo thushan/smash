@@ -56,7 +56,9 @@ func (app *App) printSmashRunSummary(rs RunSummary) {
 	theme.Println("Total Time:         ", theme.ColourTime(fmt.Sprintf("%dms", rs.ElapsedTime)))
 	theme.Println("Total Files:        ", theme.ColourNumber(rs.TotalFiles))
 	theme.Println("Total Unique:       ", theme.ColourNumber(rs.UniqueFiles))
-	theme.Println("Total Skipped:      ", theme.ColourError(rs.TotalFileErrors))
+	if rs.TotalFileErrors > 0 {
+		theme.Println("Total Skipped:      ", theme.ColourError(rs.TotalFileErrors))
+	}
 	theme.Println("Total Duplicates:   ", theme.ColourNumber(rs.DuplicateFiles))
 	if rs.DuplicateFileSize > 0 {
 		theme.Println("Approx Reclaimable: ", theme.ColourFileSizeA(rs.DuplicateFileSizeF))
