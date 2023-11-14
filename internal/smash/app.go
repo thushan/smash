@@ -1,10 +1,8 @@
 package smash
 
 import (
-	"encoding/hex"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -121,61 +119,17 @@ func (app *App) Run() error {
 
 	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
 
-	emptyFileCount := getEmptyFileCount(cache)
-
-	summary := RunSummary{
-		TotalFiles:      totalFiles,
-		TotalFileErrors: int64(fails.Len()),
-		UniqueFiles:     int64(cache.Len()),
-		EmptyFiles:      int64(emptyFileCount),
-		DuplicateFiles:  totalFiles - int64(cache.Len()),
-		ElapsedTime:     time.Now().UnixMilli() - appStartTime,
-	}
-
 	psr.Success("Finding smash hits...Done!")
 	pap.Stop()
 
+	summary := calculateRunSummary(cache, fails, totalFiles, appStartTime)
+
 	totalDuplicateSize := app.printSmashHits(cache)
+
 	summary.DuplicateFileSize = totalDuplicateSize
 	summary.DuplicateFileSizeF = humanize.Bytes(totalDuplicateSize)
 
 	app.printSmashRunSummary(summary)
 
 	return nil
-}
-
-func getEmptyFileCount(cache *haxmap.Map[string, []SmashFile]) int {
-
-	zeroByteCookie := hex.EncodeToString(slicer.DefaultEmptyFileCookie)
-	if v, ok := cache.Get(zeroByteCookie); ok {
-		return len(v)
-	} else {
-		return 0
-	}
-}
-
-func (app *App) summariseSmashedFile(cache *haxmap.Map[string, []SmashFile], stats slicer.SlicerStats, filename string, ms int64) {
-	sf := SmashFile{
-		Filename:    filename,
-		Hash:        hex.EncodeToString(stats.Hash),
-		FileSize:    stats.FileSize,
-		FullHash:    stats.HashedFullFile,
-		FileSizeF:   humanize.Bytes(stats.FileSize),
-		ElapsedTime: ms,
-	}
-	hash := sf.Hash
-	if v, existing := cache.Get(hash); existing {
-		v = append(v, sf)
-		cache.Set(hash, v)
-	} else {
-		cache.Set(hash, []SmashFile{sf})
-	}
-}
-
-func resolveFilename(file indexer.FileFS) string {
-	if file.Path == "." {
-		return filepath.Base(file.FullName)
-	} else {
-		return file.Path
-	}
 }
