@@ -5,6 +5,8 @@ import (
 )
 
 var (
+	WithContextGlyph = "└─"
+
 	SequenceIndexing = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 	SequenceSmashing = []string{"◰", "◳", "◲", "◱"}
 	SequenceFinalise = []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
@@ -24,6 +26,7 @@ var (
 
 	StyleBold    *pterm.Style
 	StyleHeading *pterm.Style
+	StyleContext *pterm.Style
 )
 
 func init() {
@@ -36,8 +39,20 @@ func init() {
 	verbosePrefix.Text = "VERBOSE"
 	Verbose = pterm.Info.WithPrefix(verbosePrefix)
 
-	StyleHeading = pterm.NewStyle(pterm.FgCyan, pterm.Bold)
 	StyleBold = pterm.NewStyle(pterm.Bold)
+	StyleHeading = pterm.NewStyle(pterm.FgCyan, pterm.Bold)
+	StyleContext = pterm.NewStyle(pterm.FgDarkGray, pterm.Italic)
+
+}
+
+func Println(message ...any) {
+	pterm.Println(message...)
+}
+func PrintlnWithContext(context string, message ...any) {
+	pterm.Println(pterm.Sprintln(context), StyleContext.Sprint(WithContextGlyph), StyleContext.Sprint(message...))
+}
+func WarnSkipWithContext(context string, message ...any) {
+	pterm.Println(WarnSkipping.Sprintln(context), StyleContext.Sprint(WithContextGlyph), StyleContext.Sprint(message...))
 }
 
 func MultiWriter() pterm.MultiPrinter {
@@ -77,16 +92,12 @@ func TimeLongSpinner() pterm.SpinnerPrinter {
 	spinner.Sequence = SequenceTimeLong
 	return spinner
 }
-func Println(message ...any) {
-	pterm.Println(message...)
-}
 func ColourError(message ...any) string {
 	return pterm.Red(message...)
 }
 func ColourSplash(message ...any) string {
 	return pterm.LightGreen(message...)
 }
-
 func ColourPath(message ...any) string {
 	return pterm.Blue(message...)
 }

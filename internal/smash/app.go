@@ -9,6 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"golang.org/x/term"
+
 	"github.com/dustin/go-humanize"
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
@@ -69,6 +71,11 @@ func (app *App) Run() error {
 	appStartTime := time.Now().UnixMilli()
 	updateTicker := int64(1000)
 
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		pterm.DisableColor()
+		pterm.DisableStyling()
+	}
+
 	if !app.Flags.Silent {
 		PrintVersionInfo(false)
 		app.printConfiguration()
@@ -97,7 +104,10 @@ func (app *App) Run() error {
 			err := wk.WalkDirectory(os.DirFS(location), location, files)
 
 			if err != nil {
-				theme.Error.Println("Failed to walk location ", theme.ColourPath(location), " because ", err)
+				if app.Flags.Verbose {
+					theme.WarnSkipWithContext(location, err)
+				}
+				_, _ = fails.GetOrSet(location, err)
 			}
 		}
 	}()
@@ -126,7 +136,7 @@ func (app *App) Run() error {
 
 				if err != nil {
 					if app.Flags.Verbose {
-						theme.WarnSkipping.Println(err)
+						theme.WarnSkipWithContext(file.FullName, err)
 					}
 					_, _ = fails.GetOrSet(sf, err)
 				} else {
