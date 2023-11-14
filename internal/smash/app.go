@@ -103,7 +103,10 @@ func (app *App) Run() error {
 			err := wk.WalkDirectory(os.DirFS(location), location, files)
 
 			if err != nil {
-				theme.Error.Println("Failed to walk location ", theme.ColourPath(location), " because ", err)
+				if app.Flags.Verbose {
+					theme.WarnSkipWithContext(location, err)
+				}
+				_, _ = fails.GetOrSet(location, err)
 			}
 		}
 	}()
@@ -132,8 +135,7 @@ func (app *App) Run() error {
 
 				if err != nil {
 					if app.Flags.Verbose {
-						theme.WarnSkipping.Println(file.FullName)
-						// theme.WithContext.Info(theme.WithContext.Args("speed", 88, "measures", "mph"))
+						theme.WarnSkipWithContext(file.FullName, err)
 					}
 					_, _ = fails.GetOrSet(sf, err)
 				} else {
