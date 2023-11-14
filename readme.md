@@ -14,8 +14,10 @@ and computing a hash using [xxhash](https://xxhash.com/) or another algorithm. A
 for its speed & efficiency over other attributes. You can learn more about [xxhash](https://xxhash.com/) on their site.
 
 <p align="center">
-    <a href="https://asciinema.org/a/620513"><img src="docs/artefacts/smash-v0.0.2-demo.png"></a><br/>
-    <small>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code>. Watch the <a href="https://asciinema.org/a/620493">🍿 full demo</a> at <a href="https://asciinema.org/">asciinema</a>.</small>
+    <a href="https://asciinema.org/a/620513"><img src="docs/artefacts/smash-v0.0.2-demo.png" alt="smash demo"></a><br/>
+    <small>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with 
+    <code>smash</code>. Watch the <a href="https://asciinema.org/a/620513">🍿 full demo</a> 
+    at <a href="https://asciinema.org/">asciinema</a>.</small>
 </p>
 
 `smash` has a read-only view of the underlying filesystem and only reports duplicates - currently, we do not remove 
@@ -125,6 +127,7 @@ This project was possible thanks to the following projects or folks.
 * [@wader/fq](https://github.com/wader/fq) - countless nights of inspecting binary blobs!
 * [@cespare/xxhash](https://github.com/cespare/xxhash) - xxhash implementation
 * [@alphadose/haxmap](https://github.com/alphadose/haxmap) - Amazingly efficient map implementation
+* [@pterm/pterm](https://github.com/pterm/pterm) - Amazing TUI framework used
 * [@spf13/cobra](https://github.com/spf13/cobra) - CLI Magic with Cobra
 * [@golangci/golangci-lint](https://github.com/golangci/golangci-lint) - Go Linter
 * [@dkorunic/betteralign](https://github.com/dkorunic/betteralign) - Go alignment checker
