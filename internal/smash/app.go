@@ -1,10 +1,8 @@
 package smash
 
 import (
-	"encoding/hex"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -22,41 +20,6 @@ import (
 
 	"github.com/thushan/smash/pkg/indexer"
 )
-
-type Flags struct {
-	Base           []string `yaml:"base"`
-	ExcludeDir     []string `yaml:"exclude-dir"`
-	ExcludeFile    []string `yaml:"exclude-file"`
-	Algorithm      int      `yaml:"algorithm"`
-	MaxThreads     int      `yaml:"max-threads"`
-	MaxWorkers     int      `yaml:"max-workers"`
-	DisableSlicing bool     `yaml:"disable-slicing"`
-	Silent         bool     `yaml:"silent"`
-	Verbose        bool     `yaml:"verbose"`
-}
-
-type App struct {
-	Flags     *Flags
-	Args      []string
-	Locations []string
-}
-type RunSummary struct {
-	DuplicateFileSizeF string
-	DuplicateFileSize  uint64
-	TotalFiles         int64
-	TotalFileErrors    int64
-	ElapsedTime        int64
-	UniqueFiles        int64
-	DuplicateFiles     int64
-}
-type SmashFile struct {
-	Filename    string
-	Hash        string
-	FileSizeF   string
-	FileSize    uint64
-	ElapsedTime int64
-	FullHash    bool
-}
 
 func (app *App) Run() error {
 
@@ -156,47 +119,17 @@ func (app *App) Run() error {
 
 	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
 
-	summary := RunSummary{
-		TotalFiles:      totalFiles,
-		TotalFileErrors: int64(fails.Len()),
-		UniqueFiles:     int64(cache.Len()),
-		DuplicateFiles:  totalFiles - int64(cache.Len()),
-		ElapsedTime:     time.Now().UnixMilli() - appStartTime,
-	}
-
 	psr.Success("Finding smash hits...Done!")
 	pap.Stop()
 
+	summary := calculateRunSummary(cache, fails, totalFiles, appStartTime)
+
 	totalDuplicateSize := app.printSmashHits(cache)
+
 	summary.DuplicateFileSize = totalDuplicateSize
 	summary.DuplicateFileSizeF = humanize.Bytes(totalDuplicateSize)
 
 	app.printSmashRunSummary(summary)
 
 	return nil
-}
-
-func (app *App) summariseSmashedFile(cache *haxmap.Map[string, []SmashFile], stats slicer.SlicerStats, filename string, ms int64) {
-	sf := SmashFile{
-		Filename:    filename,
-		Hash:        hex.EncodeToString(stats.Hash),
-		FileSize:    stats.FileSize,
-		FullHash:    stats.HashedFullFile,
-		FileSizeF:   humanize.Bytes(stats.FileSize),
-		ElapsedTime: ms,
-	}
-	if v, existing := cache.Get(sf.Hash); existing {
-		v = append(v, sf)
-		cache.Set(sf.Hash, v)
-	} else {
-		cache.Set(sf.Hash, []SmashFile{sf})
-	}
-}
-
-func resolveFilename(file indexer.FileFS) string {
-	if file.Path == "." {
-		return filepath.Base(file.FullName)
-	} else {
-		return file.Path
-	}
 }

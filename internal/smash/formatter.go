@@ -1,12 +1,15 @@
 package smash
 
 import (
+	"encoding/hex"
 	"fmt"
+
+	"github.com/dustin/go-humanize"
+	"github.com/thushan/smash/pkg/slicer"
 
 	"github.com/thushan/smash/internal/theme"
 
 	"github.com/alphadose/haxmap"
-	"github.com/dustin/go-humanize"
 )
 
 const (
@@ -22,22 +25,18 @@ func (app *App) printVerbose(message ...any) {
 
 func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 	totalDuplicateSize := uint64(0)
+	emptyFileHash := hex.EncodeToString(slicer.DefaultEmptyFileCookie)
 	theme.StyleHeading.Println("---| Duplicates")
 	cache.ForEach(func(hash string, files []SmashFile) bool {
-		mainFile := files[0]
+		if hash == emptyFileHash {
+			// Skip this for now
+			return true
+		}
 		lastIndex := len(files)
 		if lastIndex > 1 {
-			theme.Println(theme.ColourFilename(mainFile.Filename), " ", theme.ColourFileSize(humanize.Bytes(mainFile.FileSize)), " ", theme.ColourHash(mainFile.Hash))
-			for index, file := range files[1:] {
-				var subTree string
-				if (index + 2) == lastIndex {
-					subTree = TreeLastChild
-				} else {
-					subTree = TreeNextChild
-				}
-				theme.Println(theme.ColourFolderHierarchy(subTree), theme.ColourFilenameA(file.Filename))
-			}
-			totalDuplicateSize += mainFile.FileSize * uint64(lastIndex-1)
+			root := files[0]
+			printSmashHit(root, files, lastIndex)
+			totalDuplicateSize += root.FileSize * uint64(lastIndex-1)
 		} else {
 			// prune unique files
 			cache.Del(hash)
@@ -47,7 +46,28 @@ func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 	if cache.Len() == 0 {
 		theme.ColourSuccess("No duplicates found :-)")
 	}
+	if !app.Flags.IgnoreEmptyFiles {
+		if files, ok := cache.Get(emptyFileHash); ok {
+			theme.StyleHeading.Println("---| Empty Files")
+			root := files[0]
+			printSmashHit(root, files, len(files))
+		}
+	}
+
 	return totalDuplicateSize
+}
+
+func printSmashHit(root SmashFile, duplicates []SmashFile, lastIndex int) {
+	theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(humanize.Bytes(root.FileSize)), " ", theme.ColourHash(root.Hash))
+	for index, file := range duplicates[1:] {
+		var subTree string
+		if (index + 2) == lastIndex {
+			subTree = TreeLastChild
+		} else {
+			subTree = TreeNextChild
+		}
+		theme.Println(theme.ColourFolderHierarchy(subTree), theme.ColourFilenameA(file.Filename))
+	}
 }
 
 func (app *App) printSmashRunSummary(rs RunSummary) {
@@ -60,8 +80,11 @@ func (app *App) printSmashRunSummary(rs RunSummary) {
 		theme.Println("Total Skipped:      ", theme.ColourError(rs.TotalFileErrors))
 	}
 	theme.Println("Total Duplicates:   ", theme.ColourNumber(rs.DuplicateFiles))
+	if !app.Flags.IgnoreEmptyFiles && rs.EmptyFiles > 0 {
+		theme.Println("Total Empty Files:  ", theme.ColourNumber(rs.EmptyFiles))
+	}
 	if rs.DuplicateFileSize > 0 {
-		theme.Println("Approx Reclaimable: ", theme.ColourFileSizeA(rs.DuplicateFileSizeF))
+		theme.Println("Space Reclaimable:  ", theme.ColourFileSizeA(rs.DuplicateFileSizeF), "(approx)")
 	}
 
 }
