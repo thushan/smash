@@ -27,7 +27,7 @@ func calculateRunSummary(cache *haxmap.Map[string, []SmashFile], fails *haxmap.M
 func getEmptyFileCount(cache *haxmap.Map[string, []SmashFile]) int {
 
 	zeroByteCookie := hex.EncodeToString(slicer.DefaultEmptyFileCookie)
-	if v, ok := cache.GetAndDel(zeroByteCookie); ok {
+	if v, ok := cache.Get(zeroByteCookie); ok {
 		return len(v)
 	} else {
 		return 0
