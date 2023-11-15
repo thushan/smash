@@ -46,9 +46,12 @@ func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 	if cache.Len() == 0 {
 		theme.ColourSuccess("No duplicates found :-)")
 	}
-	if v, ok := cache.Get(emptyFileHash); ok {
-		theme.StyleHeading.Println("---| Empty Files")
-		printSmashHit(v[0], v, len(v))
+	if !app.Flags.IgnoreEmptyFiles {
+		if files, ok := cache.Get(emptyFileHash); ok {
+			theme.StyleHeading.Println("---| Empty Files")
+			root := files[0]
+			printSmashHit(root, files, len(files))
+		}
 	}
 
 	return totalDuplicateSize
@@ -77,11 +80,11 @@ func (app *App) printSmashRunSummary(rs RunSummary) {
 		theme.Println("Total Skipped:      ", theme.ColourError(rs.TotalFileErrors))
 	}
 	theme.Println("Total Duplicates:   ", theme.ColourNumber(rs.DuplicateFiles))
-	if rs.DuplicateFileSize > 0 {
-		theme.Println("Space Reclaimable:  ", theme.ColourFileSizeA(rs.DuplicateFileSizeF))
-	}
-	if rs.EmptyFiles > 0 {
+	if !app.Flags.IgnoreEmptyFiles && rs.EmptyFiles > 0 {
 		theme.Println("Total Empty Files:  ", theme.ColourNumber(rs.EmptyFiles))
+	}
+	if rs.DuplicateFileSize > 0 {
+		theme.Println("Space Reclaimable:  ", theme.ColourFileSizeA(rs.DuplicateFileSizeF), "(approx)")
 	}
 
 }
