@@ -1,12 +1,8 @@
 package report
 
 import (
-	"encoding/hex"
-	"github.com/dustin/go-humanize"
-	"github.com/thushan/smash/pkg/slicer"
-	"time"
-
-	"github.com/alphadose/haxmap"
+	"fmt"
+	"github.com/thushan/smash/internal/theme"
 )
 
 type RunSummary struct {
@@ -20,49 +16,21 @@ type RunSummary struct {
 	DuplicateFiles     int64
 }
 
-type SmashFile struct {
-	Filename    string
-	Hash        string
-	FileSizeF   string
-	FileSize    uint64
-	ElapsedTime int64
-	FullHash    bool
-	EmptyFile   bool
-}
+func PrintRunSummary(rs RunSummary, ignoreEmptyFiles bool) {
+	theme.StyleHeading.Println("---| Analysis Summary")
 
-func CalculateRunSummary(duplicates *haxmap.Map[string, []SmashFile], fails *haxmap.Map[string, error], emptyFiles *[]SmashFile, totalFiles int64, appStartTime int64) RunSummary {
-
-	emptyFileCount := len(*emptyFiles)
-	return RunSummary{
-		TotalFiles:      totalFiles,
-		TotalFileErrors: int64(fails.Len()),
-		UniqueFiles:     int64(duplicates.Len()),
-		EmptyFiles:      int64(emptyFileCount),
-		DuplicateFiles:  totalFiles - (int64(duplicates.Len()) + int64(emptyFileCount)),
-		ElapsedTime:     time.Now().UnixMilli() - appStartTime,
+	theme.Println("Total Time:         ", theme.ColourTime(fmt.Sprintf("%dms", rs.ElapsedTime)))
+	theme.Println("Total Analysed:     ", theme.ColourNumber(rs.TotalFiles))
+	theme.Println("Total Unique:       ", theme.ColourNumber(rs.UniqueFiles), "(excludes empty files)")
+	if rs.TotalFileErrors > 0 {
+		theme.Println("Total Skipped:      ", theme.ColourError(rs.TotalFileErrors))
 	}
-}
-
-func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, []SmashFile], emptyFiles *[]SmashFile) {
-	sf := SmashFile{
-		Hash:        hex.EncodeToString(stats.Hash),
-		Filename:    filename,
-		FileSize:    stats.FileSize,
-		FullHash:    stats.HashedFullFile,
-		EmptyFile:   stats.EmptyFile,
-		FileSizeF:   humanize.Bytes(stats.FileSize),
-		ElapsedTime: ms,
+	theme.Println("Total Duplicates:   ", theme.ColourNumber(rs.DuplicateFiles))
+	if !ignoreEmptyFiles && rs.EmptyFiles > 0 {
+		theme.Println("Total Empty Files:  ", theme.ColourNumber(rs.EmptyFiles))
 	}
-	if sf.EmptyFile {
-		*emptyFiles = append(*emptyFiles, sf)
-	} else {
-		hash := sf.Hash
-		if v, existing := duplicates.Get(hash); existing {
-			v = append(v, sf)
-			duplicates.Set(hash, v)
-		} else {
-			duplicates.Set(hash, []SmashFile{sf})
-		}
+	if rs.DuplicateFileSize > 0 {
+		theme.Println("Space Reclaimable:  ", theme.ColourFileSizeA(rs.DuplicateFileSizeF), "(approx)")
 	}
 
 }

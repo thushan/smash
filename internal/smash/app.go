@@ -10,7 +10,6 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/dustin/go-humanize"
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
 
@@ -141,14 +140,9 @@ func (app *App) Run() error {
 	psr.Success("Finding smash hits...Done!")
 	pap.Stop()
 
-	summary := report.CalculateRunSummary(session.Dupes, session.Fails, session.Empty, totalFiles, session.StartTime)
+	summary := app.generateSmashHits(totalFiles)
 
-	totalDuplicateSize := app.printSmashHits()
-
-	summary.DuplicateFileSize = totalDuplicateSize
-	summary.DuplicateFileSizeF = humanize.Bytes(totalDuplicateSize)
-
-	app.printSmashRunSummary(summary)
+	report.PrintRunSummary(summary, app.Flags.IgnoreEmptyFiles)
 
 	return nil
 }

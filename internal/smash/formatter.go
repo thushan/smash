@@ -1,9 +1,9 @@
 package smash
 
 import (
-	"fmt"
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/internal/report"
+	"time"
 
 	"github.com/thushan/smash/internal/theme"
 )
@@ -19,41 +19,54 @@ func (app *App) printVerbose(message ...any) {
 	}
 }
 
-// printSmashHits Prints the smash hits of duplicates and returns the total size of duplicates.
-func (app *App) printSmashHits() uint64 {
-	duplicates := app.Session.Dupes
+// generateSmashHits Generates the smash hits of duplicates and returns the total size of duplicates.
+func (app *App) generateSmashHits(totalFiles int64) report.RunSummary {
+	session := *app.Session
+	duplicates := session.Dupes
+	emptyFiles := *session.Empty
+
+	totalDuplicates := 0
+	totalUniqueFiles := int64(duplicates.Len())
 	totalDuplicateSize := uint64(0)
-	totalDuplicateFileCount := duplicates.Len()
+	totalFailFileCount := int64(session.Fails.Len())
+	totalEmptyFileCount := int64(len(emptyFiles))
 
-	theme.StyleHeading.Println("---| Duplicates (", totalDuplicateFileCount, ")")
+	theme.StyleHeading.Println("---| Duplicates")
+	duplicates.ForEach(func(hash string, files []report.SmashFile) bool {
+		duplicateFiles := len(files) - 1
+		if duplicateFiles == 0 {
+			// prune unique files
+			duplicates.Del(hash)
+		} else {
+			root := files[0]
+			dupes := files[1:]
+			theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(humanize.Bytes(root.FileSize)), " ", theme.ColourHash(root.Hash))
+			printSmashHits(dupes)
+			totalDuplicates += len(dupes)
+			totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
+		}
+		return true
+	})
 
-	if totalDuplicateFileCount == 0 {
+	if totalDuplicates == 0 {
 		theme.ColourSuccess("No duplicates found :-)")
-	} else {
-		duplicates.ForEach(func(hash string, files []report.SmashFile) bool {
-			duplicateFiles := len(files) - 1
-			if duplicateFiles == 0 {
-				// prune unique files
-				duplicates.Del(hash)
-			} else {
-				root := files[0]
-				theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(humanize.Bytes(root.FileSize)), " ", theme.ColourHash(root.Hash))
-				printSmashHits(files[1:])
-				totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
-			}
-			return true
-		})
 	}
-
-	emptyFiles := *app.Session.Empty
-	totalEmptyFileCount := len(emptyFiles)
 
 	if !app.Flags.IgnoreEmptyFiles && totalEmptyFileCount != 0 {
 		theme.StyleHeading.Println("---| Empty Files (", totalEmptyFileCount, ")")
 		printSmashHits(emptyFiles)
 	}
 
-	return totalDuplicateSize
+	return report.RunSummary{
+		TotalFiles:         totalFiles,
+		TotalFileErrors:    totalFailFileCount,
+		UniqueFiles:        totalUniqueFiles,
+		EmptyFiles:         totalEmptyFileCount,
+		DuplicateFiles:     int64(totalDuplicates),
+		DuplicateFileSize:  totalDuplicateSize,
+		DuplicateFileSizeF: humanize.Bytes(totalDuplicateSize),
+		ElapsedTime:        time.Now().UnixMilli() - app.Session.StartTime,
+	}
 }
 
 func printSmashHits(files []report.SmashFile) {
@@ -67,23 +80,4 @@ func printSmashHits(files []report.SmashFile) {
 		}
 		theme.Println(theme.ColourFolderHierarchy(subTree), theme.ColourFilenameA(file.Filename))
 	}
-}
-
-func (app *App) printSmashRunSummary(rs report.RunSummary) {
-	theme.StyleHeading.Println("---| Summary")
-
-	theme.Println("Total Time:         ", theme.ColourTime(fmt.Sprintf("%dms", rs.ElapsedTime)))
-	theme.Println("Total Files:        ", theme.ColourNumber(rs.TotalFiles))
-	theme.Println("Total Unique:       ", theme.ColourNumber(rs.UniqueFiles))
-	if rs.TotalFileErrors > 0 {
-		theme.Println("Total Skipped:      ", theme.ColourError(rs.TotalFileErrors))
-	}
-	theme.Println("Total Duplicates:   ", theme.ColourNumber(rs.DuplicateFiles))
-	if !app.Flags.IgnoreEmptyFiles && rs.EmptyFiles > 0 {
-		theme.Println("Total Empty Files:  ", theme.ColourNumber(rs.EmptyFiles))
-	}
-	if rs.DuplicateFileSize > 0 {
-		theme.Println("Space Reclaimable:  ", theme.ColourFileSizeA(rs.DuplicateFileSizeF), "(approx)")
-	}
-
 }
