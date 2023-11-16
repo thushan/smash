@@ -2,11 +2,12 @@ package smash
 
 import (
 	"fmt"
-	"github.com/thushan/smash/internal/report"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/thushan/smash/internal/report"
 
 	"golang.org/x/term"
 
@@ -23,9 +24,9 @@ import (
 
 type App struct {
 	Flags     *Flags
+	Session   *AppSession
 	Args      []string
 	Locations []string
-	Session   *AppSession
 }
 type AppSession struct {
 	Dupes     *haxmap.Map[string, []report.SmashFile]

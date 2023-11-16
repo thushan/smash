@@ -1,9 +1,10 @@
 package smash
 
 import (
+	"time"
+
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/internal/report"
-	"time"
 
 	"github.com/thushan/smash/internal/theme"
 )

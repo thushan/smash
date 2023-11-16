@@ -2,6 +2,7 @@ package report
 
 import (
 	"encoding/hex"
+
 	"github.com/alphadose/haxmap"
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/pkg/slicer"

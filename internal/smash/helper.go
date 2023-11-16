@@ -1,8 +1,9 @@
 package smash
 
 import (
-	"github.com/thushan/smash/pkg/indexer"
 	"path/filepath"
+
+	"github.com/thushan/smash/pkg/indexer"
 )
 
 func resolveFilename(file indexer.FileFS) string {

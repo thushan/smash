@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+
 	"github.com/thushan/smash/internal/theme"
 )
 
