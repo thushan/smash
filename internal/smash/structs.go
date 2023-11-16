@@ -12,9 +12,3 @@ type Flags struct {
 	Silent           bool     `yaml:"silent"`
 	Verbose          bool     `yaml:"verbose"`
 }
-
-type App struct {
-	Flags     *Flags
-	Args      []string
-	Locations []string
-}

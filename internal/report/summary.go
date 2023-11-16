@@ -27,45 +27,42 @@ type SmashFile struct {
 	FileSize    uint64
 	ElapsedTime int64
 	FullHash    bool
+	EmptyFile   bool
 }
 
-func CalculateRunSummary(cache *haxmap.Map[string, []SmashFile], fails *haxmap.Map[string, error], totalFiles int64, appStartTime int64) RunSummary {
+func CalculateRunSummary(duplicates *haxmap.Map[string, []SmashFile], fails *haxmap.Map[string, error], emptyFiles *[]SmashFile, totalFiles int64, appStartTime int64) RunSummary {
 
-	emptyFileCount := getEmptyFileCount(cache)
-
+	emptyFileCount := len(*emptyFiles)
 	return RunSummary{
 		TotalFiles:      totalFiles,
 		TotalFileErrors: int64(fails.Len()),
-		UniqueFiles:     int64(cache.Len()),
+		UniqueFiles:     int64(duplicates.Len()),
 		EmptyFiles:      int64(emptyFileCount),
-		DuplicateFiles:  totalFiles - (int64(cache.Len()) + int64(emptyFileCount)),
+		DuplicateFiles:  totalFiles - (int64(duplicates.Len()) + int64(emptyFileCount)),
 		ElapsedTime:     time.Now().UnixMilli() - appStartTime,
 	}
 }
-func getEmptyFileCount(cache *haxmap.Map[string, []SmashFile]) int {
 
-	zeroByteCookie := hex.EncodeToString(slicer.DefaultEmptyFileCookie)
-	if v, ok := cache.Get(zeroByteCookie); ok {
-		return len(v)
-	} else {
-		return 0
-	}
-}
-
-func SummariseSmashedFile(cache *haxmap.Map[string, []SmashFile], stats slicer.SlicerStats, filename string, ms int64) {
+func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, []SmashFile], emptyFiles *[]SmashFile) {
 	sf := SmashFile{
-		Filename:    filename,
 		Hash:        hex.EncodeToString(stats.Hash),
+		Filename:    filename,
 		FileSize:    stats.FileSize,
 		FullHash:    stats.HashedFullFile,
+		EmptyFile:   stats.EmptyFile,
 		FileSizeF:   humanize.Bytes(stats.FileSize),
 		ElapsedTime: ms,
 	}
-	hash := sf.Hash
-	if v, existing := cache.Get(hash); existing {
-		v = append(v, sf)
-		cache.Set(hash, v)
+	if sf.EmptyFile {
+		*emptyFiles = append(*emptyFiles, sf)
 	} else {
-		cache.Set(hash, []SmashFile{sf})
+		hash := sf.Hash
+		if v, existing := duplicates.Get(hash); existing {
+			v = append(v, sf)
+			duplicates.Set(hash, v)
+		} else {
+			duplicates.Set(hash, []SmashFile{sf})
+		}
 	}
+
 }

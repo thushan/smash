@@ -1,16 +1,11 @@
 package smash
 
 import (
-	"encoding/hex"
 	"fmt"
+	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/internal/report"
 
-	"github.com/dustin/go-humanize"
-	"github.com/thushan/smash/pkg/slicer"
-
 	"github.com/thushan/smash/internal/theme"
-
-	"github.com/alphadose/haxmap"
 )
 
 const (
@@ -24,48 +19,51 @@ func (app *App) printVerbose(message ...any) {
 	}
 }
 
-func (app *App) printSmashHits(cache *haxmap.Map[string, []report.SmashFile]) uint64 {
+// printSmashHits Prints the smash hits of duplicates and returns the total size of duplicates.
+func (app *App) printSmashHits() uint64 {
+	duplicates := app.Session.Dupes
 	totalDuplicateSize := uint64(0)
-	emptyFileHash := hex.EncodeToString(slicer.DefaultEmptyFileCookie)
-	theme.StyleHeading.Println("---| Duplicates")
-	cache.ForEach(func(hash string, files []report.SmashFile) bool {
-		if hash == emptyFileHash {
-			// Skip this for now
-			return true
-		}
-		lastIndex := len(files)
-		if lastIndex > 1 {
-			root := files[0]
-			printSmashHit(root, files, lastIndex)
-			totalDuplicateSize += root.FileSize * uint64(lastIndex-1)
-		} else {
-			// prune unique files
-			cache.Del(hash)
-		}
-		return true
-	})
-	if cache.Len() == 0 {
+	totalDuplicateFileCount := duplicates.Len()
+
+	theme.StyleHeading.Println("---| Duplicates (", totalDuplicateFileCount, ")")
+
+	if totalDuplicateFileCount == 0 {
 		theme.ColourSuccess("No duplicates found :-)")
+	} else {
+		duplicates.ForEach(func(hash string, files []report.SmashFile) bool {
+			duplicateFiles := len(files) - 1
+			if duplicateFiles == 0 {
+				// prune unique files
+				duplicates.Del(hash)
+			} else {
+				root := files[0]
+				theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(humanize.Bytes(root.FileSize)), " ", theme.ColourHash(root.Hash))
+				printSmashHits(files[1:])
+				totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
+			}
+			return true
+		})
 	}
-	if !app.Flags.IgnoreEmptyFiles {
-		if files, ok := cache.Get(emptyFileHash); ok {
-			theme.StyleHeading.Println("---| Empty Files")
-			root := files[0]
-			printSmashHit(root, files, len(files))
-		}
+
+	emptyFiles := *app.Session.Empty
+	totalEmptyFileCount := len(emptyFiles)
+
+	if !app.Flags.IgnoreEmptyFiles && totalEmptyFileCount != 0 {
+		theme.StyleHeading.Println("---| Empty Files (", totalEmptyFileCount, ")")
+		printSmashHits(emptyFiles)
 	}
 
 	return totalDuplicateSize
 }
 
-func printSmashHit(root report.SmashFile, duplicates []report.SmashFile, lastIndex int) {
-	theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(humanize.Bytes(root.FileSize)), " ", theme.ColourHash(root.Hash))
-	for index, file := range duplicates[1:] {
+func printSmashHits(files []report.SmashFile) {
+	lastIndex := len(files) - 1
+	for index, file := range files {
 		var subTree string
-		if (index + 2) == lastIndex {
-			subTree = TreeLastChild
-		} else {
+		if index < lastIndex {
 			subTree = TreeNextChild
+		} else {
+			subTree = TreeLastChild
 		}
 		theme.Println(theme.ColourFolderHierarchy(subTree), theme.ColourFilenameA(file.Filename))
 	}

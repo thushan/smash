@@ -22,17 +22,39 @@ import (
 	"github.com/thushan/smash/pkg/indexer"
 )
 
+type App struct {
+	Flags     *Flags
+	Args      []string
+	Locations []string
+	Session   *AppSession
+}
+type AppSession struct {
+	Dupes     *haxmap.Map[string, []report.SmashFile]
+	Fails     *haxmap.Map[string, error]
+	Empty     *[]report.SmashFile
+	StartTime int64
+	EndTime   int64
+}
+
 func (app *App) Run() error {
 
-	var locations = app.Locations
-	var excludeDirs = app.Flags.ExcludeDir
-	var excludeFiles = app.Flags.ExcludeFile
-	var disableSlicing = app.Flags.DisableSlicing
+	var emptyFiles []report.SmashFile
 
-	/**
-	 * Good times: https://go-review.googlesource.com/c/go/+/293349
-	 */
-	appStartTime := time.Now().UnixMilli()
+	session := AppSession{
+		Dupes:     haxmap.New[string, []report.SmashFile](),
+		Fails:     haxmap.New[string, error](),
+		Empty:     &emptyFiles,
+		StartTime: time.Now().UnixMilli(),
+		EndTime:   -1,
+	}
+	app.Session = &session
+	app.setMaxThreads()
+
+	locations := app.Locations
+	excludeDirs := app.Flags.ExcludeDir
+	excludeFiles := app.Flags.ExcludeFile
+	disableSlicing := app.Flags.DisableSlicing
+
 	updateTicker := int64(1000)
 
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -45,11 +67,7 @@ func (app *App) Run() error {
 		app.printConfiguration()
 	}
 
-	app.setMaxThreads()
-
 	files := make(chan indexer.FileFS)
-	cache := haxmap.New[string, []report.SmashFile]()
-	fails := haxmap.New[string, error]()
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
 	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
@@ -76,7 +94,7 @@ func (app *App) Run() error {
 				if app.Flags.Verbose {
 					theme.WarnSkipWithContext(location, err)
 				}
-				_, _ = fails.GetOrSet(location, err)
+				_, _ = session.Fails.GetOrSet(location, err)
 			}
 		}
 	}()
@@ -107,9 +125,9 @@ func (app *App) Run() error {
 					if app.Flags.Verbose {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
-					_, _ = fails.GetOrSet(sf, err)
+					_, _ = session.Fails.GetOrSet(sf, err)
 				} else {
-					report.SummariseSmashedFile(cache, stats, sf, elapsedMs)
+					report.SummariseSmashedFile(stats, sf, elapsedMs, session.Dupes, session.Empty)
 				}
 			}
 		}()
@@ -123,9 +141,9 @@ func (app *App) Run() error {
 	psr.Success("Finding smash hits...Done!")
 	pap.Stop()
 
-	summary := report.CalculateRunSummary(cache, fails, totalFiles, appStartTime)
+	summary := report.CalculateRunSummary(session.Dupes, session.Fails, session.Empty, totalFiles, session.StartTime)
 
-	totalDuplicateSize := app.printSmashHits(cache)
+	totalDuplicateSize := app.printSmashHits()
 
 	summary.DuplicateFileSize = totalDuplicateSize
 	summary.DuplicateFileSizeF = humanize.Bytes(totalDuplicateSize)
