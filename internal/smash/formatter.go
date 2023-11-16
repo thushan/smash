@@ -3,6 +3,7 @@ package smash
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/thushan/smash/internal/report"
 
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/pkg/slicer"
@@ -23,11 +24,11 @@ func (app *App) printVerbose(message ...any) {
 	}
 }
 
-func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
+func (app *App) printSmashHits(cache *haxmap.Map[string, []report.SmashFile]) uint64 {
 	totalDuplicateSize := uint64(0)
 	emptyFileHash := hex.EncodeToString(slicer.DefaultEmptyFileCookie)
 	theme.StyleHeading.Println("---| Duplicates")
-	cache.ForEach(func(hash string, files []SmashFile) bool {
+	cache.ForEach(func(hash string, files []report.SmashFile) bool {
 		if hash == emptyFileHash {
 			// Skip this for now
 			return true
@@ -57,7 +58,7 @@ func (app *App) printSmashHits(cache *haxmap.Map[string, []SmashFile]) uint64 {
 	return totalDuplicateSize
 }
 
-func printSmashHit(root SmashFile, duplicates []SmashFile, lastIndex int) {
+func printSmashHit(root report.SmashFile, duplicates []report.SmashFile, lastIndex int) {
 	theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(humanize.Bytes(root.FileSize)), " ", theme.ColourHash(root.Hash))
 	for index, file := range duplicates[1:] {
 		var subTree string
@@ -70,7 +71,7 @@ func printSmashHit(root SmashFile, duplicates []SmashFile, lastIndex int) {
 	}
 }
 
-func (app *App) printSmashRunSummary(rs RunSummary) {
+func (app *App) printSmashRunSummary(rs report.RunSummary) {
 	theme.StyleHeading.Println("---| Summary")
 
 	theme.Println("Total Time:         ", theme.ColourTime(fmt.Sprintf("%dms", rs.ElapsedTime)))

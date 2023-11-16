@@ -2,6 +2,7 @@ package smash
 
 import (
 	"fmt"
+	"github.com/thushan/smash/internal/report"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -47,7 +48,7 @@ func (app *App) Run() error {
 	app.setMaxThreads()
 
 	files := make(chan indexer.FileFS)
-	cache := haxmap.New[string, []SmashFile]()
+	cache := haxmap.New[string, []report.SmashFile]()
 	fails := haxmap.New[string, error]()
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
@@ -108,7 +109,7 @@ func (app *App) Run() error {
 					}
 					_, _ = fails.GetOrSet(sf, err)
 				} else {
-					app.summariseSmashedFile(cache, stats, sf, elapsedMs)
+					report.SummariseSmashedFile(cache, stats, sf, elapsedMs)
 				}
 			}
 		}()
@@ -122,7 +123,7 @@ func (app *App) Run() error {
 	psr.Success("Finding smash hits...Done!")
 	pap.Stop()
 
-	summary := calculateRunSummary(cache, fails, totalFiles, appStartTime)
+	summary := report.CalculateRunSummary(cache, fails, totalFiles, appStartTime)
 
 	totalDuplicateSize := app.printSmashHits(cache)
 
