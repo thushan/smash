@@ -7,9 +7,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/thushan/smash/internal/report"
+
 	"golang.org/x/term"
 
-	"github.com/dustin/go-humanize"
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
 
@@ -21,17 +22,39 @@ import (
 	"github.com/thushan/smash/pkg/indexer"
 )
 
+type App struct {
+	Flags     *Flags
+	Session   *AppSession
+	Args      []string
+	Locations []string
+}
+type AppSession struct {
+	Dupes     *haxmap.Map[string, []report.SmashFile]
+	Fails     *haxmap.Map[string, error]
+	Empty     *[]report.SmashFile
+	StartTime int64
+	EndTime   int64
+}
+
 func (app *App) Run() error {
 
-	var locations = app.Locations
-	var excludeDirs = app.Flags.ExcludeDir
-	var excludeFiles = app.Flags.ExcludeFile
-	var disableSlicing = app.Flags.DisableSlicing
+	var emptyFiles []report.SmashFile
 
-	/**
-	 * Good times: https://go-review.googlesource.com/c/go/+/293349
-	 */
-	appStartTime := time.Now().UnixMilli()
+	session := AppSession{
+		Dupes:     haxmap.New[string, []report.SmashFile](),
+		Fails:     haxmap.New[string, error](),
+		Empty:     &emptyFiles,
+		StartTime: time.Now().UnixMilli(),
+		EndTime:   -1,
+	}
+	app.Session = &session
+	app.setMaxThreads()
+
+	locations := app.Locations
+	excludeDirs := app.Flags.ExcludeDir
+	excludeFiles := app.Flags.ExcludeFile
+	disableSlicing := app.Flags.DisableSlicing
+
 	updateTicker := int64(1000)
 
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -44,11 +67,7 @@ func (app *App) Run() error {
 		app.printConfiguration()
 	}
 
-	app.setMaxThreads()
-
 	files := make(chan indexer.FileFS)
-	cache := haxmap.New[string, []SmashFile]()
-	fails := haxmap.New[string, error]()
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
 	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
@@ -58,6 +77,7 @@ func (app *App) Run() error {
 		DisableMeta:          false, // TODO: Flag this
 		DisableFileDetection: false, // TODO: Flag this
 	}
+
 	pap := theme.MultiWriter()
 	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
 
@@ -75,7 +95,7 @@ func (app *App) Run() error {
 				if app.Flags.Verbose {
 					theme.WarnSkipWithContext(location, err)
 				}
-				_, _ = fails.GetOrSet(location, err)
+				_, _ = session.Fails.GetOrSet(location, err)
 			}
 		}
 	}()
@@ -106,9 +126,9 @@ func (app *App) Run() error {
 					if app.Flags.Verbose {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
-					_, _ = fails.GetOrSet(sf, err)
+					_, _ = session.Fails.GetOrSet(sf, err)
 				} else {
-					app.summariseSmashedFile(cache, stats, sf, elapsedMs)
+					report.SummariseSmashedFile(stats, sf, elapsedMs, session.Dupes, session.Empty)
 				}
 			}
 		}()
@@ -116,20 +136,10 @@ func (app *App) Run() error {
 	wg.Wait()
 
 	pss.Success("Finding duplicates...Done!")
-
-	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
-
-	psr.Success("Finding smash hits...Done!")
 	pap.Stop()
 
-	summary := calculateRunSummary(cache, fails, totalFiles, appStartTime)
-
-	totalDuplicateSize := app.printSmashHits(cache)
-
-	summary.DuplicateFileSize = totalDuplicateSize
-	summary.DuplicateFileSizeF = humanize.Bytes(totalDuplicateSize)
-
-	app.printSmashRunSummary(summary)
+	summary := app.generateRunSummary(totalFiles)
+	report.PrintRunSummary(summary, app.Flags.IgnoreEmptyFiles)
 
 	return nil
 }

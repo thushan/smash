@@ -73,15 +73,16 @@ func TestSlice_New_With0KbBlob(t *testing.T) {
 		t.Errorf("Unexpected Slicer error %v", err)
 	}
 
-	expected := hex.EncodeToString(DefaultEmptyFileCookie)
-	actual := hex.EncodeToString(stats.Hash)
-
-	if !strings.EqualFold(actual, expected) {
-		t.Errorf("expected hash %s, got %s", expected, actual)
+	if stats.EmptyFile != true {
+		t.Errorf("expected Empty to be %v, got %v", true, stats.EmptyFile)
 	}
 
-	if stats.HashedFullFile != true {
-		t.Errorf("expected HashedFullFile to be %v, got %v", true, stats.HashedFullFile)
+	if stats.FileSize != 0 {
+		t.Errorf("expected FileSize to be %d, got %d", 0, stats.FileSize)
+	}
+
+	if stats.HashedFullFile != false {
+		t.Errorf("expected HashedFullFile to be %v, got %v", false, stats.HashedFullFile)
 	}
 }
 func TestSlice_New_NoOffsetMapWith1KbBlob(t *testing.T) {

@@ -29,6 +29,7 @@ type SlicerStats struct {
 	FileSize       uint64
 	Slices         int
 	HashedFullFile bool
+	EmptyFile      bool
 }
 
 type MetaSlice struct {
@@ -45,11 +46,6 @@ const DefaultSliceSize = 8 * 1024
 const DefaultThreshold = 100 * 1024
 const DefaultMinimumSize = (DefaultSlices + 2) * DefaultSliceSize
 
-var DefaultEmptyFileCookie []byte
-
-func init() {
-	DefaultEmptyFileCookie = []byte{0xC0, 0xFF, 0xEE}
-}
 func New(algorithm algorithms.Algorithm) Slicer {
 	return NewConfigured(algorithm, DefaultSlices, DefaultSliceSize, DefaultThreshold)
 }
@@ -92,6 +88,12 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *SlicerOptions) (Sl
 	stats.Slices = slicer.slices
 	stats.SliceSize = slicer.sliceSize
 
+	if size == 0 {
+		stats.EmptyFile = true
+		stats.Hash = nil
+		return stats, nil
+	}
+
 	if fr, ok := f.(io.ReaderAt); ok {
 		sr := io.NewSectionReader(fr, 0, size)
 		err := slicer.Slice(sr, options, &stats)
@@ -100,7 +102,7 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *SlicerOptions) (Sl
 		return stats, errors.New("the File System does not support readers")
 	}
 }
-func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *SlicerStats) error {
+func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stats *SlicerStats) error {
 
 	/*
 		Check the bytes are within the threshold for a full blob hash.
@@ -129,19 +131,18 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *
 	*/
 
 	size := uint64(sr.Size())
-	meta := MetaSlice{Size: size}
+
+	if size == 0 {
+		// Zero byte file, nothing we can do
+		stats.EmptyFile = true
+		stats.Hash = nil
+		return nil
+	}
 
 	algo := slicer.algorithm.New()
 	algo.Reset()
 
-	stat.ReaderSize = sr.Size()
-
-	if size == 0 {
-		// Zero byte file, nothing we can do
-		stat.Hash = DefaultEmptyFileCookie
-		stat.HashedFullFile = true
-		return nil
-	}
+	stats.ReaderSize = sr.Size()
 
 	// checks
 	canSliceFile := !options.DisableFileDetection && slicingSupported(sr, size)
@@ -155,7 +156,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *
 		invalidNumberOfSlices ||
 		!canSliceFile
 
-	stat.HashedFullFile = fullHash
+	stats.HashedFullFile = fullHash
 
 	// Reset after text detection
 	sr.Seek(0, io.SeekStart)
@@ -169,12 +170,12 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *
 		midSize := size - (slicer.sliceSize * 2)
 		sliceOffset := int64((midSize / uint64(slicer.slices)) - slicer.sliceSize)
 
-		stat.SliceOffset = sliceOffset
-		stat.MidSize = midSize
-		stat.SliceOffsets = make(map[int]int64)
+		stats.SliceOffset = sliceOffset
+		stats.MidSize = midSize
+		stats.SliceOffsets = make(map[int]int64)
 
 		// head
-		stat.SliceOffsets[0] = 0
+		stats.SliceOffsets[0] = 0
 		if _, err := sr.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
@@ -188,7 +189,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *
 			if offset, err := sr.Seek(sliceOffset, io.SeekCurrent); err != nil {
 				return err
 			} else {
-				stat.SliceOffsets[i+1] = offset
+				stats.SliceOffsets[i+1] = offset
 			}
 			if _, err := sr.Read(slice); err != nil {
 				return err
@@ -202,7 +203,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *
 		if offset, err := sr.Seek(tailOffset, io.SeekEnd); err != nil {
 			return err
 		} else {
-			stat.SliceOffsets[len(stat.SliceOffsets)] = offset
+			stats.SliceOffsets[len(stats.SliceOffsets)] = offset
 		}
 		if _, err := sr.Read(slice); err != nil {
 			return err
@@ -212,11 +213,12 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stat *
 		// metadata
 		if !options.DisableMeta {
 			enc := gob.NewEncoder(algo)
+			meta := MetaSlice{Size: size}
 			if err := enc.Encode(meta); err != nil {
 				return err
 			}
 		}
 	}
-	stat.Hash = algo.Sum(nil)
+	stats.Hash = algo.Sum(nil)
 	return nil
 }
