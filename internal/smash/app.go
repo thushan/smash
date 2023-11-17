@@ -77,6 +77,7 @@ func (app *App) Run() error {
 		DisableMeta:          false, // TODO: Flag this
 		DisableFileDetection: false, // TODO: Flag this
 	}
+
 	pap := theme.MultiWriter()
 	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
 
@@ -135,14 +136,9 @@ func (app *App) Run() error {
 	wg.Wait()
 
 	pss.Success("Finding duplicates...Done!")
-
-	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
-
-	summary := app.generateRunSummary(totalFiles)
-
-	psr.Success("Finding smash hits...Done!")
 	pap.Stop()
 
+	summary := app.generateRunSummary(totalFiles)
 	report.PrintRunSummary(summary, app.Flags.IgnoreEmptyFiles)
 
 	return nil

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"log"
 	"os"
 	"runtime"
@@ -28,6 +29,7 @@ var (
 
 func init() {
 	af = &smash.Flags{}
+	rootCmd.SilenceErrors = true
 	rootCmd.PersistentFlags().Var(
 		enumflag.New(&af.Algorithm, "algorithm", algorithms.HashAlgorithms, enumflag.EnumCaseInsensitive),
 		"algorithm",
@@ -55,6 +57,7 @@ func Main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	log.SetOutput(os.Stdout)
 	if err := rootCmd.Execute(); err != nil {
+		theme.Error.Println(err)
 		os.Exit(1)
 	}
 }
@@ -70,6 +73,10 @@ func runE(command *cobra.Command, args []string) error {
 		}
 	} else {
 		locations = verifyLocations(append(args, af.Base...), af.Silent)
+	}
+
+	if len(locations) == 0 {
+		return errors.New("No valid locations to smash :(")
 	}
 
 	a := smash.App{
