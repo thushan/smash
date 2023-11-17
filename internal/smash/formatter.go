@@ -20,8 +20,8 @@ func (app *App) printVerbose(message ...any) {
 	}
 }
 
-// generateSmashHits Generates the smash hits of duplicates and returns the total size of duplicates.
-func (app *App) generateSmashHits(totalFiles int64) report.RunSummary {
+// generateRunSummary Generates the smash hits of duplicates and returns the total size of duplicates.
+func (app *App) generateRunSummary(totalFiles int64) report.RunSummary {
 	session := *app.Session
 	duplicates := session.Dupes
 	emptyFiles := *session.Empty

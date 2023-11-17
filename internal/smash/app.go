@@ -138,10 +138,10 @@ func (app *App) Run() error {
 
 	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
 
+	summary := app.generateRunSummary(totalFiles)
+
 	psr.Success("Finding smash hits...Done!")
 	pap.Stop()
-
-	summary := app.generateSmashHits(totalFiles)
 
 	report.PrintRunSummary(summary, app.Flags.IgnoreEmptyFiles)
 
