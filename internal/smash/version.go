@@ -1,6 +1,7 @@
 package smash
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/thushan/smash/internal/theme"
@@ -23,7 +24,7 @@ func PrintVersionInfo(extendedInfo bool) {
 │  ╚════██║██║╚██╔╝██║██╔══██║╚════██║██╔══██║  │
 │  ███████║██║ ╚═╝ ██║██║  ██║███████║██║  ██║  │
 │  ╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝  │`))
-	log.Println(theme.ColourSplash("│ "), theme.StyleUrl(Home), "           ", theme.ColourVersion(Version), theme.ColourSplash(" │"))
+	log.Println(theme.ColourSplash("│ "), theme.StyleUrl(Home), fmt.Sprintf("%27s", theme.ColourVersion(Version)), theme.ColourSplash(" │"))
 	log.Println(theme.ColourSplash(`╚───────────────────────────────────────────────╝`))
 
 	if extendedInfo {
