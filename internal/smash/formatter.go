@@ -50,7 +50,7 @@ func (app *App) generateSmashHits(totalFiles int64) report.RunSummary {
 	})
 
 	if totalDuplicates == 0 {
-		theme.ColourSuccess("No duplicates found :-)")
+		theme.Println(theme.ColourSuccess("No duplicates found :-)"))
 	}
 
 	if !app.Flags.IgnoreEmptyFiles && totalEmptyFileCount != 0 {
