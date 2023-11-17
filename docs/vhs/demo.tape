@@ -6,11 +6,11 @@
 Output docs/artefacts/smash-v0.0.x-demo.gif
 
 # Setup
-Set FontSize 24
-Set Width 1600
-Set Height 900
+Set FontSize 20
+Set Width 1500
+Set Height 1000
 Set WindowBar Colorful
-Set Theme "TokyoNight"
+Set Theme "JetBrains Darcula"
 
 # Version Check
 Type "./smash --version"
@@ -24,7 +24,7 @@ Sleep 500ms
 Enter
 
 # smash Linux/drivers
-Type "./smash /linux/drivers
+Type "./smash ~/linux/drivers
 Sleep 500ms
 Enter
-Sleep 60s
+Sleep 10s
