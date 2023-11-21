@@ -51,7 +51,7 @@ Usage:
   smash [flags] [locations-to-smash]
 
 Flags:
-      --algorithm algorithm    Algorithm to use, can be 'xxhash', 'fnv128', 'fnv128a' (default xxhash)
+      --algorithm algorithm    Algorithm to use to hash files. Supported: xxhash, murmur3, md5, sha512, sha256 (full list, see readme) (default xxhash)
       --disable-slicing        Disable slicing (hashes full file).
       --exclude-dir strings    Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea
       --exclude-file strings   Files to exclude separated by comma. Eg. --exclude-file=.gitignore,*.csv
@@ -62,6 +62,8 @@ Flags:
       --verbose                Run in verbose mode.
   -v, --version                version for smash
 ```
+
+See the [full list of algorithms](./docs/algorithms.md) supported.
 
 ## Examples
 
@@ -126,13 +128,14 @@ This project was possible thanks to the following projects or folks.
 
 * [@wader/fq](https://github.com/wader/fq) - countless nights of inspecting binary blobs!
 * [@cespare/xxhash](https://github.com/cespare/xxhash) - xxhash implementation
+* [@spaolacci/murmur3](https://github.com/spaolacci/murmur3) - murmur3 implementation
 * [@alphadose/haxmap](https://github.com/alphadose/haxmap) - Amazingly efficient map implementation
 * [@pterm/pterm](https://github.com/pterm/pterm) - Amazing TUI framework used
 * [@spf13/cobra](https://github.com/spf13/cobra) - CLI Magic with Cobra
 * [@golangci/golangci-lint](https://github.com/golangci/golangci-lint) - Go Linter
 * [@dkorunic/betteralign](https://github.com/dkorunic/betteralign) - Go alignment checker
 
-Testers - MarkB, JarredT, BenW, DencilW, JayT, ASV
+Testers - MarkB, JarredT, BenW, DencilW, JayT, ASV, TimW, RyanW, WilliamH
 
 # Licence
 
