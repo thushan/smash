@@ -10,13 +10,13 @@
 [![GitHub release](https://img.shields.io/github/release/thushan/smash)](https://github.com/thushan/smash/releases/latest)
 
 Tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments
-and computing a hash using [xxhash](https://xxhash.com/) or another algorithm. Algorithms used are non-cryptographic and are utilised
-for its speed & efficiency over other attributes. You can learn more about [xxhash](https://xxhash.com/) on their site.
+and computing a hash using a fast non-cryptographic algorithm such as [xxhash](https://xxhash.com/).
 
 <p align="center">
  <img src="https://vhs.charm.sh/vhs-1T6pqQivwvPAmudnDpwVQP.gif" alt="Made with VHS"><br/>
-    <small>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code>. Made with <a href="https://vhs.charm.sh">vhs</a> (see <a href="./docs/vhs/readme.md">our tapes</a>),
-
+    <sub>
+        <sup>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code> (see our <a href="docs/artefacts/smash-v0.0.3-long-demo.gif">🍿 longer demo</a>). Made with <a href="https://vhs.charm.sh" target="_blank">vhs</a> - see <a href="./docs/vhs/readme.md">our tapes</a>!</sup>
+    </sub>
 </p>
 
 `smash` has a read-only view of the underlying filesystem and only reports duplicates - currently, we do not remove 
