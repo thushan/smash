@@ -33,9 +33,9 @@ func init() {
 	rootCmd.PersistentFlags().Var(
 		enumflag.New(&af.Algorithm, "algorithm", algorithms.HashAlgorithms, enumflag.EnumCaseInsensitive),
 		"algorithm",
-		"Algorithm to use, can be 'xxhash', 'fnv128', 'fnv128a'")
+		"Algorithm to use to hash files. Supported: xxhash, murmur3, md5, sha512, sha256 (full list, see readme)")
 	flags := rootCmd.Flags()
-	flags.StringSliceVarP(&af.Base, "base", "", nil, "Base directories to use for comparison. Eg. --base=/c/dos,/c/run/dos/")
+	flags.StringSliceVarP(&af.Base, "base", "", nil, "Base directories to use for comparison. Eg. --base=/c/dos,/c/dos/run/,/run/dos/run")
 	flags.StringSliceVarP(&af.ExcludeFile, "exclude-file", "", nil, "Files to exclude separated by comma. Eg. --exclude-file=.gitignore,*.csv")
 	flags.StringSliceVarP(&af.ExcludeDir, "exclude-dir", "", nil, "Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea")
 	flags.IntVarP(&af.MaxThreads, "max-threads", "p", runtime.NumCPU(), "Maximum threads to utilise.")
