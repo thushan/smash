@@ -14,10 +14,9 @@ and computing a hash using [xxhash](https://xxhash.com/) or another algorithm. A
 for its speed & efficiency over other attributes. You can learn more about [xxhash](https://xxhash.com/) on their site.
 
 <p align="center">
-    <a href="https://asciinema.org/a/620513"><img src="docs/artefacts/smash-v0.0.2-demo.png" alt="smash demo"></a><br/>
-    <small>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with 
-    <code>smash</code>. Watch the <a href="https://asciinema.org/a/620513">🍿 full demo</a> 
-    at <a href="https://asciinema.org/">asciinema</a>.</small>
+ <img src="https://vhs.charm.sh/vhs-1T6pqQivwvPAmudnDpwVQP.gif" alt="Made with VHS"><br/>
+    <small>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code>. Made with <a href="https://vhs.charm.sh">vhs</a> (see <a href="./docs/vhs/readme.md">our tapes</a>),
+
 </p>
 
 `smash` has a read-only view of the underlying filesystem and only reports duplicates - currently, we do not remove 
