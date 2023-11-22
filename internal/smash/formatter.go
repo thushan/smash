@@ -41,7 +41,7 @@ func (app *App) generateRunSummary(totalFiles int64) report.RunSummary {
 		} else {
 			root := files[0]
 			dupes := files[1:]
-			theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(humanize.Bytes(root.FileSize)), " ", theme.ColourHash(root.Hash))
+			theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(root.FileSizeF), " ", theme.ColourHash(root.Hash))
 			printSmashHits(dupes)
 			totalDuplicates += len(dupes)
 			totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
