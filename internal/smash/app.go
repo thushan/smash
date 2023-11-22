@@ -54,43 +54,31 @@ func (app *App) Run() error {
 		app.printConfiguration()
 	}
 
-	var emptyFiles []report.SmashFile
-
-	session := AppSession{
+	app.Session = &AppSession{
 		Dupes:     haxmap.New[string, []report.SmashFile](),
 		Fails:     haxmap.New[string, error](),
-		Empty:     &emptyFiles,
+		Empty:     &[]report.SmashFile{},
 		StartTime: time.Now().UnixMilli(),
 		EndTime:   -1,
 	}
-	app.Session = &session
-
-	excludeDirs := app.Flags.ExcludeDir
-	excludeFiles := app.Flags.ExcludeFile
-	disableSlicing := app.Flags.DisableSlicing
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
-	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
+	wk := indexer.NewConfigured(app.Flags.ExcludeDir, app.Flags.ExcludeFile)
 	slo := slicer.SlicerOptions{
-		DisableSlicing:       disableSlicing,
+		DisableSlicing:       app.Flags.DisableSlicing,
 		DisableMeta:          false, // TODO: Flag this
 		DisableFileDetection: false, // TODO: Flag this
 	}
 
-	runtime := AppRuntime{
+	app.Runtime = &AppRuntime{
 		Slicer:        &sl,
 		SlicerOptions: &slo,
 		IndexerConfig: wk,
 		Files:         make(chan indexer.FileFS),
 	}
-	app.Runtime = &runtime
 
 	app.setMaxThreads()
-
-	if !term.IsTerminal(int(os.Stdout.Fd())) {
-		pterm.DisableColor()
-		pterm.DisableStyling()
-	}
+	app.checkTerminal()
 
 	return app.Exec()
 }
@@ -176,4 +164,11 @@ func (app *App) Exec() error {
 	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmptyFiles)
 
 	return nil
+}
+
+func (app *App) checkTerminal() {
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		pterm.DisableColor()
+		pterm.DisableStyling()
+	}
 }
