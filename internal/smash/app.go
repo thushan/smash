@@ -25,6 +25,7 @@ import (
 type App struct {
 	Flags     *Flags
 	Session   *AppSession
+	Summary   *report.RunSummary
 	Args      []string
 	Locations []string
 }
@@ -139,10 +140,15 @@ func (app *App) Run() error {
 	wg.Wait()
 
 	pss.Success("Finding duplicates...Done!")
+
+	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
+	app.generateRunSummary(totalFiles)
+	psr.Success("Finding smash hits...Done!")
+
 	pap.Stop()
 
-	summary := app.generateRunSummary(totalFiles)
-	report.PrintRunSummary(summary, app.Flags.IgnoreEmptyFiles)
+	app.PrintRunAnalysis(app.Flags.IgnoreEmptyFiles)
+	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmptyFiles)
 
 	return nil
 }
