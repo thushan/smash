@@ -21,7 +21,6 @@ var (
 		Use:          "smash [flags] [locations-to-smash]",
 		Short:        "Find duplicates fast!",
 		Long:         "",
-		Version:      smash.Version,
 		SilenceUsage: true,
 		RunE:         runE,
 	}
@@ -42,8 +41,10 @@ func init() {
 	flags.IntVarP(&af.MaxWorkers, "max-workers", "w", bestMaxWorkers(), "Maximum workers to utilise when smashing.")
 	flags.BoolVarP(&af.DisableSlicing, "disable-slicing", "", false, "Disable slicing (hashes full file).")
 	flags.BoolVarP(&af.IgnoreEmptyFiles, "ignore-emptyfiles", "", false, "Ignore & don't report on empty/zero byte files.")
+	flags.StringVarP(&af.OutputFile, "output-file", "o", "", "Export as JSON")
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode.")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode.")
+	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information.")
 }
 func bestMaxWorkers() int {
 	cpus := runtime.NumCPU()

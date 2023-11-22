@@ -38,6 +38,14 @@ type AppSession struct {
 
 func (app *App) Run() error {
 
+	if !app.Flags.Silent {
+		PrintVersionInfo(app.Flags.ShowVersion)
+		if app.Flags.ShowVersion {
+			return nil
+		}
+		app.printConfiguration()
+	}
+	
 	var emptyFiles []report.SmashFile
 
 	session := AppSession{
@@ -55,16 +63,9 @@ func (app *App) Run() error {
 	excludeFiles := app.Flags.ExcludeFile
 	disableSlicing := app.Flags.DisableSlicing
 
-	updateTicker := int64(1000)
-
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
 		pterm.DisableColor()
 		pterm.DisableStyling()
-	}
-
-	if !app.Flags.Silent {
-		PrintVersionInfo(false)
-		app.printConfiguration()
 	}
 
 	files := make(chan indexer.FileFS)
@@ -101,6 +102,7 @@ func (app *App) Run() error {
 	}()
 
 	totalFiles := int64(0)
+	updateTicker := int64(1000)
 
 	pss, _ := theme.SmashingSpinner().WithWriter(pap.NewWriter()).Start("Finding duplicates...")
 
