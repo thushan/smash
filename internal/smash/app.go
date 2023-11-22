@@ -45,7 +45,7 @@ func (app *App) Run() error {
 		}
 		app.printConfiguration()
 	}
-	
+
 	var emptyFiles []report.SmashFile
 
 	session := AppSession{

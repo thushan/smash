@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	Version = "v0.0.3"
+	Version = "v0.0.4"
 	Commit  = "none"
 	Date    = "unknown"
 	Home    = "github.com/thushan/smash"
