@@ -62,6 +62,7 @@ func (app *App) Run() error {
 	excludeDirs := app.Flags.ExcludeDir
 	excludeFiles := app.Flags.ExcludeFile
 	disableSlicing := app.Flags.DisableSlicing
+	isVerbose := app.Flags.Verbose && !app.Flags.Silent
 
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
 		pterm.DisableColor()
@@ -93,7 +94,7 @@ func (app *App) Run() error {
 			err := wk.WalkDirectory(os.DirFS(location), location, files)
 
 			if err != nil {
-				if app.Flags.Verbose {
+				if isVerbose {
 					theme.WarnSkipWithContext(location, err)
 				}
 				_, _ = session.Fails.GetOrSet(location, err)
@@ -125,7 +126,7 @@ func (app *App) Run() error {
 				elapsedMs := time.Now().UnixMilli() - startTime
 
 				if err != nil {
-					if app.Flags.Verbose {
+					if isVerbose {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
 					_, _ = session.Fails.GetOrSet(sf, err)
