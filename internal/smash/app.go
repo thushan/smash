@@ -7,9 +7,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/thushan/smash/internal/report"
-
 	"golang.org/x/term"
+
+	"github.com/thushan/smash/internal/report"
 
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
@@ -25,6 +25,7 @@ import (
 type App struct {
 	Flags     *Flags
 	Session   *AppSession
+	Runtime   *AppRuntime
 	Summary   *report.RunSummary
 	Args      []string
 	Locations []string
@@ -35,6 +36,12 @@ type AppSession struct {
 	Empty     *[]report.SmashFile
 	StartTime int64
 	EndTime   int64
+}
+type AppRuntime struct {
+	Slicer        *slicer.Slicer
+	SlicerOptions *slicer.SlicerOptions
+	IndexerConfig *indexer.IndexerConfig
+	Files         chan indexer.FileFS
 }
 
 func (app *App) Run() error {
@@ -57,29 +64,47 @@ func (app *App) Run() error {
 		EndTime:   -1,
 	}
 	app.Session = &session
-	app.setMaxThreads()
 
-	locations := app.Locations
 	excludeDirs := app.Flags.ExcludeDir
 	excludeFiles := app.Flags.ExcludeFile
 	disableSlicing := app.Flags.DisableSlicing
-	isVerbose := app.Flags.Verbose && !app.Flags.Silent
+
+	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
+	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
+	slo := slicer.SlicerOptions{
+		DisableSlicing:       disableSlicing,
+		DisableMeta:          false, // TODO: Flag this
+		DisableFileDetection: false, // TODO: Flag this
+	}
+
+	runtime := AppRuntime{
+		Slicer:        &sl,
+		SlicerOptions: &slo,
+		IndexerConfig: wk,
+		Files:         make(chan indexer.FileFS),
+	}
+	app.Runtime = &runtime
+
+	app.setMaxThreads()
 
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
 		pterm.DisableColor()
 		pterm.DisableStyling()
 	}
 
-	files := make(chan indexer.FileFS)
+	return app.Exec()
+}
+func (app *App) Exec() error {
 
-	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
-	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
+	session := app.Session
 
-	slo := slicer.SlicerOptions{
-		DisableSlicing:       disableSlicing,
-		DisableMeta:          false, // TODO: Flag this
-		DisableFileDetection: false, // TODO: Flag this
-	}
+	wk := app.Runtime.IndexerConfig
+	sl := app.Runtime.Slicer
+	slo := app.Runtime.SlicerOptions
+
+	files := app.Runtime.Files
+	locations := app.Locations
+	isVerbose := app.Flags.Verbose && !app.Flags.Silent
 
 	pap := theme.MultiWriter()
 	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
@@ -123,7 +148,7 @@ func (app *App) Run() error {
 				}
 
 				startTime := time.Now().UnixMilli()
-				stats, err := sl.SliceFS(file.FileSystem, file.Path, &slo)
+				stats, err := sl.SliceFS(file.FileSystem, file.Path, slo)
 				elapsedMs := time.Now().UnixMilli() - startTime
 
 				if err != nil {
