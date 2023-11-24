@@ -2,8 +2,9 @@ package smash
 
 import (
 	"fmt"
-	"github.com/thushan/smash/internal/theme"
 	"log"
+
+	"github.com/thushan/smash/internal/theme"
 )
 
 var (
