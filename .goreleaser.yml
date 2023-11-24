@@ -44,18 +44,14 @@ checksum:
 
 archives:
   - files:
-      - none*
+      - LICENSE
     format_overrides:
       - goos: windows
         format: zip
       - goos: darwin
         format: zip
     name_template: >-
-      {{ .ProjectName }}_
-      v{{- .Version }}_
-      {{- if eq .Os "darwin" }}macos_
-      {{- else }}{{ .Os }}_{{ end }}
-      {{- .Arch }}
+      {{ .ProjectName }}_v{{- .Version }}_{{- if eq .Os "darwin" }}macos_{{- else }}{{ .Os }}_{{ end }}{{- .Arch }}
 
 changelog:
   sort: asc
