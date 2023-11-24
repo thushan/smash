@@ -7,9 +7,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/thushan/smash/internal/report"
-
 	"golang.org/x/term"
+
+	"github.com/thushan/smash/internal/report"
 
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
@@ -25,6 +25,8 @@ import (
 type App struct {
 	Flags     *Flags
 	Session   *AppSession
+	Runtime   *AppRuntime
+	Summary   *report.RunSummary
 	Args      []string
 	Locations []string
 }
@@ -35,48 +37,62 @@ type AppSession struct {
 	StartTime int64
 	EndTime   int64
 }
+type AppRuntime struct {
+	Slicer        *slicer.Slicer
+	SlicerOptions *slicer.SlicerOptions
+	IndexerConfig *indexer.IndexerConfig
+	Files         chan indexer.FileFS
+}
 
 func (app *App) Run() error {
 
-	var emptyFiles []report.SmashFile
-
-	session := AppSession{
-		Dupes:     haxmap.New[string, []report.SmashFile](),
-		Fails:     haxmap.New[string, error](),
-		Empty:     &emptyFiles,
-		StartTime: time.Now().UnixMilli(),
-		EndTime:   -1,
-	}
-	app.Session = &session
-	app.setMaxThreads()
-
-	locations := app.Locations
-	excludeDirs := app.Flags.ExcludeDir
-	excludeFiles := app.Flags.ExcludeFile
-	disableSlicing := app.Flags.DisableSlicing
-
-	updateTicker := int64(1000)
-
-	if !term.IsTerminal(int(os.Stdout.Fd())) {
-		pterm.DisableColor()
-		pterm.DisableStyling()
-	}
-
 	if !app.Flags.Silent {
-		PrintVersionInfo(false)
+		PrintVersionInfo(app.Flags.ShowVersion)
+		if app.Flags.ShowVersion {
+			return nil
+		}
 		app.printConfiguration()
 	}
 
-	files := make(chan indexer.FileFS)
+	app.Session = &AppSession{
+		Dupes:     haxmap.New[string, []report.SmashFile](),
+		Fails:     haxmap.New[string, error](),
+		Empty:     &[]report.SmashFile{},
+		StartTime: time.Now().UnixMilli(),
+		EndTime:   -1,
+	}
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
-	wk := indexer.NewConfigured(excludeDirs, excludeFiles)
-
+	wk := indexer.NewConfigured(app.Flags.ExcludeDir, app.Flags.ExcludeFile)
 	slo := slicer.SlicerOptions{
-		DisableSlicing:       disableSlicing,
+		DisableSlicing:       app.Flags.DisableSlicing,
 		DisableMeta:          false, // TODO: Flag this
 		DisableFileDetection: false, // TODO: Flag this
 	}
+
+	app.Runtime = &AppRuntime{
+		Slicer:        &sl,
+		SlicerOptions: &slo,
+		IndexerConfig: wk,
+		Files:         make(chan indexer.FileFS),
+	}
+
+	app.setMaxThreads()
+	app.checkTerminal()
+
+	return app.Exec()
+}
+func (app *App) Exec() error {
+
+	session := app.Session
+
+	wk := app.Runtime.IndexerConfig
+	sl := app.Runtime.Slicer
+	slo := app.Runtime.SlicerOptions
+
+	files := app.Runtime.Files
+	locations := app.Locations
+	isVerbose := app.Flags.Verbose && !app.Flags.Silent
 
 	pap := theme.MultiWriter()
 	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
@@ -92,7 +108,7 @@ func (app *App) Run() error {
 			err := wk.WalkDirectory(os.DirFS(location), location, files)
 
 			if err != nil {
-				if app.Flags.Verbose {
+				if isVerbose {
 					theme.WarnSkipWithContext(location, err)
 				}
 				_, _ = session.Fails.GetOrSet(location, err)
@@ -101,6 +117,7 @@ func (app *App) Run() error {
 	}()
 
 	totalFiles := int64(0)
+	updateTicker := int64(1000)
 
 	pss, _ := theme.SmashingSpinner().WithWriter(pap.NewWriter()).Start("Finding duplicates...")
 
@@ -119,11 +136,11 @@ func (app *App) Run() error {
 				}
 
 				startTime := time.Now().UnixMilli()
-				stats, err := sl.SliceFS(file.FileSystem, file.Path, &slo)
+				stats, err := sl.SliceFS(file.FileSystem, file.Path, slo)
 				elapsedMs := time.Now().UnixMilli() - startTime
 
 				if err != nil {
-					if app.Flags.Verbose {
+					if isVerbose {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
 					_, _ = session.Fails.GetOrSet(sf, err)
@@ -136,10 +153,22 @@ func (app *App) Run() error {
 	wg.Wait()
 
 	pss.Success("Finding duplicates...Done!")
+
+	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
+	app.generateRunSummary(totalFiles)
+	psr.Success("Finding smash hits...Done!")
+
 	pap.Stop()
 
-	summary := app.generateRunSummary(totalFiles)
-	report.PrintRunSummary(summary, app.Flags.IgnoreEmptyFiles)
+	app.PrintRunAnalysis(app.Flags.IgnoreEmptyFiles)
+	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmptyFiles)
 
 	return nil
+}
+
+func (app *App) checkTerminal() {
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		pterm.DisableColor()
+		pterm.DisableStyling()
+	}
 }

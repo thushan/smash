@@ -6,8 +6,8 @@ require (
 	github.com/alphadose/haxmap v1.3.0
 	github.com/cespare/xxhash v1.1.0
 	github.com/dustin/go-humanize v1.0.1
-	github.com/pterm/pterm v0.12.70
-	github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72
+	github.com/pterm/pterm v0.12.71
+	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/cobra v1.8.0
 	github.com/thediveo/enumflag/v2 v2.0.5
 	golang.org/x/term v0.14.0
@@ -26,7 +26,7 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 )
