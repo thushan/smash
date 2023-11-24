@@ -4,6 +4,8 @@ This directory contains the demo [vhs tapes](https://github.com/charmbracelet/vh
 
 * [Themes](https://github.com/charmbracelet/vhs/blob/main/THEMES.md)
 
+# Setup & Recording
+
 ## Windows via Docker
 
 ```bash
