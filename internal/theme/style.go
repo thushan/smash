@@ -105,7 +105,9 @@ func ColourPath(message ...any) string {
 func StyleUrl(message ...any) string {
 	return pterm.LightBlue(message...)
 }
-
+func Hyperlink(uri string, text string) string {
+	return "\x1b]8;;" + uri + "\x07" + text + "\x1b]8;;\x07" + "\u001b[0m"
+}
 func ColourFilename(message ...any) string {
 	return pterm.LightMagenta(message...)
 }

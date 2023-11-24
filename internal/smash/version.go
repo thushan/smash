@@ -2,21 +2,29 @@ package smash
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/thushan/smash/internal/theme"
+	"log"
 )
 
 var (
 	Version = "v0.0.4"
 	Commit  = "none"
 	Date    = "unknown"
-	Home    = "github.com/thushan/smash"
 	Time    = "nowish"
 	User    = "local"
 )
 
+const (
+	GithubHomeText  = "github.com/thushan/smash"
+	GithubHomeUri   = "https://github.com/thushan/smash"
+	GithubLatestUri = "https://github.com/thushan/smash/releases/latest"
+)
+
 func PrintVersionInfo(extendedInfo bool) {
+	githubUri := theme.Hyperlink(GithubHomeUri, GithubHomeText)
+	latestUri := theme.Hyperlink(GithubLatestUri, Version)
+	padLatest := fmt.Sprintf("%*s", 17-len(Version), "")
+
 	log.Println(theme.ColourSplash(`╔───────────────────────────────────────────────╗
 │  ███████╗███╗   ███╗ █████╗ ███████╗██╗  ██╗  │
 │  ██╔════╝████╗ ████║██╔══██╗██╔════╝██║  ██║  │
@@ -24,12 +32,11 @@ func PrintVersionInfo(extendedInfo bool) {
 │  ╚════██║██║╚██╔╝██║██╔══██║╚════██║██╔══██║  │
 │  ███████║██║ ╚═╝ ██║██║  ██║███████║██║  ██║  │
 │  ╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝  │`))
-	log.Println(theme.ColourSplash("│ "), theme.StyleUrl(Home), fmt.Sprintf("%27s", theme.ColourVersion(Version)), theme.ColourSplash(" │"))
+	log.Println(theme.ColourSplash("│ "), theme.StyleUrl(githubUri), padLatest, theme.ColourVersion(latestUri), theme.ColourSplash(" │"))
 	log.Println(theme.ColourSplash(`╚───────────────────────────────────────────────╝`))
-
 	if extendedInfo {
-		log.Println("Commit: ", theme.ColourVersionMeta(Commit))
-		log.Println("Built:  ", theme.ColourVersionMeta(Date))
-		log.Println("Using:  ", theme.ColourVersionMeta(User))
+		log.Println(" Commit: ", theme.ColourVersionMeta(Commit))
+		log.Println("  Built: ", theme.ColourVersionMeta(Date))
+		log.Println("  Using: ", theme.ColourVersionMeta(User))
 	}
 }
