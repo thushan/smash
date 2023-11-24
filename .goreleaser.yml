@@ -44,7 +44,7 @@ checksum:
 
 archives:
   - files:
-      - none*
+      - LICENSE
     format_overrides:
       - goos: windows
         format: zip
