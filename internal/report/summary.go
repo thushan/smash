@@ -20,8 +20,8 @@ type RunSummary struct {
 
 func PrintRunSummary(rs RunSummary, ignoreEmptyFiles bool) {
 	theme.StyleHeading.Println("---| Analysis Summary")
-	duration := time.Duration(rs.ElapsedTime)
-	theme.Println(writeCategory("Total Time:"), theme.ColourTime(duration.Round(time.Second).String()))
+
+	theme.Println(writeCategory("Total Time:"), theme.ColourTime(calcTotalTime(rs.ElapsedTime)))
 	theme.Println(writeCategory("Total Analysed:"), theme.ColourNumber(rs.TotalFiles))
 	theme.Println(writeCategory("Total Unique:"), theme.ColourNumber(rs.UniqueFiles), "(excludes empty files)")
 	if rs.TotalFileErrors > 0 {
@@ -35,6 +35,20 @@ func PrintRunSummary(rs RunSummary, ignoreEmptyFiles bool) {
 		theme.Println(writeCategory("Space Reclaimable:"), theme.ColourFileSizeA(rs.DuplicateFileSizeF), "(approx)")
 	}
 }
+func calcTotalTime(elapsedNs int64) string {
+	duration := time.Duration(elapsedNs)
+	switch {
+	case duration >= 60*time.Minute:
+		return duration.Round(time.Minute).String()
+	case duration >= 1*time.Minute:
+		return duration.Round(time.Second).String()
+	case duration <= 1*time.Second:
+		return duration.Round(time.Millisecond).String()
+	default:
+		return duration.Round(time.Second).String()
+	}
+}
+
 func writeCategory(category string) string {
 	return fmt.Sprintf("%20s", category)
 }
