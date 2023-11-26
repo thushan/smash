@@ -7,14 +7,14 @@ import (
 
 func TestCalcTotalTime(t *testing.T) {
 	var data = []struct {
-		elapsedNs int64
 		expected  string
+		elapsedNs int64
 	}{
-		{12660100, "13ms"},
-		{22592034100, "23s"},
-		{60592034100, "1m1s"},
-		{360592034100, "6m1s"},
-		{8960592034100, "2h29m0s"},
+		{elapsedNs: 12660100, expected: "13ms"},
+		{elapsedNs: 22592034100, expected: "23s"},
+		{elapsedNs: 60592034100, expected: "1m1s"},
+		{elapsedNs: 360592034100, expected: "6m1s"},
+		{elapsedNs: 8960592034100, expected: "2h29m0s"},
 	}
 
 	for _, item := range data {
