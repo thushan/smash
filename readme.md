@@ -51,15 +51,21 @@ Usage:
 
 Flags:
       --algorithm algorithm    Algorithm to use to hash files. Supported: xxhash, murmur3, md5, sha512, sha256 (full list, see readme) (default xxhash)
+      --base strings           Base directories to use for comparison. Eg. --base=/c/dos,/c/dos/run/,/run/dos/run
       --disable-slicing        Disable slicing (hashes full file).
       --exclude-dir strings    Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea
       --exclude-file strings   Files to exclude separated by comma. Eg. --exclude-file=.gitignore,*.csv
   -h, --help                   help for smash
+      --ignore-emptyfiles      Ignore & don't report on empty/zero byte files.
   -p, --max-threads int        Maximum threads to utilise. (default 16)
   -w, --max-workers int        Maximum workers to utilise when smashing. (default 8)
+      --no-progress            Disable progress updates.
+  -o, --output-file string     Export as JSON
   -q, --silent                 Run in silent mode.
+      --update-seconds int     Update progress every x seconds. (default 5)
       --verbose                Run in verbose mode.
-  -v, --version                version for smash
+  -v, --version                Show version information.
+
 ```
 
 See the [full list of algorithms](./docs/algorithms.md) supported.
@@ -68,7 +74,7 @@ See the [full list of algorithms](./docs/algorithms.md) supported.
 
 Examples are given in Unix format, but apply to Windows as well.
 
-### Simplest
+### Basic
 
 To check for duplicates in a single path (Eg. `~/media/photos`)
 
@@ -112,13 +118,13 @@ $ ./smash --disable-slicing ~/media/photos
 
 ### Changing Hashing Algorithms
 
-By default, smash uses `xxhash`, an extremely fast non-cryptographic hash algorithm 
-(which you can [read about further](https://xxhash.com/)). 
+By default, smash uses `xxhash`, an extremely fast non-cryptographic hash algorithm. However, you can choose a variety
+of algorithms [as documented](./docs/algorithms.md).
 
 To use another supported algorithm, use the `--algorithm` switch:
 
 ```bash
-$ ./smash --algorithm:fnv128a ~/media/photos
+$ ./smash --algorithm:murmur3 ~/media/photos
 ```
 
 # Acknowledgements

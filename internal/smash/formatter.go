@@ -99,7 +99,7 @@ func (app *App) generateRunSummary(totalFiles int64) {
 		DuplicateFiles:     int64(totalDuplicates),
 		DuplicateFileSize:  totalDuplicateSize,
 		DuplicateFileSizeF: humanize.Bytes(totalDuplicateSize),
-		ElapsedTime:        time.Now().UnixMilli() - app.Session.StartTime,
+		ElapsedTime:        time.Now().UnixNano() - app.Session.StartTime,
 	}
 	app.Summary = &summary
 }

@@ -20,8 +20,17 @@ func (app *App) printConfiguration() {
 	theme.StyleHeading.Println("---| Configuration")
 
 	if app.Flags.Verbose {
-		theme.Println(b.Sprint("Concurrency: "), theme.ColourConfig(f.MaxWorkers), "workers |", theme.ColourConfig(f.MaxThreads), "threads")
-		config = "(Slices: " + theme.ColourConfig(slicer.DefaultSlices) + " | Size: " + theme.ColourConfig(humanize.Bytes(slicer.DefaultSliceSize)) + " | Threshold: " + theme.ColourConfig(humanize.Bytes(slicer.DefaultThreshold)) + ")"
+		slices := theme.ColourConfig(slicer.DefaultSlices)
+		size := theme.ColourConfig(humanize.Bytes(slicer.DefaultSliceSize))
+		threshold := theme.ColourConfig(humanize.Bytes(slicer.DefaultThreshold))
+
+		config = "(Slices: " + slices + " | Size: " + size + " | Threshold: " + threshold + ")"
+
+		maxThreads := theme.ColourConfig(f.MaxThreads)
+		maxWorkers := theme.ColourConfig(f.MaxWorkers)
+
+		theme.Println(b.Sprint("Concurrency: "), maxWorkers, "workers |", maxThreads, "threads")
+
 	} else {
 		config = ""
 	}
