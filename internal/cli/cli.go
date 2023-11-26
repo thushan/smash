@@ -39,11 +39,13 @@ func init() {
 	flags.StringSliceVarP(&af.ExcludeDir, "exclude-dir", "", nil, "Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea")
 	flags.IntVarP(&af.MaxThreads, "max-threads", "p", runtime.NumCPU(), "Maximum threads to utilise.")
 	flags.IntVarP(&af.MaxWorkers, "max-workers", "w", bestMaxWorkers(), "Maximum workers to utilise when smashing.")
+	flags.IntVarP(&af.UpdateSeconds, "update-seconds", "", 5, "Update progress every x seconds.")
 	flags.BoolVarP(&af.DisableSlicing, "disable-slicing", "", false, "Disable slicing (hashes full file).")
 	flags.BoolVarP(&af.IgnoreEmptyFiles, "ignore-emptyfiles", "", false, "Ignore & don't report on empty/zero byte files.")
 	flags.StringVarP(&af.OutputFile, "output-file", "o", "", "Export as JSON")
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode.")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode.")
+	flags.BoolVarP(&af.NoProgress, "no-progress", "", false, "Disable progress updates.")
 	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information.")
 }
 func bestMaxWorkers() int {

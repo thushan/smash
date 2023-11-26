@@ -58,7 +58,7 @@ func (app *App) Run() error {
 		Dupes:     haxmap.New[string, []report.SmashFile](),
 		Fails:     haxmap.New[string, error](),
 		Empty:     &[]report.SmashFile{},
-		StartTime: time.Now().UnixMilli(),
+		StartTime: time.Now().UnixNano(),
 		EndTime:   -1,
 	}
 
@@ -93,6 +93,7 @@ func (app *App) Exec() error {
 	files := app.Runtime.Files
 	locations := app.Locations
 	isVerbose := app.Flags.Verbose && !app.Flags.Silent
+	showProgress := (!app.Flags.NoProgress && !app.Flags.Silent) || isVerbose
 
 	pap := theme.MultiWriter()
 	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
@@ -117,11 +118,17 @@ func (app *App) Exec() error {
 	}()
 
 	totalFiles := int64(0)
-	updateTicker := int64(1000)
 
 	pss, _ := theme.SmashingSpinner().WithWriter(pap.NewWriter()).Start("Finding duplicates...")
 
 	var wg sync.WaitGroup
+
+	updateProgressTicker := make(chan bool)
+
+	if showProgress {
+		app.updateDupeCount(updateProgressTicker, pss, &totalFiles)
+	}
+
 	for i := 0; i < app.Flags.MaxWorkers; i++ {
 		wg.Add(1)
 		go func() {
@@ -129,11 +136,7 @@ func (app *App) Exec() error {
 			for file := range files {
 				sf := resolveFilename(file)
 
-				currentFileCount := atomic.AddInt64(&totalFiles, 1)
-
-				if currentFileCount%updateTicker == 0 {
-					pss.UpdateText(fmt.Sprintf("Finding duplicates... (%s files smash'd)", pterm.Gray(currentFileCount)))
-				}
+				atomic.AddInt64(&totalFiles, 1)
 
 				startTime := time.Now().UnixMilli()
 				stats, err := sl.SliceFS(file.FileSystem, file.Path, slo)
@@ -152,6 +155,9 @@ func (app *App) Exec() error {
 	}
 	wg.Wait()
 
+	// Signal we're done
+	updateProgressTicker <- true
+
 	pss.Success("Finding duplicates...Done!")
 
 	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
@@ -164,6 +170,25 @@ func (app *App) Exec() error {
 	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmptyFiles)
 
 	return nil
+}
+
+func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles *int64) {
+	if app.Flags.NoProgress {
+		return
+	}
+	go func() {
+		ticker := time.Tick(time.Duration(app.Flags.UpdateSeconds) * time.Second)
+		for {
+			select {
+			case <-ticker:
+				latestFileCount := atomic.LoadInt64(totalFiles)
+				pss.UpdateText(fmt.Sprintf("Finding duplicates... (%s files smash'd)", pterm.Gray(latestFileCount)))
+			case <-updateProgressTicker:
+				return
+			}
+		}
+	}()
+
 }
 
 func (app *App) checkTerminal() {
