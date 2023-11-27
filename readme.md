@@ -49,9 +49,6 @@ $ go install github.com/thushan/smash@latest
 Usage:
   smash [flags] [locations-to-smash]
 
-Usage:
-  smash [flags] [locations-to-smash]
-
 Flags:
       --algorithm algorithm    Algorithm to use to hash files. Supported: xxhash, murmur3, md5, sha512, sha256 (full list, see readme) (default xxhash)
       --base strings           Base directories to use for comparison. Eg. --base=/c/dos,/c/dos/run/,/run/dos/run
