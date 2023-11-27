@@ -90,7 +90,6 @@ func (app *App) generateRunSummary(totalFiles int64) {
 		}
 		return true
 	})
-
 	summary := report.RunSummary{
 		TotalFiles:         totalFiles,
 		TotalFileErrors:    totalFailFileCount,

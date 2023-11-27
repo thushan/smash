@@ -1,22 +1,27 @@
 package report
 
-import "container/heap"
+import (
+	"container/heap"
+)
 
-type TopFiles []SmashFile
-
-var fileHeap = &TopFiles{}
-
-func (fh TopFiles) Len() int           { return len(fh) }
-func (fh TopFiles) Less(i, j int) bool { return fh[i].FileSize < fh[j].FileSize }
-func (fh TopFiles) Swap(i, j int)      { fh[i], fh[j] = fh[j], fh[i] }
-
-func (fh *TopFiles) Push(x interface{}) {
-	*fh = append(*fh, x.(SmashFile))
+type TopFilesSummary struct {
+	fileHeap *FileHeap
+	size     int
 }
-func init() {
-	heap.Init(fileHeap)
+
+type FileHeap []SmashFile
+
+func (fh FileHeap) Len() int           { return len(fh) }
+func (fh FileHeap) Less(i, j int) bool { return fh[i].FileSize < fh[j].FileSize }
+func (fh FileHeap) Swap(i, j int)      { fh[i], fh[j] = fh[j], fh[i] }
+
+func (fh *FileHeap) Push(x interface{}) {
+	if f, ok := x.(SmashFile); ok {
+		*fh = append(*fh, f)
+	}
 }
-func (fh *TopFiles) Pop() interface{} {
+
+func (fh *FileHeap) Pop() interface{} {
 	old := *fh
 	n := len(old)
 	file := old[n-1]
@@ -24,25 +29,35 @@ func (fh *TopFiles) Pop() interface{} {
 	return file
 }
 
-func (fh *TopFiles) Index(file SmashFile) {
-	if fileHeap.Len() < 5 {
-		heap.Push(fileHeap, file)
-	} else if file.FileSize > (*fileHeap)[0].FileSize {
-		heap.Pop(fileHeap)
-		heap.Push(fileHeap, file)
+func NewTopFilesSummary(size int) *TopFilesSummary {
+	fileHeap := &FileHeap{}
+	heap.Init(fileHeap)
+
+	return &TopFilesSummary{fileHeap: fileHeap, size: size}
+}
+
+func (t *TopFilesSummary) Add(file SmashFile) {
+	if t.fileHeap.Len() < t.size {
+		heap.Push(t.fileHeap, file)
+	} else if file.FileSize > (*t.fileHeap)[0].FileSize {
+		heap.Pop(t.fileHeap)
+		heap.Push(t.fileHeap, file)
 	}
 }
 
-func (fh *TopFiles) Iterator() func() (SmashFile, bool) {
-
-	index := 0
-
-	return func() (SmashFile, bool) {
-		if fileHeap.Len() == 0 || index >= fileHeap.Len() {
-			return SmashFile{}, false
+func (t *TopFilesSummary) Next() (SmashFile, bool) {
+	if t.fileHeap.Len() != 0 {
+		if f, ok := heap.Pop(t.fileHeap).(SmashFile); ok {
+			return f, true
 		}
-		file := (*fileHeap)[index]
-		index++
-		return file, true
 	}
+	return SmashFile{}, false
+}
+func (t *TopFilesSummary) All() []SmashFile {
+	if t.fileHeap.Len() == 0 {
+		return []SmashFile{}
+	}
+	files := make([]SmashFile, t.fileHeap.Len())
+	copy(files, *t.fileHeap)
+	return files
 }
