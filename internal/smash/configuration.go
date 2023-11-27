@@ -40,7 +40,7 @@ func (app *App) printConfiguration() {
 	theme.Println(b.Sprint("Locations:   "), theme.ColourConfig(strings.Join(app.Locations, ", ")))
 
 	if len(f.ExcludeDir) > 0 || len(f.ExcludeFile) > 0 {
-		theme.StyleBold.Println(b.Sprint("Excluded"))
+		theme.StyleBold.Println("Excluded")
 		if len(f.ExcludeDir) > 0 {
 			theme.Println(b.Sprint("       Dirs: "), theme.ColourConfigA(strings.Join(f.ExcludeDir, ", ")))
 		}

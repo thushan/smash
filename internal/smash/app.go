@@ -63,7 +63,7 @@ func (app *App) Run() error {
 	}
 
 	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
-	wk := indexer.NewConfigured(app.Flags.ExcludeDir, app.Flags.ExcludeFile)
+	wk := indexer.NewConfigured(app.Flags.ExcludeDir, app.Flags.ExcludeFile, app.Flags.IgnoreHiddenItems)
 	slo := slicer.SlicerOptions{
 		DisableSlicing:       app.Flags.DisableSlicing,
 		DisableMeta:          false, // TODO: Flag this
