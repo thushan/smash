@@ -42,6 +42,7 @@ func init() {
 	flags.IntVarP(&af.UpdateSeconds, "update-seconds", "", 5, "Update progress every x seconds.")
 	flags.BoolVarP(&af.DisableSlicing, "disable-slicing", "", false, "Disable slicing (hashes full file).")
 	flags.BoolVarP(&af.IgnoreEmptyFiles, "ignore-emptyfiles", "", false, "Ignore & don't report on empty/zero byte files.")
+	flags.BoolVarP(&af.IgnoreHiddenItems, "ignore-hiddenitems", "", true, "Ignore hidden files & folders (ones that start with '.')")
 	flags.StringVarP(&af.OutputFile, "output-file", "o", "", "Export as JSON")
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode.")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode.")
