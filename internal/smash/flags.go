@@ -10,7 +10,7 @@ type Flags struct {
 	Algorithm      int      `yaml:"algorithm"`
 	MaxThreads     int      `yaml:"max-threads"`
 	MaxWorkers     int      `yaml:"max-workers"`
-	UpdateSeconds  int      `yaml:"update-seconds"`
+	ProgressUpdate int      `yaml:"progress-update"`
 	ShowTop        int      `yaml:"show-top"`
 	DisableSlicing bool     `yaml:"disable-slicing"`
 	IgnoreEmpty    bool     `yaml:"ignore-empty"`
@@ -41,7 +41,7 @@ func (app *App) validateArgs() error {
 	if f.ShowTop != 10 && f.HideTopList {
 		return errors.New("cannot mix showtop x and hidetop")
 	}
-	if f.UpdateSeconds < 1 {
+	if f.ProgressUpdate < 1 {
 		return errors.New("updateseconds cannot be less than 1")
 	}
 

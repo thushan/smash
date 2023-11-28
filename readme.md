@@ -10,7 +10,7 @@
 [![GitHub release](https://img.shields.io/github/release/thushan/smash)](https://github.com/thushan/smash/releases/latest)
 
 Tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments
-and computing a hash using a fast non-cryptographic algorithm such as [xxhash](https://xxhash.com/).
+and computing a hash using a fast non-cryptographic algorithm such as [xxhash](https://xxhash.com/) or [murmur3](https://en.wikipedia.org/wiki/MurmurHash).
 
 <p align="center">
  <img src="https://vhs.charm.sh/vhs-tgMXNRqo7UovLRd5iSlgF.gif" alt="Made with VHS"><br/>
@@ -48,26 +48,28 @@ $ go install github.com/thushan/smash@latest
 ```
 Usage:
   smash [flags] [locations-to-smash]
-
+  
 Flags:
       --algorithm algorithm    Algorithm to use to hash files. Supported: xxhash, murmur3, md5, sha512, sha256 (full list, see readme) (default xxhash)
-      --base strings           Base directories to use for comparison. Eg. --base=/c/dos,/c/dos/run/,/run/dos/run
-      --disable-slicing        Disable slicing (hashes full file).
-      --exclude-dir strings    Directories to exclude separated by comma. Eg. --exclude-dir=.git,.idea
-      --exclude-file strings   Files to exclude separated by comma. Eg. --exclude-file=.gitignore,*.csv
+      --base strings           Base directories to use for comparison Eg. --base=/c/dos,/c/dos/run/,/run/dos/run
+      --disable-slicing        Disable slicing & hash the full file instead
+      --exclude-dir strings    Directories to exclude separated by comma Eg. --exclude-dir=.git,.idea
+      --exclude-file strings   Files to exclude separated by comma Eg. --exclude-file=.gitignore,*.csv
   -h, --help                   help for smash
-      --ignore-emptyfiles      Ignore & don't report on empty/zero byte files.
-      --ignore-hiddenitems     Ignore hidden files & folders (ones that start with '.') (default true)
-  -p, --max-threads int        Maximum threads to utilise. (default 16)
-  -w, --max-workers int        Maximum workers to utilise when smashing. (default 8)
-      --no-progress            Disable progress updates.
+      --ignore-empty           Ignore empty/zero byte files (default true)
+      --ignore-hidden          Ignore hidden files & folders Eg. files/folders starting with '.' (default true)
+      --ignore-system          Ignore system files & folders Eg. '$MFT', '.Trash' (default true)
+  -p, --max-threads int        Maximum threads to utilise (default 16)
+  -w, --max-workers int        Maximum workers to utilise when smashing (default 8)
+      --no-progress            Disable progress updates
+      --no-top-list            Hides top x duplicates list
   -o, --output-file string     Export as JSON
-  -q, --silent                 Run in silent mode.
-      --update-seconds int     Update progress every x seconds. (default 5)
-      --verbose                Run in verbose mode.
-  -v, --version                Show version information.
-
-
+      --progress-update int    Update progress every x seconds (default 5)      
+      --show-duplicates        Show full list of duplicates
+      --show-top int           Show the top x duplicates (default 10)
+  -q, --silent                 Run in silent mode
+      --verbose                Run in verbose mode
+  -v, --version                Show version information
 ```
 
 See the [full list of algorithms](./docs/algorithms.md) supported.
@@ -82,6 +84,22 @@ To check for duplicates in a single path (Eg. `~/media/photos`)
 
 ```bash
 $ ./smash ~/media/photos
+```
+
+### Show Empty Files
+
+By default, `smash` ignores empty files but can report on them with the `--ignore-empty=false` argument:
+
+```bash
+$ ./smash ~/media/photos --ignore-empty=false
+```
+
+### Show Top 50 Duplicates
+
+By default, `smash` shows the top 10 duplicate files in the CLI and leaves the rest for the report, you can change that with the `--show-top=50` argument to show the top 50 instead.
+
+```bash
+$ ./smash ~/media/photos --show-top=50
 ```
 
 ### Multiple Directories
@@ -110,7 +128,7 @@ $ ./smash --exclude-dir=.config,.gnome ~/media/photos
 
 ### Disabling Slicing & Getting Full Hash
 
-By default, smash uses slicing to efficiently slice a file into mulitple segments and hash parts of the file. 
+By default, `smash` uses slicing to efficiently slice a file into mulitple segments and hash parts of the file. 
 
 If you prefer not to use slicing for a run, you can disable slicing with:
 

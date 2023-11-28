@@ -183,7 +183,7 @@ func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.Spinn
 		return
 	}
 	go func() {
-		ticker := time.Tick(time.Duration(app.Flags.UpdateSeconds) * time.Second)
+		ticker := time.Tick(time.Duration(app.Flags.ProgressUpdate) * time.Second)
 		for {
 			select {
 			case <-ticker:
