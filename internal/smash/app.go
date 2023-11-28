@@ -93,7 +93,7 @@ func (app *App) Exec() error {
 	files := app.Runtime.Files
 	locations := app.Locations
 	isVerbose := app.Flags.Verbose && !app.Flags.Silent
-	showProgress := (!app.Flags.NoProgress && !app.Flags.Silent) || isVerbose
+	showProgress := (!app.Flags.HideProgress && !app.Flags.Silent) || isVerbose
 
 	pap := theme.MultiWriter()
 	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
@@ -173,7 +173,7 @@ func (app *App) Exec() error {
 }
 
 func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles *int64) {
-	if app.Flags.NoProgress {
+	if app.Flags.HideProgress {
 		return
 	}
 	go func() {

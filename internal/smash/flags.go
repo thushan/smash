@@ -13,10 +13,10 @@ type Flags struct {
 	DisableSlicing    bool     `yaml:"disable-slicing"`
 	IgnoreEmptyFiles  bool     `yaml:"ignore-emptyfiles"`
 	IgnoreHiddenItems bool     `yaml:"ignore-hiddenitems"`
-	ShowVersion       bool     `yaml:"show-version"`
+	ShowVersion       bool     `yaml:"version"`
 	ShowDuplicates    bool     `yaml:"show-duplicates"`
-	HideTop           bool     `yaml:"hide-top"`
 	Silent            bool     `yaml:"silent"`
-	NoProgress        bool     `yaml:"no-progress"`
+	HideTop           bool     `yaml:"no-top"`
+	HideProgress      bool     `yaml:"no-progress"`
 	Verbose           bool     `yaml:"verbose"`
 }
