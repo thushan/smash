@@ -17,6 +17,7 @@ type Flags struct {
 	IgnoreHidden   bool     `yaml:"ignore-hidden"`
 	IgnoreSystem   bool     `yaml:"ignore-system"`
 	ShowVersion    bool     `yaml:"version"`
+	ShowNerdStats  bool     `yaml:"nerd-stats"`
 	ShowDuplicates bool     `yaml:"show-duplicates"`
 	Silent         bool     `yaml:"silent"`
 	HideTopList    bool     `yaml:"no-top-list"`

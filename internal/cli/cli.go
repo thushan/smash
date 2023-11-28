@@ -50,6 +50,7 @@ func init() {
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode")
 	flags.BoolVarP(&af.HideProgress, "no-progress", "", false, "Disable progress updates")
+	flags.BoolVarP(&af.ShowNerdStats, "nerd-stats", "", false, "Show nerd stats")
 	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information")
 	flags.StringVarP(&af.OutputFile, "output-file", "o", "", "Export as JSON")
 }

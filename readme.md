@@ -61,10 +61,11 @@ Flags:
       --ignore-system          Ignore system files & folders Eg. '$MFT', '.Trash' (default true)
   -p, --max-threads int        Maximum threads to utilise (default 16)
   -w, --max-workers int        Maximum workers to utilise when smashing (default 8)
+      --nerd-stats             Show nerd stats
       --no-progress            Disable progress updates
       --no-top-list            Hides top x duplicates list
   -o, --output-file string     Export as JSON
-      --progress-update int    Update progress every x seconds (default 5)      
+      --progress-update int    Update progress every x seconds (default 5)
       --show-duplicates        Show full list of duplicates
       --show-top int           Show the top x duplicates (default 10)
   -q, --silent                 Run in silent mode

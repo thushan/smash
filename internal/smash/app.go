@@ -89,7 +89,7 @@ func (app *App) Exec() error {
 	if err := app.validateArgs(); err != nil {
 		return err
 	}
-
+	startStats := report.ReadNerdStats()
 	session := app.Session
 
 	wk := app.Runtime.IndexerConfig
@@ -172,8 +172,16 @@ func (app *App) Exec() error {
 
 	pap.Stop()
 
+	endStats := report.ReadNerdStats()
+
 	app.PrintRunAnalysis(app.Flags.IgnoreEmpty)
 	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmpty)
+
+	if app.Flags.ShowNerdStats {
+		theme.StyleHeading.Println("---| Nerd Stats")
+		report.PrintNerdStats(startStats, "Commenced analysis")
+		report.PrintNerdStats(endStats, "Completed analysis")
+	}
 
 	return nil
 }
