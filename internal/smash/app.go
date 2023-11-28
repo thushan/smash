@@ -46,9 +46,11 @@ type AppRuntime struct {
 
 func (app *App) Run() error {
 
-	if !app.Flags.Silent {
-		PrintVersionInfo(app.Flags.ShowVersion)
-		if app.Flags.ShowVersion {
+	af := app.Flags
+
+	if !af.Silent {
+		PrintVersionInfo(af.ShowVersion)
+		if af.ShowVersion {
 			return nil
 		}
 		app.printConfiguration()
@@ -62,10 +64,10 @@ func (app *App) Run() error {
 		EndTime:   -1,
 	}
 
-	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
-	wk := indexer.NewConfigured(app.Flags.ExcludeDir, app.Flags.ExcludeFile, app.Flags.IgnoreHiddenItems)
+	sl := slicer.New(algorithms.Algorithm(af.Algorithm))
+	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
 	slo := slicer.SlicerOptions{
-		DisableSlicing:       app.Flags.DisableSlicing,
+		DisableSlicing:       af.DisableSlicing,
 		DisableMeta:          false, // TODO: Flag this
 		DisableFileDetection: false, // TODO: Flag this
 	}
@@ -83,6 +85,10 @@ func (app *App) Run() error {
 	return app.Exec()
 }
 func (app *App) Exec() error {
+
+	if err := app.validateArgs(); err != nil {
+		return err
+	}
 
 	session := app.Session
 
@@ -166,8 +172,8 @@ func (app *App) Exec() error {
 
 	pap.Stop()
 
-	app.PrintRunAnalysis(app.Flags.IgnoreEmptyFiles)
-	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmptyFiles)
+	app.PrintRunAnalysis(app.Flags.IgnoreEmpty)
+	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmpty)
 
 	return nil
 }
