@@ -1,4 +1,4 @@
-package summary
+package analysis
 
 import (
 	"reflect"
@@ -6,18 +6,18 @@ import (
 )
 
 var files = []Item{
-	{Name: "file1.txt", Size: 1024},
-	{Name: "file2.txt", Size: 2024},
-	{Name: "file3.txt", Size: 3024},
-	{Name: "file4.txt", Size: 4024},
-	{Name: "file5.txt", Size: 5024},
-	{Name: "file6.txt", Size: 6024},
-	{Name: "file7.txt", Size: 7024},
-	{Name: "file8.txt", Size: 8024},
-	{Name: "file9.txt", Size: 9024},
-	{Name: "file10.txt", Size: 10024},
-	{Name: "file11.txt", Size: 11024},
-	{Name: "file12.txt", Size: 12024},
+	{Key: "file1.txt", Size: 1024},
+	{Key: "file2.txt", Size: 2024},
+	{Key: "file3.txt", Size: 3024},
+	{Key: "file4.txt", Size: 4024},
+	{Key: "file5.txt", Size: 5024},
+	{Key: "file6.txt", Size: 6024},
+	{Key: "file7.txt", Size: 7024},
+	{Key: "file8.txt", Size: 8024},
+	{Key: "file9.txt", Size: 9024},
+	{Key: "file10.txt", Size: 10024},
+	{Key: "file11.txt", Size: 11024},
+	{Key: "file12.txt", Size: 12024},
 }
 
 func TestNextIteratorReturnsTop5Files(t *testing.T) {

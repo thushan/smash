@@ -1,4 +1,4 @@
-package summary
+package analysis
 
 import (
 	"container/heap"
@@ -6,12 +6,12 @@ import (
 )
 
 type Item struct {
-	Name string
-	Size int
+	Key  string
+	Size uint64
 }
 type Summary struct {
 	itemHeap *ItemHeap
-	size     int
+	maxSize  int
 }
 
 type ItemHeap []Item
@@ -38,11 +38,11 @@ func NewSummary(size int) *Summary {
 	fileHeap := &ItemHeap{}
 	heap.Init(fileHeap)
 
-	return &Summary{itemHeap: fileHeap, size: size}
+	return &Summary{itemHeap: fileHeap, maxSize: size}
 }
 
 func (t *Summary) Add(item Item) {
-	if t.itemHeap.Len() < t.size {
+	if t.itemHeap.Len() < t.maxSize {
 		heap.Push(t.itemHeap, item)
 	} else if item.Size > (*t.itemHeap)[0].Size {
 		heap.Pop(t.itemHeap)
