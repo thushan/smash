@@ -267,7 +267,7 @@ func walkDirectoryTestRunner(files []string, excludeDir []string, excludeFiles [
 
 	go func() {
 		defer close(ch)
-		indexer := NewConfigured(excludeDir, excludeFiles, ignoreHiddenItems)
+		indexer := NewConfigured(excludeDir, excludeFiles, ignoreHiddenItems, true)
 		err := indexer.WalkDirectory(fs, fr, ch)
 		if err != nil {
 			t.Errorf("WalkDirectory returned an error: %v", err)

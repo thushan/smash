@@ -3,6 +3,8 @@ package smash
 import (
 	"time"
 
+	"github.com/thushan/smash/pkg/analysis"
+
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/internal/report"
 
@@ -23,26 +25,32 @@ func (app *App) printVerbose(message ...any) {
 func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 	duplicates := app.Session.Dupes
 	emptyFiles := *app.Session.Empty
+	topFiles := app.Summary.TopFiles
 
 	totalDuplicates := app.Summary.DuplicateFiles
 
 	theme.StyleHeading.Println("---| Duplicates (", totalDuplicates, ")")
 
-	if duplicates.Len() == 0 {
+	if duplicates.Len() == 0 || len(topFiles) == 0 {
 		theme.Println(theme.ColourSuccess("No duplicates found :-)"))
 	} else {
 
-		duplicates.ForEach(func(hash string, files []report.SmashFile) bool {
-			duplicateFiles := len(files) - 1
-			if duplicateFiles != 0 {
-				root := files[0]
-				dupes := files[1:]
-				theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(root.FileSizeF), " ", theme.ColourHash(root.Hash))
-				printSmashHits(dupes)
+		if !app.Flags.HideTopList {
+			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Duplicates ]---")
+			for _, tf := range topFiles {
+				if files, ok := duplicates.Get(tf.Key); ok {
+					displayFiles(files)
+				}
 			}
-			return true
-		})
+		}
 
+		if app.Flags.ShowDuplicates {
+			theme.StyleSubHeading.Println("---[ All Duplicates ]---")
+			duplicates.ForEach(func(hash string, files []report.SmashFile) bool {
+				displayFiles(files)
+				return true
+			})
+		}
 	}
 
 	if !ignoreEmptyFiles && len(emptyFiles) != 0 {
@@ -50,6 +58,16 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 		printSmashHits(emptyFiles)
 	}
 
+}
+
+func displayFiles(files []report.SmashFile) {
+	duplicateFiles := len(files) - 1
+	if duplicateFiles != 0 {
+		root := files[0]
+		dupes := files[1:]
+		theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(root.FileSizeF), " ", theme.ColourHash(root.Hash))
+		printSmashHits(dupes)
+	}
 }
 
 func printSmashHits(files []report.SmashFile) {
@@ -71,6 +89,8 @@ func (app *App) generateRunSummary(totalFiles int64) {
 	duplicates := session.Dupes
 	emptyFiles := *session.Empty
 
+	topFiles := analysis.NewSummary(app.Flags.ShowTop)
+
 	totalDuplicates := 0
 	totalUniqueFiles := int64(duplicates.Len())
 	totalDuplicateSize := uint64(0)
@@ -85,13 +105,16 @@ func (app *App) generateRunSummary(totalFiles int64) {
 		} else {
 			root := files[0]
 			dupes := files[1:]
+
+			topFiles.Add(analysis.Item{Key: hash, Size: root.FileSize})
+
 			totalDuplicates += len(dupes)
 			totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
 		}
 		return true
 	})
-
 	summary := report.RunSummary{
+		TopFiles:           topFiles.All(),
 		TotalFiles:         totalFiles,
 		TotalFileErrors:    totalFailFileCount,
 		UniqueFiles:        totalUniqueFiles,

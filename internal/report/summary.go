@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/thushan/smash/pkg/analysis"
+
 	"github.com/thushan/smash/internal/theme"
 )
 
 type RunSummary struct {
 	DuplicateFileSizeF string
+	TopFiles           []analysis.Item
 	DuplicateFileSize  uint64
 	TotalFiles         int64
 	TotalFileErrors    int64

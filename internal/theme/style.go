@@ -24,9 +24,11 @@ var (
 	Verbose      *pterm.PrefixPrinter
 	WarnSkipping *pterm.PrefixPrinter
 
-	StyleBold    *pterm.Style
-	StyleHeading *pterm.Style
-	StyleContext *pterm.Style
+	StyleBold        *pterm.Style
+	StyleContext     *pterm.Style
+	StyleHeading     *pterm.Style
+	StyleSubHeading  *pterm.Style
+	StyleDescription *pterm.Style
 )
 
 func init() {
@@ -42,6 +44,8 @@ func init() {
 	StyleBold = pterm.NewStyle(pterm.Bold)
 	StyleHeading = pterm.NewStyle(pterm.FgCyan, pterm.Bold)
 	StyleContext = pterm.NewStyle(pterm.FgDarkGray, pterm.Italic)
+	StyleSubHeading = pterm.NewStyle(pterm.FgLightBlue, pterm.Bold)
+	StyleDescription = pterm.NewStyle(pterm.FgWhite)
 
 }
 

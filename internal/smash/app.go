@@ -46,9 +46,11 @@ type AppRuntime struct {
 
 func (app *App) Run() error {
 
-	if !app.Flags.Silent {
-		PrintVersionInfo(app.Flags.ShowVersion)
-		if app.Flags.ShowVersion {
+	af := app.Flags
+
+	if !af.Silent {
+		PrintVersionInfo(af.ShowVersion)
+		if af.ShowVersion {
 			return nil
 		}
 		app.printConfiguration()
@@ -62,10 +64,10 @@ func (app *App) Run() error {
 		EndTime:   -1,
 	}
 
-	sl := slicer.New(algorithms.Algorithm(app.Flags.Algorithm))
-	wk := indexer.NewConfigured(app.Flags.ExcludeDir, app.Flags.ExcludeFile, app.Flags.IgnoreHiddenItems)
+	sl := slicer.New(algorithms.Algorithm(af.Algorithm))
+	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
 	slo := slicer.SlicerOptions{
-		DisableSlicing:       app.Flags.DisableSlicing,
+		DisableSlicing:       af.DisableSlicing,
 		DisableMeta:          false, // TODO: Flag this
 		DisableFileDetection: false, // TODO: Flag this
 	}
@@ -84,6 +86,10 @@ func (app *App) Run() error {
 }
 func (app *App) Exec() error {
 
+	if err := app.validateArgs(); err != nil {
+		return err
+	}
+
 	session := app.Session
 
 	wk := app.Runtime.IndexerConfig
@@ -93,7 +99,7 @@ func (app *App) Exec() error {
 	files := app.Runtime.Files
 	locations := app.Locations
 	isVerbose := app.Flags.Verbose && !app.Flags.Silent
-	showProgress := (!app.Flags.NoProgress && !app.Flags.Silent) || isVerbose
+	showProgress := (!app.Flags.HideProgress && !app.Flags.Silent) || isVerbose
 
 	pap := theme.MultiWriter()
 	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
@@ -166,18 +172,18 @@ func (app *App) Exec() error {
 
 	pap.Stop()
 
-	app.PrintRunAnalysis(app.Flags.IgnoreEmptyFiles)
-	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmptyFiles)
+	app.PrintRunAnalysis(app.Flags.IgnoreEmpty)
+	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmpty)
 
 	return nil
 }
 
 func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles *int64) {
-	if app.Flags.NoProgress {
+	if app.Flags.HideProgress {
 		return
 	}
 	go func() {
-		ticker := time.Tick(time.Duration(app.Flags.UpdateSeconds) * time.Second)
+		ticker := time.Tick(time.Duration(app.Flags.ProgressUpdate) * time.Second)
 		for {
 			select {
 			case <-ticker:

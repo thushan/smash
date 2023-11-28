@@ -25,11 +25,13 @@ type IndexerConfig struct {
 	ExcludeFileFilter []string
 
 	IgnoreHiddenItems bool
+	IgnoreSystemItems bool
 }
 
 func New() *IndexerConfig {
 	return &IndexerConfig{
 		IgnoreHiddenItems: true,
+		IgnoreSystemItems: true,
 		ExcludeFileFilter: nil,
 		ExcludeDirFilter:  nil,
 		dirMatcher:        nil,
@@ -45,7 +47,7 @@ func New() *IndexerConfig {
 		},
 	}
 }
-func NewConfigured(excludeDirFilter []string, excludeFileFilter []string, ignoreHiddenItems bool) *IndexerConfig {
+func NewConfigured(excludeDirFilter []string, excludeFileFilter []string, ignoreHiddenItems bool, ignoreSystemItems bool) *IndexerConfig {
 	indexer := New()
 	if len(excludeFileFilter) > 0 {
 		indexer.ExcludeFileFilter = excludeFileFilter
@@ -56,6 +58,7 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string, ignore
 		indexer.dirMatcher = regexp.MustCompile(strings.Join(excludeDirFilter, "|"))
 	}
 	indexer.IgnoreHiddenItems = ignoreHiddenItems
+	indexer.IgnoreSystemItems = ignoreSystemItems
 	return indexer
 }
 
@@ -69,23 +72,23 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan File
 		}
 		name := filepath.Clean(d.Name())
 
-		isSystemObj := config.IgnoreHiddenItems && config.isHidden(name)
+		isHiddenObj := config.IgnoreHiddenItems && config.isHidden(name)
 
 		if d.IsDir() {
 
-			isIgnoreDir := config.isIgnored(name, config.excludeSysDirFilter)
+			isIgnoreDir := config.IgnoreSystemItems && config.isIgnored(name, config.excludeSysDirFilter)
 			isExludeDir := len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)
 
-			if isSystemObj || isIgnoreDir || isExludeDir {
+			if isHiddenObj || isIgnoreDir || isExludeDir {
 				return fs.SkipDir
 			}
 
 		} else {
 
-			isIgnoreFile := config.isIgnored(name, config.excludeSysFileFilter)
+			isIgnoreFile := config.IgnoreSystemItems && config.isIgnored(name, config.excludeSysFileFilter)
 			isExludeFile := len(config.ExcludeFileFilter) > 0 && config.fileMatcher.MatchString(name)
 
-			if isSystemObj || isIgnoreFile || isExludeFile {
+			if isHiddenObj || isIgnoreFile || isExludeFile {
 				return nil
 			}
 
