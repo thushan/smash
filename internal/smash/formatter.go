@@ -36,7 +36,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 	} else {
 
 		if !app.Flags.HideTopList {
-			theme.StyleSubHeading.Println("|> Top ", app.Flags.ShowTop, " Duplicates")
+			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Duplicates ]---")
 			for _, tf := range topFiles {
 				if files, ok := duplicates.Get(tf.Key); ok {
 					displayFiles(files)
@@ -45,7 +45,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 		}
 
 		if app.Flags.ShowDuplicates {
-			theme.StyleSubHeading.Println("|> All Duplicates")
+			theme.StyleSubHeading.Println("---[ All Duplicates ]---")
 			duplicates.ForEach(func(hash string, files []report.SmashFile) bool {
 				displayFiles(files)
 				return true
