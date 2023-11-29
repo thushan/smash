@@ -3,6 +3,7 @@ package report
 import (
 	"encoding/hex"
 	"github.com/thushan/smash/internal/theme"
+	"sync"
 
 	"github.com/alphadose/haxmap"
 	"github.com/dustin/go-humanize"
@@ -18,8 +19,12 @@ type SmashFile struct {
 	FullHash    bool
 	EmptyFile   bool
 }
+type SmashFiles struct {
+	sync.RWMutex
+	Duplicates []SmashFile
+}
 
-func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, []SmashFile], emptyFiles *[]SmashFile) {
+func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, *SmashFiles], emptyFiles *[]SmashFile) {
 	sf := SmashFile{
 		Hash:        hex.EncodeToString(stats.Hash),
 		Filename:    filename,
@@ -33,12 +38,18 @@ func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, d
 		*emptyFiles = append(*emptyFiles, sf)
 	} else {
 		hash := sf.Hash
-		if ov, loaded := duplicates.GetOrSet(hash, []SmashFile{sf}); loaded {
-			v := append(ov, sf)
-			if swapped := duplicates.CompareAndSwap(hash, ov, v); !swapped {
-				theme.Error.Println("Swap failed for ", hash, ". old: ", len(ov), " | new: ", len(v))
+		files := &SmashFiles{}
+		files.Duplicates = []SmashFile{sf}
+		files.Lock()
+		if of, loaded := duplicates.GetOrSet(hash, files); loaded {
+			of.Lock()
+			of.Duplicates = append(of.Duplicates, sf)
+			of.Unlock()
+			if ov, swapped := duplicates.Swap(hash, of); !swapped {
+				theme.Error.Println("Swap failed for ", hash, ". old: ", len(ov.Duplicates), " | new: ", len(of.Duplicates))
 			}
 		}
+		files.Unlock()
 	}
 
 }

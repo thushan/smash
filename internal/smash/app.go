@@ -31,7 +31,7 @@ type App struct {
 	Locations []string
 }
 type AppSession struct {
-	Dupes     *haxmap.Map[string, []report.SmashFile]
+	Dupes     *haxmap.Map[string, *report.SmashFiles]
 	Fails     *haxmap.Map[string, error]
 	Empty     *[]report.SmashFile
 	StartTime int64
@@ -57,7 +57,7 @@ func (app *App) Run() error {
 	}
 
 	app.Session = &AppSession{
-		Dupes:     haxmap.New[string, []report.SmashFile](),
+		Dupes:     haxmap.New[string, *report.SmashFiles](),
 		Fails:     haxmap.New[string, error](),
 		Empty:     &[]report.SmashFile{},
 		StartTime: time.Now().UnixNano(),

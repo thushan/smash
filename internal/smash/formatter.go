@@ -39,15 +39,15 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Duplicates ]---")
 			for _, tf := range topFiles {
 				if files, ok := duplicates.Get(tf.Key); ok {
-					displayFiles(files)
+					displayFiles(files.Duplicates)
 				}
 			}
 		}
 
 		if app.Flags.ShowDuplicates {
 			theme.StyleSubHeading.Println("---[ All Duplicates ]---")
-			duplicates.ForEach(func(hash string, files []report.SmashFile) bool {
-				displayFiles(files)
+			duplicates.ForEach(func(hash string, files *report.SmashFiles) bool {
+				displayFiles(files.Duplicates)
 				return true
 			})
 		}
@@ -97,7 +97,8 @@ func (app *App) generateRunSummary(totalFiles int64) {
 	totalFailFileCount := int64(session.Fails.Len())
 	totalEmptyFileCount := int64(len(emptyFiles))
 
-	duplicates.ForEach(func(hash string, files []report.SmashFile) bool {
+	duplicates.ForEach(func(hash string, sf *report.SmashFiles) bool {
+		files := sf.Duplicates
 		duplicateFiles := len(files) - 1
 		if duplicateFiles == 0 {
 			// prune unique files
