@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"sync/atomic"
 	"time"
+
+	"github.com/puzpuzpuz/xsync/v3"
 
 	"golang.org/x/term"
 
@@ -13,8 +14,6 @@ import (
 
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
-
-	"github.com/alphadose/haxmap"
 
 	"github.com/thushan/smash/internal/algorithms"
 	"github.com/thushan/smash/pkg/slicer"
@@ -31,8 +30,8 @@ type App struct {
 	Locations []string
 }
 type AppSession struct {
-	Dupes     *haxmap.Map[string, *report.DuplicateFiles]
-	Fails     *haxmap.Map[string, error]
+	Dupes     *xsync.MapOf[string, *report.DuplicateFiles]
+	Fails     *xsync.MapOf[string, error]
 	Empty     *report.EmptyFiles
 	StartTime int64
 	EndTime   int64
@@ -57,8 +56,8 @@ func (app *App) Run() error {
 	}
 
 	app.Session = &AppSession{
-		Dupes:     haxmap.New[string, *report.DuplicateFiles](),
-		Fails:     haxmap.New[string, error](),
+		Dupes:     xsync.NewMapOf[string, *report.DuplicateFiles](),
+		Fails:     xsync.NewMapOf[string, error](),
 		Empty:     &report.EmptyFiles{},
 		StartTime: time.Now().UnixNano(),
 		EndTime:   -1,
@@ -118,12 +117,12 @@ func (app *App) Exec() error {
 				if isVerbose {
 					theme.WarnSkipWithContext(location, err)
 				}
-				_, _ = session.Fails.GetOrSet(location, err)
+				_, _ = session.Fails.LoadAndStore(location, err)
 			}
 		}
 	}()
 
-	totalFiles := int64(0)
+	totalFiles := xsync.NewCounter()
 
 	pss, _ := theme.SmashingSpinner().WithWriter(pap.NewWriter()).Start("Finding duplicates...")
 
@@ -132,7 +131,7 @@ func (app *App) Exec() error {
 	updateProgressTicker := make(chan bool)
 
 	if showProgress {
-		app.updateDupeCount(updateProgressTicker, pss, &totalFiles)
+		app.updateDupeCount(updateProgressTicker, pss, *totalFiles)
 	}
 
 	for i := 0; i < app.Flags.MaxWorkers; i++ {
@@ -142,7 +141,7 @@ func (app *App) Exec() error {
 			for file := range files {
 				sf := resolveFilename(file)
 
-				atomic.AddInt64(&totalFiles, 1)
+				totalFiles.Inc()
 
 				startTime := time.Now().UnixMilli()
 				stats, err := sl.SliceFS(file.FileSystem, file.Path, slo)
@@ -152,7 +151,7 @@ func (app *App) Exec() error {
 					if isVerbose {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
-					_, _ = session.Fails.GetOrSet(sf, err)
+					_, _ = session.Fails.LoadOrStore(sf, err)
 				} else {
 					report.SummariseSmashedFile(stats, sf, elapsedMs, session.Dupes, session.Empty)
 				}
@@ -167,7 +166,7 @@ func (app *App) Exec() error {
 	pss.Success("Finding duplicates...Done!")
 
 	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
-	app.generateRunSummary(totalFiles)
+	app.generateRunSummary(totalFiles.Value())
 	psr.Success("Finding smash hits...Done!")
 
 	pap.Stop()
@@ -186,7 +185,7 @@ func (app *App) Exec() error {
 	return nil
 }
 
-func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles *int64) {
+func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles xsync.Counter) {
 	if app.Flags.HideProgress {
 		return
 	}
@@ -195,8 +194,7 @@ func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.Spinn
 		for {
 			select {
 			case <-ticker:
-				latestFileCount := atomic.LoadInt64(totalFiles)
-				pss.UpdateText(fmt.Sprintf("Finding duplicates... (%s files smash'd)", pterm.Gray(latestFileCount)))
+				pss.UpdateText(fmt.Sprintf("Finding duplicates... (%s files smash'd)", pterm.Gray(totalFiles.Value())))
 			case <-updateProgressTicker:
 				return
 			}
