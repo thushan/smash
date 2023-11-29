@@ -1,4 +1,4 @@
-//nolint
+// nolint
 package slicer
 
 import (
@@ -74,7 +74,7 @@ func TestSlice_New_With0KbBlob(t *testing.T) {
 	}
 
 	if stats.EmptyFile != true {
-		t.Errorf("expected Empty to be %v, got %v", true, stats.EmptyFile)
+		t.Errorf("expected Files to be %v, got %v", true, stats.EmptyFile)
 	}
 
 	if stats.FileSize != 0 {

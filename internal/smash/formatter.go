@@ -24,37 +24,37 @@ func (app *App) printVerbose(message ...any) {
 
 func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 	duplicates := app.Session.Dupes
-	emptyFiles := *app.Session.Empty
+	emptyFiles := app.Session.Empty.Files
 	topFiles := app.Summary.TopFiles
 
 	totalDuplicates := app.Summary.DuplicateFiles
 
-	theme.StyleHeading.Println("---| Duplicates (", totalDuplicates, ")")
+	theme.StyleHeading.Println("---| Files (", totalDuplicates, ")")
 
 	if duplicates.Len() == 0 || len(topFiles) == 0 {
 		theme.Println(theme.ColourSuccess("No duplicates found :-)"))
 	} else {
 
 		if !app.Flags.HideTopList {
-			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Duplicates ]---")
+			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Files ]---")
 			for _, tf := range topFiles {
 				if files, ok := duplicates.Get(tf.Key); ok {
-					displayFiles(files.Duplicates)
+					displayFiles(files.Files)
 				}
 			}
 		}
 
 		if app.Flags.ShowDuplicates {
-			theme.StyleSubHeading.Println("---[ All Duplicates ]---")
-			duplicates.ForEach(func(hash string, files *report.SmashFiles) bool {
-				displayFiles(files.Duplicates)
+			theme.StyleSubHeading.Println("---[ All Files ]---")
+			duplicates.ForEach(func(hash string, files *report.DuplicateFiles) bool {
+				displayFiles(files.Files)
 				return true
 			})
 		}
 	}
 
 	if !ignoreEmptyFiles && len(emptyFiles) != 0 {
-		theme.StyleHeading.Println("---| Empty Files (", len(emptyFiles), ")")
+		theme.StyleHeading.Println("---| Files Files (", len(emptyFiles), ")")
 		printSmashHits(emptyFiles)
 	}
 
@@ -87,7 +87,7 @@ func printSmashHits(files []report.SmashFile) {
 func (app *App) generateRunSummary(totalFiles int64) {
 	session := *app.Session
 	duplicates := session.Dupes
-	emptyFiles := *session.Empty
+	emptyFiles := session.Empty.Files
 
 	topFiles := analysis.NewSummary(app.Flags.ShowTop)
 
@@ -97,8 +97,8 @@ func (app *App) generateRunSummary(totalFiles int64) {
 	totalFailFileCount := int64(session.Fails.Len())
 	totalEmptyFileCount := int64(len(emptyFiles))
 
-	duplicates.ForEach(func(hash string, sf *report.SmashFiles) bool {
-		files := sf.Duplicates
+	duplicates.ForEach(func(hash string, sf *report.DuplicateFiles) bool {
+		files := sf.Files
 		duplicateFiles := len(files) - 1
 		if duplicateFiles == 0 {
 			// prune unique files

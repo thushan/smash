@@ -19,12 +19,16 @@ type SmashFile struct {
 	FullHash    bool
 	EmptyFile   bool
 }
-type SmashFiles struct {
+type DuplicateFiles struct {
 	sync.RWMutex
-	Duplicates []SmashFile
+	Files []SmashFile
+}
+type EmptyFiles struct {
+	sync.RWMutex
+	Files []SmashFile
 }
 
-func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, *SmashFiles], emptyFiles *[]SmashFile) {
+func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, dupes *haxmap.Map[string, *DuplicateFiles], empty *EmptyFiles) {
 	sf := SmashFile{
 		Hash:        hex.EncodeToString(stats.Hash),
 		Filename:    filename,
@@ -35,18 +39,20 @@ func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, d
 		ElapsedTime: ms,
 	}
 	if sf.EmptyFile {
-		*emptyFiles = append(*emptyFiles, sf)
+		empty.Lock()
+		empty.Files = append(empty.Files, sf)
+		empty.Unlock()
 	} else {
 		hash := sf.Hash
-		files := &SmashFiles{}
-		files.Duplicates = []SmashFile{sf}
+		files := &DuplicateFiles{}
+		files.Files = []SmashFile{sf}
 		files.Lock()
-		if of, loaded := duplicates.GetOrSet(hash, files); loaded {
+		if of, loaded := dupes.GetOrSet(hash, files); loaded {
 			of.Lock()
-			of.Duplicates = append(of.Duplicates, sf)
+			of.Files = append(of.Files, sf)
 			of.Unlock()
-			if ov, swapped := duplicates.Swap(hash, of); !swapped {
-				theme.Error.Println("Swap failed for ", hash, ". old: ", len(ov.Duplicates), " | new: ", len(of.Duplicates))
+			if ov, swapped := dupes.Swap(hash, of); !swapped {
+				theme.Error.Println("Swap failed for ", hash, ". old: ", len(ov.Files), " | new: ", len(of.Files))
 			}
 		}
 		files.Unlock()
