@@ -31,14 +31,14 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 
 	theme.StyleHeading.Println("---| Duplicate Files (", totalDuplicates, ")")
 
-	if duplicates.Len() == 0 || len(topFiles) == 0 {
+	if duplicates.Size() == 0 || len(topFiles) == 0 {
 		theme.Println(theme.ColourSuccess("No duplicates found :-)"))
 	} else {
 
 		if !app.Flags.HideTopList {
 			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Duplicates ]---")
 			for _, tf := range topFiles {
-				if files, ok := duplicates.Get(tf.Key); ok {
+				if files, ok := duplicates.Load(tf.Key); ok {
 					displayFiles(files.Files)
 				}
 			}
@@ -46,7 +46,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 
 		if app.Flags.ShowDuplicates {
 			theme.StyleSubHeading.Println("---[ All Duplicates ]---")
-			duplicates.ForEach(func(hash string, files *report.DuplicateFiles) bool {
+			duplicates.Range(func(hash string, files *report.DuplicateFiles) bool {
 				displayFiles(files.Files)
 				return true
 			})
@@ -92,24 +92,23 @@ func (app *App) generateRunSummary(totalFiles int64) {
 	topFiles := analysis.NewSummary(app.Flags.ShowTop)
 
 	totalDuplicates := 0
-	totalUniqueFiles := int64(duplicates.Len())
+	totalUniqueFiles := int64(duplicates.Size())
 	totalDuplicateSize := uint64(0)
-	totalFailFileCount := int64(session.Fails.Len())
+	totalFailFileCount := int64(session.Fails.Size())
 	totalEmptyFileCount := int64(len(emptyFiles))
 
-	duplicates.ForEach(func(hash string, df *report.DuplicateFiles) bool {
+	duplicates.Range(func(hash string, df *report.DuplicateFiles) bool {
 		files := df.Files
 		duplicateFiles := len(files) - 1
 		if duplicateFiles == 0 {
 			// prune unique files
-			duplicates.Del(hash)
+			duplicates.Delete(hash)
 		} else {
 			root := files[0]
-			dupes := files[1:]
 
 			topFiles.Add(analysis.Item{Key: hash, Size: root.FileSize})
 
-			totalDuplicates += len(dupes)
+			totalDuplicates += duplicateFiles
 			totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
 		}
 		return true

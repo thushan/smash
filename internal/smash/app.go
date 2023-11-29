@@ -7,14 +7,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/puzpuzpuz/xsync/v3"
+
 	"golang.org/x/term"
 
 	"github.com/thushan/smash/internal/report"
 
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
-
-	"github.com/alphadose/haxmap"
 
 	"github.com/thushan/smash/internal/algorithms"
 	"github.com/thushan/smash/pkg/slicer"
@@ -31,8 +31,8 @@ type App struct {
 	Locations []string
 }
 type AppSession struct {
-	Dupes     *haxmap.Map[string, *report.DuplicateFiles]
-	Fails     *haxmap.Map[string, error]
+	Dupes     *xsync.MapOf[string, *report.DuplicateFiles]
+	Fails     *xsync.MapOf[string, error]
 	Empty     *report.EmptyFiles
 	StartTime int64
 	EndTime   int64
@@ -57,8 +57,8 @@ func (app *App) Run() error {
 	}
 
 	app.Session = &AppSession{
-		Dupes:     haxmap.New[string, *report.DuplicateFiles](),
-		Fails:     haxmap.New[string, error](),
+		Dupes:     xsync.NewMapOf[string, *report.DuplicateFiles](),
+		Fails:     xsync.NewMapOf[string, error](),
 		Empty:     &report.EmptyFiles{},
 		StartTime: time.Now().UnixNano(),
 		EndTime:   -1,
@@ -118,7 +118,7 @@ func (app *App) Exec() error {
 				if isVerbose {
 					theme.WarnSkipWithContext(location, err)
 				}
-				_, _ = session.Fails.GetOrSet(location, err)
+				_, _ = session.Fails.LoadAndStore(location, err)
 			}
 		}
 	}()
@@ -152,7 +152,7 @@ func (app *App) Exec() error {
 					if isVerbose {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
-					_, _ = session.Fails.GetOrSet(sf, err)
+					_, _ = session.Fails.LoadOrStore(sf, err)
 				} else {
 					report.SummariseSmashedFile(stats, sf, elapsedMs, session.Dupes, session.Empty)
 				}

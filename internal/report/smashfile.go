@@ -4,7 +4,8 @@ import (
 	"encoding/hex"
 	"sync"
 
-	"github.com/alphadose/haxmap"
+	"github.com/puzpuzpuz/xsync/v3"
+
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/pkg/slicer"
 )
@@ -27,7 +28,7 @@ type EmptyFiles struct {
 	sync.RWMutex
 }
 
-func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, *DuplicateFiles], empty *EmptyFiles) {
+func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *xsync.MapOf[string, *DuplicateFiles], empty *EmptyFiles) {
 	file := SmashFile{
 		Hash:        hex.EncodeToString(stats.Hash),
 		Filename:    filename,
@@ -42,7 +43,7 @@ func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, d
 		empty.Files = append(empty.Files, file)
 		empty.Unlock()
 	} else {
-		dupes, _ := duplicates.GetOrSet(file.Hash, &DuplicateFiles{})
+		dupes, _ := duplicates.LoadOrStore(file.Hash, &DuplicateFiles{})
 		dupes.Lock()
 		dupes.Files = append(dupes.Files, file)
 		dupes.Unlock()
