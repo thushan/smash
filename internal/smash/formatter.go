@@ -29,14 +29,14 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 
 	totalDuplicates := app.Summary.DuplicateFiles
 
-	theme.StyleHeading.Println("---| Files (", totalDuplicates, ")")
+	theme.StyleHeading.Println("---| Duplicate Files (", totalDuplicates, ")")
 
 	if duplicates.Len() == 0 || len(topFiles) == 0 {
 		theme.Println(theme.ColourSuccess("No duplicates found :-)"))
 	} else {
 
 		if !app.Flags.HideTopList {
-			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Files ]---")
+			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Duplicates ]---")
 			for _, tf := range topFiles {
 				if files, ok := duplicates.Get(tf.Key); ok {
 					displayFiles(files.Files)
@@ -45,7 +45,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 		}
 
 		if app.Flags.ShowDuplicates {
-			theme.StyleSubHeading.Println("---[ All Files ]---")
+			theme.StyleSubHeading.Println("---[ All Duplicates ]---")
 			duplicates.ForEach(func(hash string, files *report.DuplicateFiles) bool {
 				displayFiles(files.Files)
 				return true
@@ -54,7 +54,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 	}
 
 	if !ignoreEmptyFiles && len(emptyFiles) != 0 {
-		theme.StyleHeading.Println("---| Files Files (", len(emptyFiles), ")")
+		theme.StyleHeading.Println("---| Empty Files (", len(emptyFiles), ")")
 		printSmashHits(emptyFiles)
 	}
 
@@ -98,7 +98,6 @@ func (app *App) generateRunSummary(totalFiles int64) {
 	totalEmptyFileCount := int64(len(emptyFiles))
 
 	duplicates.ForEach(func(hash string, df *report.DuplicateFiles) bool {
-		df.RLock()
 		files := df.Files
 		duplicateFiles := len(files) - 1
 		if duplicateFiles == 0 {
@@ -113,7 +112,6 @@ func (app *App) generateRunSummary(totalFiles int64) {
 			totalDuplicates += len(dupes)
 			totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
 		}
-		df.RUnlock()
 		return true
 	})
 	summary := report.RunSummary{
