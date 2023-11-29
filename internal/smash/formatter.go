@@ -97,8 +97,9 @@ func (app *App) generateRunSummary(totalFiles int64) {
 	totalFailFileCount := int64(session.Fails.Len())
 	totalEmptyFileCount := int64(len(emptyFiles))
 
-	duplicates.ForEach(func(hash string, sf *report.DuplicateFiles) bool {
-		files := sf.Files
+	duplicates.ForEach(func(hash string, df *report.DuplicateFiles) bool {
+		df.RLock()
+		files := df.Files
 		duplicateFiles := len(files) - 1
 		if duplicateFiles == 0 {
 			// prune unique files
@@ -112,6 +113,7 @@ func (app *App) generateRunSummary(totalFiles int64) {
 			totalDuplicates += len(dupes)
 			totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
 		}
+		df.RUnlock()
 		return true
 	})
 	summary := report.RunSummary{

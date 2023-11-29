@@ -30,9 +30,9 @@ func PrintRunSummary(rs RunSummary, ignoreEmptyFiles bool) {
 	if rs.TotalFileErrors > 0 {
 		theme.Println(writeCategory("Total Skipped:"), theme.ColourError(rs.TotalFileErrors))
 	}
-	theme.Println(writeCategory("Total Files:"), theme.ColourNumber(rs.DuplicateFiles))
+	theme.Println(writeCategory("Total Duplicates:"), theme.ColourNumber(rs.DuplicateFiles))
 	if !ignoreEmptyFiles && rs.EmptyFiles > 0 {
-		theme.Println(writeCategory("Total Files Files:"), theme.ColourNumber(rs.EmptyFiles))
+		theme.Println(writeCategory("Total Empty Files:"), theme.ColourNumber(rs.EmptyFiles))
 	}
 	if rs.DuplicateFileSize > 0 {
 		theme.Println(writeCategory("Space Reclaimable:"), theme.ColourFileSizeA(rs.DuplicateFileSizeF), "(approx)")
