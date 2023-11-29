@@ -2,6 +2,7 @@ package report
 
 import (
 	"encoding/hex"
+	"github.com/thushan/smash/internal/theme"
 
 	"github.com/alphadose/haxmap"
 	"github.com/dustin/go-humanize"
@@ -32,11 +33,11 @@ func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, d
 		*emptyFiles = append(*emptyFiles, sf)
 	} else {
 		hash := sf.Hash
-		if v, existing := duplicates.Get(hash); existing {
-			v = append(v, sf)
-			duplicates.Set(hash, v)
-		} else {
-			duplicates.Set(hash, []SmashFile{sf})
+		if ov, loaded := duplicates.GetOrSet(hash, []SmashFile{sf}); loaded {
+			v := append(ov, sf)
+			if swapped := duplicates.CompareAndSwap(hash, ov, v); !swapped {
+				theme.Error.Println("Swap failed for ", hash, ". old: ", len(ov), " | new: ", len(v))
+			}
 		}
 	}
 
