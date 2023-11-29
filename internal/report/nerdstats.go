@@ -1,9 +1,10 @@
 package report
 
 import (
+	"runtime"
+
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/internal/theme"
-	"runtime"
 )
 
 type NerdStats struct {

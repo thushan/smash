@@ -19,12 +19,12 @@ type SmashFile struct {
 	EmptyFile   bool
 }
 type DuplicateFiles struct {
-	sync.RWMutex
 	Files []SmashFile
+	sync.RWMutex
 }
 type EmptyFiles struct {
-	sync.RWMutex
 	Files []SmashFile
+	sync.RWMutex
 }
 
 func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, *DuplicateFiles], empty *EmptyFiles) {
