@@ -2,6 +2,7 @@ package report
 
 import (
 	"encoding/hex"
+	"sync"
 
 	"github.com/alphadose/haxmap"
 	"github.com/dustin/go-humanize"
@@ -17,9 +18,17 @@ type SmashFile struct {
 	FullHash    bool
 	EmptyFile   bool
 }
+type DuplicateFiles struct {
+	Files []SmashFile
+	sync.RWMutex
+}
+type EmptyFiles struct {
+	Files []SmashFile
+	sync.RWMutex
+}
 
-func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, []SmashFile], emptyFiles *[]SmashFile) {
-	sf := SmashFile{
+func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *haxmap.Map[string, *DuplicateFiles], empty *EmptyFiles) {
+	file := SmashFile{
 		Hash:        hex.EncodeToString(stats.Hash),
 		Filename:    filename,
 		FileSize:    stats.FileSize,
@@ -28,16 +37,15 @@ func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, d
 		FileSizeF:   humanize.Bytes(stats.FileSize),
 		ElapsedTime: ms,
 	}
-	if sf.EmptyFile {
-		*emptyFiles = append(*emptyFiles, sf)
+	if file.EmptyFile {
+		empty.Lock()
+		empty.Files = append(empty.Files, file)
+		empty.Unlock()
 	} else {
-		hash := sf.Hash
-		if v, existing := duplicates.Get(hash); existing {
-			v = append(v, sf)
-			duplicates.Set(hash, v)
-		} else {
-			duplicates.Set(hash, []SmashFile{sf})
-		}
+		dupes, _ := duplicates.GetOrSet(file.Hash, &DuplicateFiles{})
+		dupes.Lock()
+		dupes.Files = append(dupes.Files, file)
+		dupes.Unlock()
 	}
 
 }

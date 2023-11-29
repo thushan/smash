@@ -31,9 +31,9 @@ type App struct {
 	Locations []string
 }
 type AppSession struct {
-	Dupes     *haxmap.Map[string, []report.SmashFile]
+	Dupes     *haxmap.Map[string, *report.DuplicateFiles]
 	Fails     *haxmap.Map[string, error]
-	Empty     *[]report.SmashFile
+	Empty     *report.EmptyFiles
 	StartTime int64
 	EndTime   int64
 }
@@ -57,9 +57,9 @@ func (app *App) Run() error {
 	}
 
 	app.Session = &AppSession{
-		Dupes:     haxmap.New[string, []report.SmashFile](),
+		Dupes:     haxmap.New[string, *report.DuplicateFiles](),
 		Fails:     haxmap.New[string, error](),
-		Empty:     &[]report.SmashFile{},
+		Empty:     &report.EmptyFiles{},
 		StartTime: time.Now().UnixNano(),
 		EndTime:   -1,
 	}
@@ -89,7 +89,7 @@ func (app *App) Exec() error {
 	if err := app.validateArgs(); err != nil {
 		return err
 	}
-
+	startStats := report.ReadNerdStats()
 	session := app.Session
 
 	wk := app.Runtime.IndexerConfig
@@ -172,8 +172,16 @@ func (app *App) Exec() error {
 
 	pap.Stop()
 
+	endStats := report.ReadNerdStats()
+
 	app.PrintRunAnalysis(app.Flags.IgnoreEmpty)
 	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmpty)
+
+	if app.Flags.ShowNerdStats {
+		theme.StyleHeading.Println("---| Nerd Stats")
+		report.PrintNerdStats(startStats, "Commenced analysis")
+		report.PrintNerdStats(endStats, "Completed analysis")
+	}
 
 	return nil
 }
