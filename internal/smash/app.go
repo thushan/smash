@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/puzpuzpuz/xsync/v3"
@@ -123,7 +122,7 @@ func (app *App) Exec() error {
 		}
 	}()
 
-	totalFiles := int64(0)
+	totalFiles := xsync.NewCounter()
 
 	pss, _ := theme.SmashingSpinner().WithWriter(pap.NewWriter()).Start("Finding duplicates...")
 
@@ -132,7 +131,7 @@ func (app *App) Exec() error {
 	updateProgressTicker := make(chan bool)
 
 	if showProgress {
-		app.updateDupeCount(updateProgressTicker, pss, &totalFiles)
+		app.updateDupeCount(updateProgressTicker, pss, *totalFiles)
 	}
 
 	for i := 0; i < app.Flags.MaxWorkers; i++ {
@@ -142,7 +141,7 @@ func (app *App) Exec() error {
 			for file := range files {
 				sf := resolveFilename(file)
 
-				atomic.AddInt64(&totalFiles, 1)
+				totalFiles.Inc()
 
 				startTime := time.Now().UnixMilli()
 				stats, err := sl.SliceFS(file.FileSystem, file.Path, slo)
@@ -167,7 +166,7 @@ func (app *App) Exec() error {
 	pss.Success("Finding duplicates...Done!")
 
 	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
-	app.generateRunSummary(totalFiles)
+	app.generateRunSummary(totalFiles.Value())
 	psr.Success("Finding smash hits...Done!")
 
 	pap.Stop()
@@ -186,7 +185,7 @@ func (app *App) Exec() error {
 	return nil
 }
 
-func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles *int64) {
+func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles xsync.Counter) {
 	if app.Flags.HideProgress {
 		return
 	}
@@ -195,8 +194,7 @@ func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.Spinn
 		for {
 			select {
 			case <-ticker:
-				latestFileCount := atomic.LoadInt64(totalFiles)
-				pss.UpdateText(fmt.Sprintf("Finding duplicates... (%s files smash'd)", pterm.Gray(latestFileCount)))
+				pss.UpdateText(fmt.Sprintf("Finding duplicates... (%s files smash'd)", pterm.Gray(totalFiles.Value())))
 			case <-updateProgressTicker:
 				return
 			}

@@ -155,7 +155,7 @@ This project was possible thanks to the following projects or folks.
 * [@wader/fq](https://github.com/wader/fq) - countless nights of inspecting binary blobs!
 * [@cespare/xxhash](https://github.com/cespare/xxhash) - xxhash implementation
 * [@spaolacci/murmur3](https://github.com/spaolacci/murmur3) - murmur3 implementation
-* [@alphadose/haxmap](https://github.com/alphadose/haxmap) - Amazingly efficient map implementation
+* [@puzpuzpuz/xsync](https://github.com/puzpuzpuz/xsync) - Amazingly efficient map implementation
 * [@pterm/pterm](https://github.com/pterm/pterm) - Amazing TUI framework used
 * [@spf13/cobra](https://github.com/spf13/cobra) - CLI Magic with Cobra
 * [@golangci/golangci-lint](https://github.com/golangci/golangci-lint) - Go Linter
