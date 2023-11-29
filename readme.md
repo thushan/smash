@@ -13,7 +13,7 @@ Tool to `smash` through to find duplicate files efficiently by slicing a file (o
 and computing a hash using a fast non-cryptographic algorithm such as [xxhash](https://xxhash.com/) or [murmur3](https://en.wikipedia.org/wiki/MurmurHash).
 
 <p align="center">
- <img src="https://vhs.charm.sh/vhs-tgMXNRqo7UovLRd5iSlgF.gif" alt="Made with VHS"><br/>
+ <img src="https://vhs.charm.sh/vhs-1zSMi9vYpmh0DivoB4E6g4.gif" alt="Made with VHS"><br/>
     <sub>
         <sup>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code> (see our <a href="docs/demos.md">🍿 other demos</a>). Made with <a href="https://vhs.charm.sh" target="_blank">vhs</a>!</sup>
     </sub>
