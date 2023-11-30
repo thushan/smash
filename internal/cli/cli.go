@@ -38,7 +38,7 @@ func init() {
 	flags.StringSliceVarP(&af.ExcludeFile, "exclude-file", "", nil, "Files to exclude separated by comma Eg. --exclude-file=.gitignore,*.csv")
 	flags.StringSliceVarP(&af.ExcludeDir, "exclude-dir", "", nil, "Directories to exclude separated by comma Eg. --exclude-dir=.git,.idea")
 	flags.IntVarP(&af.MaxThreads, "max-threads", "p", runtime.NumCPU(), "Maximum threads to utilise")
-	flags.IntVarP(&af.MaxWorkers, "max-workers", "w", bestMaxWorkers(), "Maximum workers to utilise when smashing")
+	flags.IntVarP(&af.MaxWorkers, "max-workers", "w", runtime.NumCPU(), "Maximum workers to utilise when smashing")
 	flags.IntVarP(&af.ProgressUpdate, "progress-update", "", 5, "Update progress every x seconds")
 	flags.IntVarP(&af.ShowTop, "show-top", "", 10, "Show the top x duplicates")
 	flags.BoolVarP(&af.HideTopList, "no-top-list", "", false, "Hides top x duplicates list")
