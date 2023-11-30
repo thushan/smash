@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	Version = "v0.0.5"
+	Version = "v0.0.6"
 	Commit  = "none"
 	Date    = "unknown"
 	Time    = "nowish"
@@ -36,8 +36,8 @@ func PrintVersionInfo(extendedInfo bool) {
 	log.Println(theme.ColourSplash("│ "), theme.StyleUrl(githubUri), padLatest, theme.ColourVersion(latestUri), theme.ColourSplash(" │"))
 	log.Println(theme.ColourSplash(`╚───────────────────────────────────────────────╝`))
 	if extendedInfo {
-		log.Println(" Commit: ", theme.ColourVersionMeta(Commit))
-		log.Println("  Built: ", theme.ColourVersionMeta(Date))
-		log.Println("  Using: ", theme.ColourVersionMeta(User))
+		log.Println(" Commit:", theme.ColourVersionMeta(Commit))
+		log.Println("  Built:", theme.ColourVersionMeta(Date))
+		log.Println("  Using:", theme.ColourVersionMeta(User))
 	}
 }

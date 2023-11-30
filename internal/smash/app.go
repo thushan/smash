@@ -40,7 +40,7 @@ type AppRuntime struct {
 	Slicer        *slicer.Slicer
 	SlicerOptions *slicer.SlicerOptions
 	IndexerConfig *indexer.IndexerConfig
-	Files         chan indexer.FileFS
+	Files         chan *indexer.FileFS
 }
 
 func (app *App) Run() error {
@@ -56,9 +56,12 @@ func (app *App) Run() error {
 	}
 
 	app.Session = &AppSession{
-		Dupes:     xsync.NewMapOf[string, *report.DuplicateFiles](),
-		Fails:     xsync.NewMapOf[string, error](),
-		Empty:     &report.EmptyFiles{},
+		Dupes: xsync.NewMapOf[string, *report.DuplicateFiles](),
+		Fails: xsync.NewMapOf[string, error](),
+		Empty: &report.EmptyFiles{
+			Files:   &[]report.SmashFile{},
+			RWMutex: sync.RWMutex{},
+		},
 		StartTime: time.Now().UnixNano(),
 		EndTime:   -1,
 	}
@@ -75,7 +78,7 @@ func (app *App) Run() error {
 		Slicer:        &sl,
 		SlicerOptions: &slo,
 		IndexerConfig: wk,
-		Files:         make(chan indexer.FileFS),
+		Files:         make(chan *indexer.FileFS),
 	}
 
 	app.setMaxThreads()
@@ -144,7 +147,7 @@ func (app *App) Exec() error {
 				totalFiles.Inc()
 
 				startTime := time.Now().UnixMilli()
-				stats, err := sl.SliceFS(file.FileSystem, file.Path, slo)
+				stats, err := sl.SliceFS(*file.FileSystem, file.Path, slo)
 				elapsedMs := time.Now().UnixMilli() - startTime
 
 				if err != nil {
