@@ -67,6 +67,7 @@ Flags:
       --no-progress            Disable progress updates
       --no-top-list            Hides top x duplicates list
   -o, --output-file string     Export as JSON
+      --profile                Enable Go Profiler - see localhost:1984/debug/pprof
       --progress-update int    Update progress every x seconds (default 5)
       --show-duplicates        Show full list of duplicates
       --show-top int           Show the top x duplicates (default 10)

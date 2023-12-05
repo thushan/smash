@@ -24,6 +24,7 @@ type Flags struct {
 	Silent          bool     `yaml:"silent"`
 	HideTopList     bool     `yaml:"no-top-list"`
 	HideProgress    bool     `yaml:"no-progress"`
+	Profile         bool     `yaml:"profile"`
 	Verbose         bool     `yaml:"verbose"`
 }
 
