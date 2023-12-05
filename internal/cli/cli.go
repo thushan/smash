@@ -44,6 +44,8 @@ func init() {
 	flags.BoolVarP(&af.HideTopList, "no-top-list", "", false, "Hides top x duplicates list")
 	flags.BoolVarP(&af.ShowDuplicates, "show-duplicates", "", false, "Show full list of duplicates")
 	flags.BoolVarP(&af.DisableSlicing, "disable-slicing", "", false, "Disable slicing & hash the full file instead")
+	flags.BoolVarP(&af.DisableMeta, "disable-meta", "", false, "Disable storing of meta-data to improve hashing mismatches")
+	flags.BoolVarP(&af.DisableAutoText, "disable-autotext", "", false, "Disable detecting text-files to opt for a full hash for those")
 	flags.BoolVarP(&af.IgnoreEmpty, "ignore-empty", "", true, "Ignore empty/zero byte files")
 	flags.BoolVarP(&af.IgnoreHidden, "ignore-hidden", "", true, "Ignore hidden files & folders Eg. files/folders starting with '.'")
 	flags.BoolVarP(&af.IgnoreSystem, "ignore-system", "", true, "Ignore system files & folders Eg. '$MFT', '.Trash'")

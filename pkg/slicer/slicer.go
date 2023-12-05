@@ -36,9 +36,9 @@ type MetaSlice struct {
 	Size uint64
 }
 type SlicerOptions struct {
-	DisableSlicing       bool
-	DisableMeta          bool
-	DisableFileDetection bool
+	DisableSlicing  bool
+	DisableMeta     bool
+	DisableAutoText bool
 }
 
 const DefaultSlices = 4
@@ -145,7 +145,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stats 
 	stats.ReaderSize = sr.Size()
 
 	// checks
-	canSliceFile := !options.DisableFileDetection && slicingSupported(sr, size)
+	canSliceFile := !options.DisableAutoText && slicingSupported(sr, size)
 	greaterThanMinimumFileSize := uint64(slicer.slices+2)*slicer.sliceSize > size
 	greaterThanMinimumThreshold := size < slicer.threshold
 	invalidNumberOfSlices := slicer.slices <= 0

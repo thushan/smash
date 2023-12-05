@@ -69,9 +69,9 @@ func (app *App) Run() error {
 	sl := slicer.New(algorithms.Algorithm(af.Algorithm))
 	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
 	slo := slicer.SlicerOptions{
-		DisableSlicing:       af.DisableSlicing,
-		DisableMeta:          false, // TODO: Flag this
-		DisableFileDetection: false, // TODO: Flag this
+		DisableSlicing:  af.DisableSlicing,
+		DisableMeta:     af.DisableMeta,
+		DisableAutoText: af.DisableAutoText,
 	}
 
 	app.Runtime = &AppRuntime{

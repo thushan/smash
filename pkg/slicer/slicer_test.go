@@ -20,9 +20,9 @@ func TestSlice_New_OffsetMapWith1MbBlob(t *testing.T) {
 	reader := bytes.NewReader(binary)
 
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
@@ -58,9 +58,9 @@ func TestSlice_New_With0KbBlob(t *testing.T) {
 	reader := bytes.NewReader(binary)
 
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 
 	sr := io.NewSectionReader(reader, 0, 0)
@@ -91,9 +91,9 @@ func TestSlice_New_NoOffsetMapWith1KbBlob(t *testing.T) {
 	reader := bytes.NewReader(binary)
 
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
@@ -118,9 +118,9 @@ func TestSlice_New_WithTextBinaryBlob(t *testing.T) {
 	reader := bytes.NewReader(binary)
 
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
@@ -146,9 +146,9 @@ func TestSlice_New_WithTextBlob(t *testing.T) {
 	reader := strings.NewReader(stexty)
 
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
@@ -174,9 +174,9 @@ func TestSliceFS_New_FileSystemTestFile_TestWordPdf_WithSlicing(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "bedd0999e968547e"
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
 }
@@ -186,9 +186,9 @@ func TestSliceFS_New_FileSystemTestFile_TestAdobePdf_WithSlicing(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "41d4d0a83d10e962"
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
 }
@@ -198,9 +198,9 @@ func TestSliceFS_New_FileSystemTestFile_Test1mb_WithSlicing(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "bb83f43630ee546f"
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
 }
@@ -210,9 +210,9 @@ func TestSliceFS_New_FileSystemTestFile_Test1mb_WithoutMeta(t *testing.T) {
 	algorithm := algorithms.Xxhash
 	expected := "913c30543271faaf"
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          true,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     true,
+		DisableAutoText: false,
 	}
 	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
 }
@@ -222,9 +222,9 @@ func TestSliceFS_New_FileSystemTestFile_TestManipulated1mb_WithSlicing(t *testin
 	algorithm := algorithms.Xxhash
 	expected := "4f595576799edcd9"
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 	runHashCheckTestsForFileSystemFile_WithSliceFS(fsys, filename, algorithm, &options, expected, t)
 }
@@ -267,9 +267,9 @@ func runHashAlgorithmTest(algorithm algorithms.Algorithm, t *testing.T) {
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
 
 	options := SlicerOptions{
-		DisableSlicing:       false,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  false,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 
 	stats := SlicerStats{}

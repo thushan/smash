@@ -61,9 +61,9 @@ var algoData = []struct {
 func TestSlice_New_HashingAlgorithms_WithFileSystemFiles(t *testing.T) {
 
 	options := SlicerOptions{
-		DisableSlicing:       true,
-		DisableMeta:          false,
-		DisableFileDetection: false,
+		DisableSlicing:  true,
+		DisableMeta:     false,
+		DisableAutoText: false,
 	}
 
 	for _, item := range algoData {
