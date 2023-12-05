@@ -55,6 +55,10 @@ func (app *App) Run() error {
 		app.printConfiguration()
 	}
 
+	if af.Profile {
+		InitialiseProfiler()
+	}
+
 	app.Session = &AppSession{
 		Dupes: xsync.NewMapOf[string, *report.DuplicateFiles](),
 		Fails: xsync.NewMapOf[string, error](),
