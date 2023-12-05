@@ -7,22 +7,21 @@ import (
 	"golang.org/x/tools/godoc/util"
 )
 
-var bomPdf = []byte("%PDF")
+const MaxReadBytes = 1024
 
+var detectBuffer []byte
+
+func init() {
+	detectBuffer = make([]byte, MaxReadBytes)
+}
 func slicingSupported(sr *io.SectionReader, size uint64) bool {
-	const MaxReadBytes = 8
 
 	if size < utf8.UTFMax {
 		// It's a tiny file, we should full hash this puppy
 		return false
 	}
 
-	buf := make([]byte, MaxReadBytes)
-
-	isTextFile := util.IsText(buf)
-
-	if _, err := sr.Read(buf); err != nil ||
-		isTextFile {
+	if _, err := sr.Read(detectBuffer); err != nil && util.IsText(detectBuffer) {
 		return false
 	} else {
 		return true
