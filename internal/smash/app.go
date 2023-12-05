@@ -165,6 +165,7 @@ func (app *App) Exec() error {
 
 	// Signal we're done
 	updateProgressTicker <- true
+	midStats := report.ReadNerdStats()
 
 	pss.Success("Finding duplicates...Done!")
 
@@ -181,8 +182,9 @@ func (app *App) Exec() error {
 
 	if app.Flags.ShowNerdStats {
 		theme.StyleHeading.Println("---| Nerd Stats")
-		report.PrintNerdStats(startStats, "Commenced analysis")
-		report.PrintNerdStats(endStats, "Completed analysis")
+		report.PrintNerdStats(startStats, "> Pre-Smash")
+		report.PrintNerdStats(midStats, "> Pre-Analysis")
+		report.PrintNerdStats(endStats, "> End-Smash")
 	}
 
 	return nil
