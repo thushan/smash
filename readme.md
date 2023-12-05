@@ -53,6 +53,8 @@ Flags:
       --algorithm algorithm    Algorithm to use to hash files. Supported: xxhash, murmur3, md5, sha512, sha256 (full list, see readme) (default xxhash)
       --base strings           Base directories to use for comparison Eg. --base=/c/dos,/c/dos/run/,/run/dos/run
       --disable-slicing        Disable slicing & hash the full file instead
+      --disable-autotext       Disable detecting text-files to opt for a full hash for those
+      --disable-meta           Disable storing of meta-data to improve hashing mismatches
       --exclude-dir strings    Directories to exclude separated by comma Eg. --exclude-dir=.git,.idea
       --exclude-file strings   Files to exclude separated by comma Eg. --exclude-file=.gitignore,*.csv
   -h, --help                   help for smash
