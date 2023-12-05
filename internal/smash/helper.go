@@ -6,7 +6,7 @@ import (
 	"github.com/thushan/smash/pkg/indexer"
 )
 
-func resolveFilename(file indexer.FileFS) string {
+func resolveFilename(file *indexer.FileFS) string {
 	if file.Path == "." {
 		return filepath.Base(file.FullName)
 	} else {

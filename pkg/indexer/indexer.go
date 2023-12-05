@@ -9,7 +9,7 @@ import (
 )
 
 type FileFS struct {
-	FileSystem fs.FS
+	FileSystem *fs.FS
 	Path       string
 	Name       string
 	FullName   string
@@ -62,7 +62,7 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string, ignore
 	return indexer
 }
 
-func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan FileFS) error {
+func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan *FileFS) error {
 	walkErr := fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			if errors.Is(err, fs.ErrPermission) {
@@ -92,8 +92,8 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan File
 				return nil
 			}
 
-			files <- FileFS{
-				FileSystem: f,
+			files <- &FileFS{
+				FileSystem: &f,
 				Path:       path,
 				Name:       name,
 				FullName:   filepath.Join(root, path),

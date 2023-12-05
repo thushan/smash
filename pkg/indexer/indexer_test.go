@@ -252,7 +252,7 @@ func TestIndexDirectoryWhichContainsWindowsSystemFiles(t *testing.T) {
 		t.Errorf("expected %v, got %v files", expected, actual)
 	}
 }
-func channelFileToSliceOfFiles(ch <-chan FileFS) []string {
+func channelFileToSliceOfFiles(ch <-chan *FileFS) []string {
 	var result []string
 	for f := range ch {
 		result = append(result, f.Path)
@@ -263,7 +263,7 @@ func channelFileToSliceOfFiles(ch <-chan FileFS) []string {
 func walkDirectoryTestRunner(files []string, excludeDir []string, excludeFiles []string, ignoreHiddenItems bool, t *testing.T) []string {
 	fr := "mock://"
 	fs := createMockFS(files)
-	ch := make(chan FileFS)
+	ch := make(chan *FileFS)
 
 	go func() {
 		defer close(ch)

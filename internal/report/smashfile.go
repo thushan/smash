@@ -20,11 +20,11 @@ type SmashFile struct {
 	EmptyFile   bool
 }
 type DuplicateFiles struct {
-	Files []SmashFile
+	Files *[]SmashFile
 	sync.RWMutex
 }
 type EmptyFiles struct {
-	Files []SmashFile
+	Files *[]SmashFile
 	sync.RWMutex
 }
 
@@ -40,12 +40,15 @@ func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, d
 	}
 	if file.EmptyFile {
 		empty.Lock()
-		empty.Files = append(empty.Files, file)
+		*empty.Files = append(*empty.Files, file)
 		empty.Unlock()
 	} else {
-		dupes, _ := duplicates.LoadOrStore(file.Hash, &DuplicateFiles{})
+		dupes, _ := duplicates.LoadOrStore(file.Hash, &DuplicateFiles{
+			Files:   &[]SmashFile{},
+			RWMutex: sync.RWMutex{},
+		})
 		dupes.Lock()
-		dupes.Files = append(dupes.Files, file)
+		*dupes.Files = append(*dupes.Files, file)
 		dupes.Unlock()
 	}
 

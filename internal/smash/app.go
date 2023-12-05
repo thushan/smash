@@ -40,7 +40,7 @@ type AppRuntime struct {
 	Slicer        *slicer.Slicer
 	SlicerOptions *slicer.SlicerOptions
 	IndexerConfig *indexer.IndexerConfig
-	Files         chan indexer.FileFS
+	Files         chan *indexer.FileFS
 }
 
 func (app *App) Run() error {
@@ -56,9 +56,12 @@ func (app *App) Run() error {
 	}
 
 	app.Session = &AppSession{
-		Dupes:     xsync.NewMapOf[string, *report.DuplicateFiles](),
-		Fails:     xsync.NewMapOf[string, error](),
-		Empty:     &report.EmptyFiles{},
+		Dupes: xsync.NewMapOf[string, *report.DuplicateFiles](),
+		Fails: xsync.NewMapOf[string, error](),
+		Empty: &report.EmptyFiles{
+			Files:   &[]report.SmashFile{},
+			RWMutex: sync.RWMutex{},
+		},
 		StartTime: time.Now().UnixNano(),
 		EndTime:   -1,
 	}
@@ -66,16 +69,16 @@ func (app *App) Run() error {
 	sl := slicer.New(algorithms.Algorithm(af.Algorithm))
 	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
 	slo := slicer.SlicerOptions{
-		DisableSlicing:       af.DisableSlicing,
-		DisableMeta:          false, // TODO: Flag this
-		DisableFileDetection: false, // TODO: Flag this
+		DisableSlicing:  af.DisableSlicing,
+		DisableMeta:     af.DisableMeta,
+		DisableAutoText: af.DisableAutoText,
 	}
 
 	app.Runtime = &AppRuntime{
 		Slicer:        &sl,
 		SlicerOptions: &slo,
 		IndexerConfig: wk,
-		Files:         make(chan indexer.FileFS),
+		Files:         make(chan *indexer.FileFS),
 	}
 
 	app.setMaxThreads()
@@ -144,7 +147,7 @@ func (app *App) Exec() error {
 				totalFiles.Inc()
 
 				startTime := time.Now().UnixMilli()
-				stats, err := sl.SliceFS(file.FileSystem, file.Path, slo)
+				stats, err := sl.SliceFS(*file.FileSystem, file.Path, slo)
 				elapsedMs := time.Now().UnixMilli() - startTime
 
 				if err != nil {
@@ -162,6 +165,7 @@ func (app *App) Exec() error {
 
 	// Signal we're done
 	updateProgressTicker <- true
+	midStats := report.ReadNerdStats()
 
 	pss.Success("Finding duplicates...Done!")
 
@@ -178,8 +182,9 @@ func (app *App) Exec() error {
 
 	if app.Flags.ShowNerdStats {
 		theme.StyleHeading.Println("---| Nerd Stats")
-		report.PrintNerdStats(startStats, "Commenced analysis")
-		report.PrintNerdStats(endStats, "Completed analysis")
+		report.PrintNerdStats(startStats, "> Pre-Smash")
+		report.PrintNerdStats(midStats, "> Pre-Analysis")
+		report.PrintNerdStats(endStats, "> End-Smash")
 	}
 
 	return nil
