@@ -1,4 +1,4 @@
-package smash
+package profiler
 
 import (
 	"log"

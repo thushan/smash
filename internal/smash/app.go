@@ -6,6 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/thushan/smash/pkg/nerdstats"
+	"github.com/thushan/smash/pkg/profiler"
+
 	"github.com/puzpuzpuz/xsync/v3"
 
 	"golang.org/x/term"
@@ -56,7 +59,7 @@ func (app *App) Run() error {
 	}
 
 	if af.Profile {
-		InitialiseProfiler()
+		profiler.InitialiseProfiler()
 	}
 
 	app.Session = &AppSession{
@@ -95,7 +98,7 @@ func (app *App) Exec() error {
 	if err := app.validateArgs(); err != nil {
 		return err
 	}
-	startStats := report.ReadNerdStats()
+	startStats := nerdstats.Snapshot()
 	session := app.Session
 
 	wk := app.Runtime.IndexerConfig
@@ -169,7 +172,7 @@ func (app *App) Exec() error {
 
 	// Signal we're done
 	updateProgressTicker <- true
-	midStats := report.ReadNerdStats()
+	midStats := nerdstats.Snapshot()
 
 	pss.Success("Finding duplicates...Done!")
 
@@ -179,16 +182,16 @@ func (app *App) Exec() error {
 
 	pap.Stop()
 
-	endStats := report.ReadNerdStats()
-
 	app.PrintRunAnalysis(app.Flags.IgnoreEmpty)
 	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmpty)
 
+	endStats := nerdstats.Snapshot()
+
 	if app.Flags.ShowNerdStats {
 		theme.StyleHeading.Println("---| Nerd Stats")
-		report.PrintNerdStats(startStats, "> Pre-Smash")
-		report.PrintNerdStats(midStats, "> Pre-Analysis")
-		report.PrintNerdStats(endStats, "> End-Smash")
+		report.PrintNerdStats(startStats, "> Initial")
+		report.PrintNerdStats(midStats, "> Post-Analysis")
+		report.PrintNerdStats(endStats, "> Post-Cleanup")
 	}
 
 	return nil
