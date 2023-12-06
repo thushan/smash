@@ -1,42 +1,12 @@
 package report
 
 import (
-	"runtime"
-
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/internal/theme"
+	"github.com/thushan/smash/pkg/nerdstats"
 )
 
-type NerdStats struct {
-	Allocations,
-	TotalAllocations,
-	Sys,
-	Mallocs,
-	Frees,
-	LiveObjects,
-	GcPauseTotalNs uint64
-
-	CompletedGcCycles uint32
-	GoRoutines        int
-}
-
-func ReadNerdStats() NerdStats {
-	var rtm runtime.MemStats
-	runtime.ReadMemStats(&rtm)
-
-	return NerdStats{
-		GoRoutines:        runtime.NumGoroutine(),
-		Allocations:       rtm.Alloc,
-		TotalAllocations:  rtm.TotalAlloc,
-		Sys:               rtm.Sys,
-		Mallocs:           rtm.Mallocs,
-		Frees:             rtm.Frees,
-		LiveObjects:       rtm.Mallocs - rtm.Frees,
-		GcPauseTotalNs:    rtm.PauseTotalNs,
-		CompletedGcCycles: rtm.NumGC,
-	}
-}
-func PrintNerdStats(stats NerdStats, context string) {
+func PrintNerdStats(stats nerdstats.NerdStats, context string) {
 	theme.StyleContext.Println(context)
 
 	bold := theme.StyleBold

@@ -24,7 +24,7 @@ func (app *App) printVerbose(message ...any) {
 
 func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 	duplicates := app.Session.Dupes
-	emptyFiles := *app.Session.Empty.Files
+	emptyFiles := app.Session.Empty.Files
 	topFiles := app.Summary.TopFiles
 
 	totalDuplicates := app.Summary.DuplicateFiles
@@ -39,7 +39,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Duplicates ]---")
 			for _, tf := range topFiles {
 				if files, ok := duplicates.Load(tf.Key); ok {
-					displayFiles(*files.Files)
+					displayFiles(files.Files)
 				}
 			}
 		}
@@ -47,7 +47,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 		if app.Flags.ShowDuplicates {
 			theme.StyleSubHeading.Println("---[ All Duplicates ]---")
 			duplicates.Range(func(hash string, files *report.DuplicateFiles) bool {
-				displayFiles(*files.Files)
+				displayFiles(files.Files)
 				return true
 			})
 		}
@@ -87,7 +87,7 @@ func printSmashHits(files []report.SmashFile) {
 func (app *App) generateRunSummary(totalFiles int64) {
 	session := *app.Session
 	duplicates := session.Dupes
-	emptyFiles := *session.Empty.Files
+	emptyFiles := session.Empty.Files
 
 	topFiles := analysis.NewSummary(app.Flags.ShowTop)
 
@@ -98,7 +98,7 @@ func (app *App) generateRunSummary(totalFiles int64) {
 	totalEmptyFileCount := int64(len(emptyFiles))
 
 	duplicates.Range(func(hash string, df *report.DuplicateFiles) bool {
-		files := *df.Files
+		files := df.Files
 		duplicateFiles := len(files) - 1
 		if duplicateFiles == 0 {
 			// prune unique files

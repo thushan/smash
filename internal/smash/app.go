@@ -6,6 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/thushan/smash/pkg/nerdstats"
+	"github.com/thushan/smash/pkg/profiler"
+
 	"github.com/puzpuzpuz/xsync/v3"
 
 	"golang.org/x/term"
@@ -38,7 +41,7 @@ type AppSession struct {
 }
 type AppRuntime struct {
 	Slicer        *slicer.Slicer
-	SlicerOptions *slicer.SlicerOptions
+	SlicerOptions *slicer.Options
 	IndexerConfig *indexer.IndexerConfig
 	Files         chan *indexer.FileFS
 }
@@ -55,11 +58,15 @@ func (app *App) Run() error {
 		app.printConfiguration()
 	}
 
+	if af.Profile {
+		profiler.InitialiseProfiler()
+	}
+
 	app.Session = &AppSession{
 		Dupes: xsync.NewMapOf[string, *report.DuplicateFiles](),
 		Fails: xsync.NewMapOf[string, error](),
 		Empty: &report.EmptyFiles{
-			Files:   &[]report.SmashFile{},
+			Files:   []report.SmashFile{},
 			RWMutex: sync.RWMutex{},
 		},
 		StartTime: time.Now().UnixNano(),
@@ -68,7 +75,7 @@ func (app *App) Run() error {
 
 	sl := slicer.New(algorithms.Algorithm(af.Algorithm))
 	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
-	slo := slicer.SlicerOptions{
+	slo := slicer.Options{
 		DisableSlicing:  af.DisableSlicing,
 		DisableMeta:     af.DisableMeta,
 		DisableAutoText: af.DisableAutoText,
@@ -91,7 +98,7 @@ func (app *App) Exec() error {
 	if err := app.validateArgs(); err != nil {
 		return err
 	}
-	startStats := report.ReadNerdStats()
+	startStats := nerdstats.Snapshot()
 	session := app.Session
 
 	wk := app.Runtime.IndexerConfig
@@ -165,7 +172,7 @@ func (app *App) Exec() error {
 
 	// Signal we're done
 	updateProgressTicker <- true
-	midStats := report.ReadNerdStats()
+	midStats := nerdstats.Snapshot()
 
 	pss.Success("Finding duplicates...Done!")
 
@@ -175,16 +182,16 @@ func (app *App) Exec() error {
 
 	pap.Stop()
 
-	endStats := report.ReadNerdStats()
-
 	app.PrintRunAnalysis(app.Flags.IgnoreEmpty)
 	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmpty)
 
+	endStats := nerdstats.Snapshot()
+
 	if app.Flags.ShowNerdStats {
 		theme.StyleHeading.Println("---| Nerd Stats")
-		report.PrintNerdStats(startStats, "> Pre-Smash")
-		report.PrintNerdStats(midStats, "> Pre-Analysis")
-		report.PrintNerdStats(endStats, "> End-Smash")
+		report.PrintNerdStats(startStats, "> Initial")
+		report.PrintNerdStats(midStats, "> Post-Analysis")
+		report.PrintNerdStats(endStats, "> Post-Cleanup")
 	}
 
 	return nil

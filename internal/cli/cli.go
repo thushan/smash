@@ -51,18 +51,11 @@ func init() {
 	flags.BoolVarP(&af.IgnoreSystem, "ignore-system", "", true, "Ignore system files & folders Eg. '$MFT', '.Trash'")
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode")
+	flags.BoolVarP(&af.Profile, "profile", "", false, "Enable Go Profiler - see localhost:1984/debug/pprof")
 	flags.BoolVarP(&af.HideProgress, "no-progress", "", false, "Disable progress updates")
 	flags.BoolVarP(&af.ShowNerdStats, "nerd-stats", "", false, "Show nerd stats")
 	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information")
 	flags.StringVarP(&af.OutputFile, "output-file", "o", "", "Export as JSON")
-}
-func bestMaxWorkers() int {
-	cpus := runtime.NumCPU()
-	if cpus < 6 {
-		return 2
-	} else {
-		return cpus / 2
-	}
 }
 func Main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
