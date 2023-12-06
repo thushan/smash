@@ -7,7 +7,6 @@ import (
 	"io/fs"
 
 	"github.com/thushan/smash/internal/algorithms"
-	"github.com/thushan/smash/internal/theme"
 )
 
 type Slicer struct {
@@ -35,7 +34,7 @@ type SlicerStats struct {
 type MetaSlice struct {
 	Size uint64
 }
-type SlicerOptions struct {
+type Options struct {
 	DisableSlicing  bool
 	DisableMeta     bool
 	DisableAutoText bool
@@ -58,7 +57,7 @@ func NewConfigured(algorithm algorithms.Algorithm, slices int, size, maxSlice ui
 		defaultBytes: []byte{},
 	}
 }
-func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *SlicerOptions) (SlicerStats, error) {
+func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerStats, error) {
 
 	stats := SlicerStats{Hash: slicer.defaultBytes, Filename: name}
 	f, err := fs.Open(name)
@@ -67,9 +66,12 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *SlicerOptions) (Sl
 			// Ignore ReadOnly issues.
 			return
 		}
-		if ferr := fs.Close(); ferr != nil {
-			theme.Error.Println(theme.ColourFilename(name), ferr)
-		}
+		_ = fs.Close()
+		/*
+			if ferr := fs.Close(); ferr != nil {
+				theme.Error.Println(theme.ColourFilename(name), ferr)
+			}
+		*/
 	}(f)
 
 	if err != nil {
@@ -102,7 +104,7 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *SlicerOptions) (Sl
 		return stats, errors.New("the File System does not support readers")
 	}
 }
-func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stats *SlicerStats) error {
+func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *SlicerStats) error {
 
 	/*
 		Check the bytes are within the threshold for a full blob hash.
@@ -159,7 +161,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *SlicerOptions, stats 
 	stats.HashedFullFile = fullHash
 
 	// Reset after text detection
-	sr.Seek(0, io.SeekStart)
+	_, _ = sr.Seek(0, io.SeekStart)
 
 	if fullHash {
 		if _, err := io.Copy(algo, sr); err != nil {

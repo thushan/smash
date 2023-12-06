@@ -1,4 +1,4 @@
-//nolint
+// nolint
 package slicer
 
 import (
@@ -60,7 +60,7 @@ var algoData = []struct {
 
 func TestSlice_New_HashingAlgorithms_WithFileSystemFiles(t *testing.T) {
 
-	options := SlicerOptions{
+	options := Options{
 		DisableSlicing:  true,
 		DisableMeta:     false,
 		DisableAutoText: false,
@@ -72,7 +72,7 @@ func TestSlice_New_HashingAlgorithms_WithFileSystemFiles(t *testing.T) {
 	}
 }
 
-func runHashCheckTestsForFileSystemFile(filename string, algorithm algorithms.Algorithm, options *SlicerOptions, expected string, t *testing.T) {
+func runHashCheckTestsForFileSystemFile(filename string, algorithm algorithms.Algorithm, options *Options, expected string, t *testing.T) {
 	if binary, err := os.ReadFile(filename); err != nil {
 		t.Errorf("Unexpected io error %v", err)
 	} else {

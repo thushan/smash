@@ -38,7 +38,7 @@ type AppSession struct {
 }
 type AppRuntime struct {
 	Slicer        *slicer.Slicer
-	SlicerOptions *slicer.SlicerOptions
+	SlicerOptions *slicer.Options
 	IndexerConfig *indexer.IndexerConfig
 	Files         chan *indexer.FileFS
 }
@@ -63,7 +63,7 @@ func (app *App) Run() error {
 		Dupes: xsync.NewMapOf[string, *report.DuplicateFiles](),
 		Fails: xsync.NewMapOf[string, error](),
 		Empty: &report.EmptyFiles{
-			Files:   &[]report.SmashFile{},
+			Files:   []report.SmashFile{},
 			RWMutex: sync.RWMutex{},
 		},
 		StartTime: time.Now().UnixNano(),
@@ -72,7 +72,7 @@ func (app *App) Run() error {
 
 	sl := slicer.New(algorithms.Algorithm(af.Algorithm))
 	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
-	slo := slicer.SlicerOptions{
+	slo := slicer.Options{
 		DisableSlicing:  af.DisableSlicing,
 		DisableMeta:     af.DisableMeta,
 		DisableAutoText: af.DisableAutoText,
