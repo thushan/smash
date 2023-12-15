@@ -2,7 +2,6 @@ package report
 
 import (
 	"encoding/hex"
-	"path/filepath"
 	"sync"
 
 	"github.com/thushan/smash/pkg/indexer"
@@ -40,7 +39,6 @@ func SummariseSmashedFile(stats slicer.SlicerStats, ffs *indexer.FileFS, ms int6
 		Filename:    ffs.Name,
 		Location:    ffs.Location,
 		Path:        ffs.Path,
-		Base:        filepath.Base(ffs.Path),
 		FileSize:    stats.FileSize,
 		FullHash:    stats.HashedFullFile,
 		EmptyFile:   stats.EmptyFile,

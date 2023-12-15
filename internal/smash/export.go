@@ -3,6 +3,7 @@ package smash
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/puzpuzpuz/xsync/v3"
 	"github.com/thushan/smash/internal/report"
@@ -46,6 +47,7 @@ type ReportFailSummary struct {
 type ReportFileSummary struct {
 	Filename string `json:"filename"`
 	Location string `json:"location"`
+	FullName string `json:"fullName"`
 	Path     string `json:"path"`
 	Hash     string `json:"hash"`
 	Size     uint64 `json:"size"`
@@ -129,7 +131,8 @@ func summariseSmashedFile(file report.SmashFile) ReportFileSummary {
 	return ReportFileSummary{
 		Filename: file.Filename,
 		Location: file.Location,
-		Path:     file.Path,
+		FullName: filepath.Join(file.Location, file.Path),
+		Path:     filepath.Dir(file.Path),
 		Hash:     file.Hash,
 		Size:     file.FileSize,
 		FullHash: file.FullHash,
