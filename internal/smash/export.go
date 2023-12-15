@@ -18,12 +18,12 @@ type ReportOutput struct {
 	Summary  ReportSummary `json:"summary"`
 }
 type ReportMeta struct {
+	Timestamp time.Time `json:"timestamp"`
 	Config    *Flags    `json:"config"`
 	Version   string    `json:"version"`
 	Commit    string    `json:"commit"`
 	Host      string    `json:"host"`
 	User      string    `json:"user"`
-	Timestamp time.Time `json:"timestamp"`
 }
 type ReportSummary struct {
 	TopFiles          []ReportTopFilesSummary `json:"top"`
