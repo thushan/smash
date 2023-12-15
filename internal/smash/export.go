@@ -3,7 +3,9 @@ package smash
 import (
 	"encoding/json"
 	"os"
+	user2 "os/user"
 	"path/filepath"
+	"time"
 
 	"github.com/puzpuzpuz/xsync/v3"
 	"github.com/thushan/smash/internal/report"
@@ -16,9 +18,12 @@ type ReportOutput struct {
 	Summary  ReportSummary `json:"summary"`
 }
 type ReportMeta struct {
-	Config  *Flags `json:"config"`
-	Version string `json:"version"`
-	Commit  string `json:"commit"`
+	Config    *Flags    `json:"config"`
+	Version   string    `json:"version"`
+	Commit    string    `json:"commit"`
+	Host      string    `json:"host"`
+	User      string    `json:"user"`
+	Timestamp time.Time `json:"timestamp"`
 }
 type ReportSummary struct {
 	TopFiles          []ReportTopFilesSummary `json:"top"`
@@ -76,10 +81,27 @@ func (app *App) GenerateReportOutput() ReportOutput {
 
 func summariseMeta(flags *Flags) ReportMeta {
 	return ReportMeta{
-		Version: Version,
-		Commit:  Commit,
-		Config:  flags,
+		Version:   Version,
+		Commit:    Commit,
+		Config:    flags,
+		Host:      getHostName(),
+		User:      getUsername(),
+		Timestamp: time.Now(),
 	}
+}
+
+func getUsername() string {
+	if user, err := user2.Current(); err == nil {
+		return user.Username
+	}
+	return "James Bond"
+}
+
+func getHostName() string {
+	if host, err := os.Hostname(); err == nil {
+		return host
+	}
+	return "Unknown"
 }
 
 func summariseRunAnalysis(session *AppSession) ReportFiles {
