@@ -12,6 +12,7 @@ type FileFS struct {
 	FileSystem *fs.FS
 	Path       string
 	Name       string
+	Location   string
 	FullName   string
 }
 type IndexerConfig struct {
@@ -96,6 +97,7 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan *Fil
 				FileSystem: &f,
 				Path:       path,
 				Name:       name,
+				Location:   root,
 				FullName:   filepath.Join(root, path),
 			}
 		}

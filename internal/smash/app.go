@@ -149,8 +149,6 @@ func (app *App) Exec() error {
 		go func() {
 			defer wg.Done()
 			for file := range files {
-				sf := resolveFilename(file)
-
 				totalFiles.Inc()
 
 				startTime := time.Now().UnixMilli()
@@ -161,9 +159,9 @@ func (app *App) Exec() error {
 					if isVerbose {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
-					_, _ = session.Fails.LoadOrStore(sf, err)
+					_, _ = session.Fails.LoadOrStore(file.Path, err)
 				} else {
-					report.SummariseSmashedFile(stats, sf, elapsedMs, session.Dupes, session.Empty)
+					report.SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
 				}
 			}
 		}()
@@ -172,6 +170,8 @@ func (app *App) Exec() error {
 
 	// Signal we're done
 	updateProgressTicker <- true
+	app.Session.EndTime = time.Now().UnixNano()
+
 	midStats := nerdstats.Snapshot()
 
 	pss.Success("Finding duplicates...Done!")
@@ -193,7 +193,7 @@ func (app *App) Exec() error {
 		report.PrintNerdStats(midStats, "> Post-Analysis")
 		report.PrintNerdStats(endStats, "> Post-Cleanup")
 	}
-
+	app.Export("report.json")
 	return nil
 }
 

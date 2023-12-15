@@ -6,8 +6,8 @@ import (
 
 func TestApp_ValidateArgs(t *testing.T) {
 	tests := []struct {
-		name    string
 		flags   *Flags
+		name    string
 		wantErr bool
 	}{
 		{
