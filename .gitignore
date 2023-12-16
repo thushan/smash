@@ -32,3 +32,4 @@ go.work
 # temporary files
 report.json
 analysis.json
+report-*.json

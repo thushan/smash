@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/thushan/smash/pkg/analysis"
@@ -11,6 +12,7 @@ import (
 
 type RunSummary struct {
 	DuplicateFileSizeF string
+	ReportFilename     string
 	TopFiles           []analysis.Item
 	DuplicateFileSize  uint64
 	TotalFiles         int64
@@ -36,6 +38,11 @@ func PrintRunSummary(rs RunSummary, ignoreEmptyFiles bool) {
 	}
 	if rs.DuplicateFileSize > 0 {
 		theme.Println(writeCategory("Space Reclaimable:"), theme.ColourFileSizeA(rs.DuplicateFileSizeF), "(approx)")
+	}
+	if rs.ReportFilename != "" {
+		filename := filepath.Clean(rs.ReportFilename)
+		reportUri := theme.Hyperlink("file://"+filename, filename)
+		theme.Println(writeCategory("Analysis Report:"), theme.StyleUrl(reportUri), "(json)")
 	}
 }
 func calcTotalTime(elapsedNs int64) string {
