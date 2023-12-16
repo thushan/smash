@@ -2,7 +2,6 @@ package smash
 
 import (
 	"github.com/dustin/go-humanize"
-	"github.com/thushan/smash/internal/report"
 	"github.com/thushan/smash/pkg/analysis"
 
 	"github.com/thushan/smash/internal/theme"
@@ -43,7 +42,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 
 		if app.Flags.ShowDuplicates {
 			theme.StyleSubHeading.Println("---[ All Duplicates ]---")
-			duplicates.Range(func(hash string, files *report.DuplicateFiles) bool {
+			duplicates.Range(func(hash string, files *DuplicateFiles) bool {
 				displayFiles(files.Files)
 				return true
 			})
@@ -57,7 +56,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 
 }
 
-func displayFiles(files []report.SmashFile) {
+func displayFiles(files []SmashFile) {
 	duplicateFiles := len(files) - 1
 	if duplicateFiles != 0 {
 		root := files[0]
@@ -74,7 +73,7 @@ func displayFiles(files []report.SmashFile) {
 	}
 }
 
-func printSmashHits(files []report.SmashFile) {
+func printSmashHits(files []SmashFile) {
 	lastIndex := len(files) - 1
 	for index, file := range files {
 		var subTree string
@@ -101,7 +100,7 @@ func (app *App) generateRunSummary(totalFiles int64) {
 	totalFailFileCount := int64(session.Fails.Size())
 	totalEmptyFileCount := int64(len(emptyFiles))
 
-	duplicates.Range(func(hash string, df *report.DuplicateFiles) bool {
+	duplicates.Range(func(hash string, df *DuplicateFiles) bool {
 		files := df.Files
 		duplicateFiles := len(files) - 1
 		if duplicateFiles == 0 {
@@ -117,7 +116,7 @@ func (app *App) generateRunSummary(totalFiles int64) {
 		}
 		return true
 	})
-	summary := report.RunSummary{
+	summary := RunSummary{
 		TopFiles:           topFiles.All(),
 		TotalFiles:         totalFiles,
 		TotalFileErrors:    totalFailFileCount,

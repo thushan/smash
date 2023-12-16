@@ -1,4 +1,4 @@
-package report
+package smash
 
 import (
 	"encoding/hex"

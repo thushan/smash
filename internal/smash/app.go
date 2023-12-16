@@ -13,8 +13,6 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/thushan/smash/internal/report"
-
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
 
@@ -28,14 +26,14 @@ type App struct {
 	Flags     *Flags
 	Session   *AppSession
 	Runtime   *AppRuntime
-	Summary   *report.RunSummary
+	Summary   *RunSummary
 	Args      []string
 	Locations []string
 }
 type AppSession struct {
-	Dupes     *xsync.MapOf[string, *report.DuplicateFiles]
+	Dupes     *xsync.MapOf[string, *DuplicateFiles]
 	Fails     *xsync.MapOf[string, error]
-	Empty     *report.EmptyFiles
+	Empty     *EmptyFiles
 	StartTime int64
 	EndTime   int64
 }
@@ -63,10 +61,10 @@ func (app *App) Run() error {
 	}
 
 	app.Session = &AppSession{
-		Dupes: xsync.NewMapOf[string, *report.DuplicateFiles](),
+		Dupes: xsync.NewMapOf[string, *DuplicateFiles](),
 		Fails: xsync.NewMapOf[string, error](),
-		Empty: &report.EmptyFiles{
-			Files:   []report.SmashFile{},
+		Empty: &EmptyFiles{
+			Files:   []SmashFile{},
 			RWMutex: sync.RWMutex{},
 		},
 		StartTime: time.Now().UnixNano(),
@@ -161,7 +159,7 @@ func (app *App) Exec() error {
 					}
 					_, _ = session.Fails.LoadOrStore(file.Path, err)
 				} else {
-					report.SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
+					SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
 				}
 			}
 		}()
@@ -190,14 +188,14 @@ func (app *App) Exec() error {
 
 	endStats := nerdstats.Snapshot()
 
-	report.PrintRunSummary(*app.Summary, app.Flags.IgnoreEmpty)
+	PrintRunSummary(*app.Summary, app.Flags)
 
 	if app.Flags.ShowNerdStats {
 		theme.StyleHeading.Println("---| Nerd Stats")
-		report.PrintNerdStats(startStats, "> Initial")
-		report.PrintNerdStats(midStats, "> Post-Analysis")
-		report.PrintNerdStats(exportStats, "> Post-Summary")
-		report.PrintNerdStats(endStats, "> Post-Report")
+		PrintNerdStats(startStats, "> Initial")
+		PrintNerdStats(midStats, "> Post-Analysis")
+		PrintNerdStats(exportStats, "> Post-Summary")
+		PrintNerdStats(endStats, "> Post-Report")
 	}
 	return nil
 }
@@ -228,6 +226,9 @@ func (app *App) checkTerminal() {
 }
 
 func (app *App) ExportReport() {
+	if app.Flags.HideOutput {
+		return
+	}
 	if app.Flags.OutputFile == "" {
 		theme.Warn.Println("Could not output report.")
 		return

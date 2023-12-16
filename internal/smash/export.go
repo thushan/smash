@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/puzpuzpuz/xsync/v3"
-	"github.com/thushan/smash/internal/report"
 	"github.com/thushan/smash/pkg/analysis"
 )
 
@@ -126,10 +125,10 @@ func summariseSmashedFails(fails *xsync.MapOf[string, error]) []ReportFailSummar
 	return summary
 }
 
-func transformDupes(duplicates *xsync.MapOf[string, *report.DuplicateFiles]) []ReportDuplicateSummary {
+func transformDupes(duplicates *xsync.MapOf[string, *DuplicateFiles]) []ReportDuplicateSummary {
 	dupes := make([]ReportDuplicateSummary, duplicates.Size())
 	var index = 0
-	duplicates.Range(func(hash string, dupe *report.DuplicateFiles) bool {
+	duplicates.Range(func(hash string, dupe *DuplicateFiles) bool {
 		root := dupe.Files[0]
 		dupes[index] = ReportDuplicateSummary{
 			ReportFileSummary: summariseSmashedFile(root),
@@ -141,14 +140,14 @@ func transformDupes(duplicates *xsync.MapOf[string, *report.DuplicateFiles]) []R
 	return dupes
 }
 
-func summariseSmashedFiles(files []report.SmashFile) []ReportFileSummary {
+func summariseSmashedFiles(files []SmashFile) []ReportFileSummary {
 	summary := make([]ReportFileSummary, len(files))
 	for i, file := range files {
 		summary[i] = summariseSmashedFile(file)
 	}
 	return summary
 }
-func summariseSmashedFile(file report.SmashFile) ReportFileSummary {
+func summariseSmashedFile(file SmashFile) ReportFileSummary {
 	return ReportFileSummary{
 		Filename: file.Filename,
 		Location: file.Location,
@@ -158,7 +157,7 @@ func summariseSmashedFile(file report.SmashFile) ReportFileSummary {
 		FullHash: file.FullHash,
 	}
 }
-func summariseRunSummary(summary *report.RunSummary) ReportSummary {
+func summariseRunSummary(summary *RunSummary) ReportSummary {
 	return ReportSummary{
 		TopFiles:          transformTopFiles(summary.TopFiles),
 		DuplicateFileSize: summary.DuplicateFileSize,
