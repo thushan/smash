@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"sync"
 
+	"github.com/thushan/smash/pkg/indexer"
+
 	"github.com/puzpuzpuz/xsync/v3"
 
 	"github.com/dustin/go-humanize"
@@ -12,6 +14,9 @@ import (
 
 type SmashFile struct {
 	Filename    string
+	Location    string
+	Path        string
+	Base        string
 	Hash        string
 	FileSizeF   string
 	FileSize    uint64
@@ -28,10 +33,12 @@ type EmptyFiles struct {
 	sync.RWMutex
 }
 
-func SummariseSmashedFile(stats slicer.SlicerStats, filename string, ms int64, duplicates *xsync.MapOf[string, *DuplicateFiles], empty *EmptyFiles) {
+func SummariseSmashedFile(stats slicer.SlicerStats, ffs *indexer.FileFS, ms int64, duplicates *xsync.MapOf[string, *DuplicateFiles], empty *EmptyFiles) {
 	file := SmashFile{
 		Hash:        hex.EncodeToString(stats.Hash),
-		Filename:    filename,
+		Filename:    ffs.Name,
+		Location:    ffs.Location,
+		Path:        ffs.Path,
 		FileSize:    stats.FileSize,
 		FullHash:    stats.HashedFullFile,
 		EmptyFile:   stats.EmptyFile,

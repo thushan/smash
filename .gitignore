@@ -28,3 +28,8 @@ go.work
 /.idea
 /.code
 /dist
+
+# temporary files
+report.json
+analysis.json
+report-*.json

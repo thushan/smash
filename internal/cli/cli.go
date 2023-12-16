@@ -55,7 +55,14 @@ func init() {
 	flags.BoolVarP(&af.HideProgress, "no-progress", "", false, "Disable progress updates")
 	flags.BoolVarP(&af.ShowNerdStats, "nerd-stats", "", false, "Show nerd stats")
 	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information")
-	flags.StringVarP(&af.OutputFile, "output-file", "o", "", "Export as JSON")
+	flags.StringVarP(&af.OutputFile, "output-file", "o", generateOutputFile(), "Export analysis as JSON (generated automatically otherwise, ./report-*.json)")
+}
+
+func generateOutputFile() string {
+	if f, err := os.CreateTemp(".", "report-*.json"); err == nil {
+		return f.Name()
+	}
+	return ""
 }
 func Main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))

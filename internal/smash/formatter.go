@@ -1,12 +1,9 @@
 package smash
 
 import (
-	"time"
-
-	"github.com/thushan/smash/pkg/analysis"
-
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/internal/report"
+	"github.com/thushan/smash/pkg/analysis"
 
 	"github.com/thushan/smash/internal/theme"
 )
@@ -65,7 +62,7 @@ func displayFiles(files []report.SmashFile) {
 	if duplicateFiles != 0 {
 		root := files[0]
 		dupes := files[1:]
-		theme.Println(theme.ColourFilename(root.Filename), " ", theme.ColourFileSize(root.FileSizeF), " ", theme.ColourHash(root.Hash))
+		theme.Println(theme.ColourFilename(root.Path), " ", theme.ColourFileSize(root.FileSizeF), " ", theme.ColourHash(root.Hash))
 		printSmashHits(dupes)
 	}
 }
@@ -79,7 +76,7 @@ func printSmashHits(files []report.SmashFile) {
 		} else {
 			subTree = TreeLastChild
 		}
-		theme.Println(theme.ColourFolderHierarchy(subTree), theme.ColourFilenameA(file.Filename))
+		theme.Println(theme.ColourFolderHierarchy(subTree), theme.ColourFilenameA(file.Path))
 	}
 }
 
@@ -122,7 +119,7 @@ func (app *App) generateRunSummary(totalFiles int64) {
 		DuplicateFiles:     int64(totalDuplicates),
 		DuplicateFileSize:  totalDuplicateSize,
 		DuplicateFileSizeF: humanize.Bytes(totalDuplicateSize),
-		ElapsedTime:        time.Now().UnixNano() - app.Session.StartTime,
+		ElapsedTime:        app.Session.EndTime - app.Session.StartTime,
 	}
 	app.Summary = &summary
 }
