@@ -124,6 +124,9 @@ func ColourFileSize(message ...any) string {
 func ColourFileSizeA(message ...any) string {
 	return pterm.Cyan(message...)
 }
+func ColourFileSizeDupe(message ...any) string {
+	return pterm.LightRed(message...)
+}
 func ColourHash(message ...any) string {
 	return pterm.Gray(message...)
 }
