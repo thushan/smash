@@ -140,14 +140,14 @@ func transformDupes(duplicates *xsync.MapOf[string, *DuplicateFiles]) []ReportDu
 	return dupes
 }
 
-func summariseSmashedFiles(files []SmashFile) []ReportFileSummary {
+func summariseSmashedFiles(files []File) []ReportFileSummary {
 	summary := make([]ReportFileSummary, len(files))
 	for i, file := range files {
 		summary[i] = summariseSmashedFile(file)
 	}
 	return summary
 }
-func summariseSmashedFile(file SmashFile) ReportFileSummary {
+func summariseSmashedFile(file File) ReportFileSummary {
 	return ReportFileSummary{
 		Filename: file.Filename,
 		Location: file.Location,

@@ -56,7 +56,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 
 }
 
-func displayFiles(files []SmashFile) {
+func displayFiles(files []File) {
 	duplicateFiles := len(files) - 1
 	if duplicateFiles != 0 {
 		root := files[0]
@@ -73,7 +73,7 @@ func displayFiles(files []SmashFile) {
 	}
 }
 
-func printSmashHits(files []SmashFile) {
+func printSmashHits(files []File) {
 	lastIndex := len(files) - 1
 	for index, file := range files {
 		var subTree string

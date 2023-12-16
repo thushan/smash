@@ -64,7 +64,7 @@ func (app *App) Run() error {
 		Dupes: xsync.NewMapOf[string, *DuplicateFiles](),
 		Fails: xsync.NewMapOf[string, error](),
 		Empty: &EmptyFiles{
-			Files:   []SmashFile{},
+			Files:   []File{},
 			RWMutex: sync.RWMutex{},
 		},
 		StartTime: time.Now().UnixNano(),
