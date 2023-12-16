@@ -55,7 +55,7 @@ func init() {
 	flags.BoolVarP(&af.HideProgress, "no-progress", "", false, "Disable progress updates")
 	flags.BoolVarP(&af.ShowNerdStats, "nerd-stats", "", false, "Show nerd stats")
 	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information")
-	flags.StringVarP(&af.OutputFile, "output-file", "o", generateOutputFile(), "Export as JSON")
+	flags.StringVarP(&af.OutputFile, "output-file", "o", generateOutputFile(), "Export analysis as JSON (generated automatically otherwise, ./report-*.json)")
 }
 
 func generateOutputFile() string {
