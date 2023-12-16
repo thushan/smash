@@ -53,6 +53,7 @@ func init() {
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode")
 	flags.BoolVarP(&af.Profile, "profile", "", false, "Enable Go Profiler - see localhost:1984/debug/pprof")
 	flags.BoolVarP(&af.HideProgress, "no-progress", "", false, "Disable progress updates")
+	flags.BoolVarP(&af.HideOutput, "no-output", "", false, "Disable report output")
 	flags.BoolVarP(&af.ShowNerdStats, "nerd-stats", "", false, "Show nerd stats")
 	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information")
 	flags.StringVarP(&af.OutputFile, "output-file", "o", generateOutputFile(), "Export analysis as JSON (generated automatically otherwise, ./report-*.json)")

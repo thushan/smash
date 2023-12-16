@@ -1,4 +1,4 @@
-package report
+package smash
 
 import (
 	"encoding/hex"
@@ -12,7 +12,7 @@ import (
 	"github.com/thushan/smash/pkg/slicer"
 )
 
-type SmashFile struct {
+type File struct {
 	Filename    string
 	Location    string
 	Path        string
@@ -25,16 +25,16 @@ type SmashFile struct {
 	EmptyFile   bool
 }
 type DuplicateFiles struct {
-	Files []SmashFile
+	Files []File
 	sync.RWMutex
 }
 type EmptyFiles struct {
-	Files []SmashFile
+	Files []File
 	sync.RWMutex
 }
 
 func SummariseSmashedFile(stats slicer.SlicerStats, ffs *indexer.FileFS, ms int64, duplicates *xsync.MapOf[string, *DuplicateFiles], empty *EmptyFiles) {
-	file := SmashFile{
+	file := File{
 		Hash:        hex.EncodeToString(stats.Hash),
 		Filename:    ffs.Name,
 		Location:    ffs.Location,
@@ -51,7 +51,7 @@ func SummariseSmashedFile(stats slicer.SlicerStats, ffs *indexer.FileFS, ms int6
 		empty.Unlock()
 	} else {
 		dupes, _ := duplicates.LoadOrStore(file.Hash, &DuplicateFiles{
-			Files:   []SmashFile{},
+			Files:   []File{},
 			RWMutex: sync.RWMutex{},
 		})
 		dupes.Lock()

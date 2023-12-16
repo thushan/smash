@@ -1,4 +1,4 @@
-package report
+package smash
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ type RunSummary struct {
 	DuplicateFiles     int64
 }
 
-func PrintRunSummary(rs RunSummary, ignoreEmptyFiles bool) {
+func PrintRunSummary(rs RunSummary, flags *Flags) {
 	theme.StyleHeading.Println("---| Analysis Summary")
 
 	theme.Println(writeCategory("Total Time:"), theme.ColourTime(calcTotalTime(rs.ElapsedTime)))
@@ -33,13 +33,13 @@ func PrintRunSummary(rs RunSummary, ignoreEmptyFiles bool) {
 		theme.Println(writeCategory("Total Skipped:"), theme.ColourError(rs.TotalFileErrors))
 	}
 	theme.Println(writeCategory("Total Duplicates:"), theme.ColourNumber(rs.DuplicateFiles))
-	if !ignoreEmptyFiles && rs.EmptyFiles > 0 {
+	if !flags.IgnoreEmpty && rs.EmptyFiles > 0 {
 		theme.Println(writeCategory("Total Empty Files:"), theme.ColourNumber(rs.EmptyFiles))
 	}
 	if rs.DuplicateFileSize > 0 {
 		theme.Println(writeCategory("Space Reclaimable:"), theme.ColourFileSizeA(rs.DuplicateFileSizeF), "(approx)")
 	}
-	if rs.ReportFilename != "" {
+	if !flags.HideOutput && rs.ReportFilename != "" {
 		filename := filepath.Clean(rs.ReportFilename)
 		reportUri := theme.Hyperlink("file://"+filename, filename)
 		theme.Println(writeCategory("Analysis Report:"), theme.StyleUrl(reportUri), "(json)")
