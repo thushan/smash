@@ -62,7 +62,14 @@ func displayFiles(files []report.SmashFile) {
 	if duplicateFiles != 0 {
 		root := files[0]
 		dupes := files[1:]
-		theme.Println(theme.ColourFilename(root.Path), " ", theme.ColourFileSize(root.FileSizeF), " ", theme.ColourHash(root.Hash))
+		var dupeSize string
+		if len(files) > 2 {
+			totalDupeSize := uint64(len(files)-1) * root.FileSize
+			dupeSize = "(" + theme.ColourFileSizeDupe(humanize.Bytes(totalDupeSize)) + ")"
+		} else {
+			dupeSize = " "
+		}
+		theme.Println(theme.ColourFilename(root.Path), " ", theme.ColourFileSize(root.FileSizeF), dupeSize, theme.ColourHash(root.Hash))
 		printSmashHits(dupes)
 	}
 }
