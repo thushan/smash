@@ -66,7 +66,7 @@ Flags:
       --no-output              Disable report output
       --no-progress            Disable progress updates
       --no-top-list            Hides top x duplicates list
-  -o, --output-file string     Export analysis as JSON (generated automatically otherwise, ./report-*.json) (default "./report-3639376037.json")
+  -o, --output-file string     Export analysis as JSON (generated automatically otherwise)
       --profile                Enable Go Profiler - see localhost:1984/debug/pprof
       --progress-update int    Update progress every x seconds (default 5)
       --show-duplicates        Show full list of duplicates
