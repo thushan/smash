@@ -41,7 +41,7 @@ type ReportTopFilesSummary struct {
 }
 type ReportFiles struct {
 	Fails []ReportFailSummary      `json:"fails"`
-	Empty []ReportFileSummary      `json:"empty"`
+	Empty []ReportFileBaseSummary  `json:"empty"`
 	Dupes []ReportDuplicateSummary `json:"dupes"`
 }
 
@@ -49,10 +49,15 @@ type ReportFailSummary struct {
 	Filename string `json:"filename"`
 	Error    string `json:"error"`
 }
-type ReportFileSummary struct {
+
+type ReportFileBaseSummary struct {
 	Filename string `json:"filename"`
 	Location string `json:"location"`
 	Path     string `json:"path"`
+}
+
+type ReportFileSummary struct {
+	ReportFileBaseSummary
 	Hash     string `json:"hash"`
 	Size     uint64 `json:"size"`
 	FullHash bool   `json:"fullHash"`
@@ -121,14 +126,18 @@ func getHostName() string {
 
 func summariseRunAnalysis(session *AppSession) ReportFiles {
 
+	fails := summariseSmashFails(session.Fails)
+	empty := summariseEmptyFiles(session.Empty.Files)
+	dupes := transformDupes(session.Dupes)
+
 	return ReportFiles{
-		Fails: summariseSmashedFails(session.Fails),
-		Empty: summariseSmashedFiles(session.Empty.Files),
-		Dupes: transformDupes(session.Dupes),
+		Fails: fails,
+		Empty: empty,
+		Dupes: dupes,
 	}
 }
 
-func summariseSmashedFails(fails *xsync.MapOf[string, error]) []ReportFailSummary {
+func summariseSmashFails(fails *xsync.MapOf[string, error]) []ReportFailSummary {
 	summary := make([]ReportFailSummary, fails.Size())
 	var index = 0
 	fails.Range(func(key string, value error) bool {
@@ -157,6 +166,13 @@ func transformDupes(duplicates *xsync.MapOf[string, *DuplicateFiles]) []ReportDu
 	return dupes
 }
 
+func summariseEmptyFiles(files []File) []ReportFileBaseSummary {
+	summary := make([]ReportFileBaseSummary, len(files))
+	for i, file := range files {
+		summary[i] = summariseSmashedFile(file).ReportFileBaseSummary
+	}
+	return summary
+}
 func summariseSmashedFiles(files []File) []ReportFileSummary {
 	summary := make([]ReportFileSummary, len(files))
 	for i, file := range files {
@@ -166,9 +182,11 @@ func summariseSmashedFiles(files []File) []ReportFileSummary {
 }
 func summariseSmashedFile(file File) ReportFileSummary {
 	return ReportFileSummary{
-		Filename: file.Filename,
-		Location: file.Location,
-		Path:     filepath.Dir(file.Path),
+		ReportFileBaseSummary: ReportFileBaseSummary{
+			Filename: file.Filename,
+			Location: file.Location,
+			Path:     filepath.Dir(file.Path),
+		},
 		Hash:     file.Hash,
 		Size:     file.FileSize,
 		FullHash: file.FullHash,
