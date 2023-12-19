@@ -31,9 +31,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 		theme.Println(theme.ColourSuccess("No duplicates found :-)"))
 	} else {
 
-		showTopDuplicates := len(topFiles) > duplicates.Size()
-
-		if !app.Flags.HideTopList && showTopDuplicates {
+		if !app.Flags.HideTopList {
 			theme.StyleSubHeading.Println("---[ Top ", app.Flags.ShowTop, " Duplicates ]---")
 			for _, tf := range topFiles {
 				if files, ok := duplicates.Load(tf.Key); ok {

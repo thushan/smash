@@ -156,9 +156,10 @@ func transformDupes(duplicates *xsync.MapOf[string, *DuplicateFiles]) []ReportDu
 	var index = 0
 	duplicates.Range(func(hash string, dupe *DuplicateFiles) bool {
 		root := dupe.Files[0]
+		rest := dupe.Files[1:]
 		dupes[index] = ReportDuplicateSummary{
 			ReportFileSummary: summariseSmashedFile(root),
-			Duplicates:        summariseSmashedFiles(dupe.Files),
+			Duplicates:        summariseSmashedFiles(rest),
 		}
 		index++
 		return true
