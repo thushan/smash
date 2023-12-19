@@ -121,7 +121,7 @@ func getHostName() string {
 	if host, err := os.Hostname(); err == nil {
 		return host
 	}
-	return "Unknown"
+	return "Classified"
 }
 
 func summariseRunAnalysis(session *AppSession) ReportFiles {
