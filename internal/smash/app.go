@@ -44,6 +44,8 @@ type AppRuntime struct {
 	Files         chan *indexer.FileFS
 }
 
+const ReportOutputTemplate = "report-*.json"
+
 func (app *App) Run() error {
 
 	af := app.Flags
@@ -229,14 +231,10 @@ func (app *App) ExportReport() {
 	if app.Flags.HideOutput {
 		return
 	}
-	if app.Flags.OutputFile == "" {
-		theme.Warn.Println("Could not output report.")
-		return
-	}
 
-	if err := app.Export(app.Flags.OutputFile); err != nil {
+	if filename, err := app.Export(app.Flags.OutputFile); err != nil {
 		theme.Error.Println("Failed to export report because ", err)
 	} else {
-		app.Summary.ReportFilename = app.Flags.OutputFile
+		app.Summary.ReportFilename = filename
 	}
 }
