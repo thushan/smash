@@ -2,6 +2,7 @@ package smash
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	user2 "os/user"
 	"path/filepath"
@@ -61,14 +62,30 @@ type ReportDuplicateSummary struct {
 	ReportFileSummary
 }
 
-func (app *App) Export(filePath string) error {
-	f, err := os.Create(filePath)
-	if err != nil {
-		return err
+func (app *App) Export(filePath string) (string, error) {
+
+	var fs *os.File
+	var err error
+
+	if filePath == "" {
+		if fs, err = os.CreateTemp(".", ReportOutputTemplate); err != nil {
+			return "", fmt.Errorf("failed to report output: %w", err)
+		}
+	} else {
+		if fs, err = os.Create(filePath); err != nil {
+			return "", fmt.Errorf("failed to report output: %w", err)
+		}
 	}
-	defer f.Close()
+
+	defer fs.Close()
+
+	return fs.Name(), app.ExportFile(fs)
+}
+
+func (app *App) ExportFile(f *os.File) error {
 	return json.NewEncoder(f).Encode(app.GenerateReportOutput())
 }
+
 func (app *App) GenerateReportOutput() ReportOutput {
 	return ReportOutput{
 		Summary:  summariseRunSummary(app.Summary),

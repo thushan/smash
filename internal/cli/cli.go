@@ -56,15 +56,9 @@ func init() {
 	flags.BoolVarP(&af.HideOutput, "no-output", "", false, "Disable report output")
 	flags.BoolVarP(&af.ShowNerdStats, "nerd-stats", "", false, "Show nerd stats")
 	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information")
-	flags.StringVarP(&af.OutputFile, "output-file", "o", generateOutputFile(), "Export analysis as JSON (generated automatically otherwise, ./report-*.json)")
+	flags.StringVarP(&af.OutputFile, "output-file", "o", "", "Export analysis as JSON (generated automatically like ./report-*.json)")
 }
 
-func generateOutputFile() string {
-	if f, err := os.CreateTemp(".", "report-*.json"); err == nil {
-		return f.Name()
-	}
-	return ""
-}
 func Main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	log.SetOutput(os.Stdout)
