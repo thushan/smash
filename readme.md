@@ -13,14 +13,13 @@ Tool to `smash` through to find duplicate files efficiently by slicing a file (o
 and computing a hash using a fast non-cryptographic algorithm such as [xxhash](https://xxhash.com/) or [murmur3](https://en.wikipedia.org/wiki/MurmurHash).
 
 <p align="center">
- <img src="https://vhs.charm.sh/vhs-1zSMi9vYpmh0DivoB4E6g4.gif" alt="Made with VHS"><br/>
+ <img src="https://vhs.charm.sh/vhs-5uZbZAvk8Y6eq4dihLppbk.gif" alt="Made with VHS"><br/>
     <sub>
         <sup>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code> (see our <a href="docs/demos.md">🍿 other demos</a>). Made with <a href="https://vhs.charm.sh" target="_blank">vhs</a>!</sup>
     </sub>
 </p>
 
-`smash` has a read-only view of the underlying filesystem and only reports duplicates - currently, we do not remove 
-duplicates and instead leave that for you to do via the output. We also don't support symlinks or NT Junction Points (Windows Symlinks) and ignore them.
+`smash` has a read-only view of the underlying filesystem, outputs empty and duplicate files into a json report that you can use a tool like [jq](https://github.com/jqlang/jq) to operate on. See examples below or [this vhs tape](https://vhs.charm.sh/vhs-4OwN0BJfb3F3CTzGJCFHcs.gif).
 
 The name comes from a prototype tool called SmartHash (written many years ago in C/ASM that's now lost in source & 
 too hard to modernise) which operated on a similar concept (with CRC32 then later MD5).
@@ -48,13 +47,13 @@ $ go install github.com/thushan/smash@latest
 ```
 Usage:
   smash [flags] [locations-to-smash]
-  
+
 Flags:
       --algorithm algorithm    Algorithm to use to hash files. Supported: xxhash, murmur3, md5, sha512, sha256 (full list, see readme) (default xxhash)
       --base strings           Base directories to use for comparison Eg. --base=/c/dos,/c/dos/run/,/run/dos/run
-      --disable-slicing        Disable slicing & hash the full file instead
       --disable-autotext       Disable detecting text-files to opt for a full hash for those
       --disable-meta           Disable storing of meta-data to improve hashing mismatches
+      --disable-slicing        Disable slicing & hash the full file instead
       --exclude-dir strings    Directories to exclude separated by comma Eg. --exclude-dir=.git,.idea
       --exclude-file strings   Files to exclude separated by comma Eg. --exclude-file=.gitignore,*.csv
   -h, --help                   help for smash
@@ -62,11 +61,12 @@ Flags:
       --ignore-hidden          Ignore hidden files & folders Eg. files/folders starting with '.' (default true)
       --ignore-system          Ignore system files & folders Eg. '$MFT', '.Trash' (default true)
   -p, --max-threads int        Maximum threads to utilise (default 16)
-  -w, --max-workers int        Maximum workers to utilise when smashing (default 8)
+  -w, --max-workers int        Maximum workers to utilise when smashing (default 16)
       --nerd-stats             Show nerd stats
+      --no-output              Disable report output
       --no-progress            Disable progress updates
       --no-top-list            Hides top x duplicates list
-  -o, --output-file string     Export as JSON
+  -o, --output-file string     Export analysis as JSON (generated automatically otherwise)
       --profile                Enable Go Profiler - see localhost:1984/debug/pprof
       --progress-update int    Update progress every x seconds (default 5)
       --show-duplicates        Show full list of duplicates
@@ -84,10 +84,16 @@ Examples are given in Unix format, but apply to Windows as well.
 
 ### Basic
 
-To check for duplicates in a single path (Eg. `~/media/photos`)
+To check for duplicates in a single path (Eg. `~/media/photos`) & output report to `report.json`
 
 ```bash
-$ ./smash ~/media/photos
+$ ./smash ~/media/photos -o report.json
+```
+
+You can then look at `report.json` with [jq](https://github.com/jqlang/jq) to check duplicates:
+
+```bash 
+$ jq '.analysis.dupes[]|[.location,.path,.filename]|join("/")' report.json | xargs wc -l
 ```
 
 ### Show Empty Files
@@ -95,7 +101,13 @@ $ ./smash ~/media/photos
 By default, `smash` ignores empty files but can report on them with the `--ignore-empty=false` argument:
 
 ```bash
-$ ./smash ~/media/photos --ignore-empty=false
+$ ./smash ~/media/photos --ignore-empty=false -o report.json
+```
+
+You can then look at `report.json` with [jq](https://github.com/jqlang/jq) to check empty files:
+
+```bash 
+$ jq '.analysis.empty[]|[.location,.path,.filename]|join("/")' report.json | xargs wc -l
 ```
 
 ### Show Top 50 Duplicates
@@ -155,6 +167,7 @@ $ ./smash --algorithm:murmur3 ~/media/photos
 
 This project was possible thanks to the following projects or folks.
 
+* [@jqlang/jq](https://github.com/jqlang/jq) - without `jq` we'd be a bit lost!
 * [@wader/fq](https://github.com/wader/fq) - countless nights of inspecting binary blobs!
 * [@cespare/xxhash](https://github.com/cespare/xxhash) - xxhash implementation
 * [@spaolacci/murmur3](https://github.com/spaolacci/murmur3) - murmur3 implementation
@@ -164,7 +177,7 @@ This project was possible thanks to the following projects or folks.
 * [@golangci/golangci-lint](https://github.com/golangci/golangci-lint) - Go Linter
 * [@dkorunic/betteralign](https://github.com/dkorunic/betteralign) - Go alignment checker
 
-Testers - MarkB, JarredT, BenW, DencilW, JayT, ASV, TimW, RyanW, WilliamH
+Testers - MarkB, JarredT, BenW, DencilW, JayT, ASV, TimW, RyanW, WilliamH, SpencerB, EmadA, ChrisE, AngelaB
 
 # Licence
 

@@ -13,7 +13,22 @@ Set WindowBar Colorful
 Set Theme "TokyoNight"
 
 # smash Linux/drivers
-Type "./smash /media/thushan/smash/photos/ --exclude-dir=_uploaded,sort,tmp,events"
+Type "./smash /media/thushan/smash/photos/ --exclude-dir=sort,tmp,events -o report.json"
 Sleep 500ms
 Enter
 Sleep 30s
+Type "clear"
+Sleep 500ms
+Enter
+Type `jq '.analysis.dupes[]|[.location,.path,.filename]|join("/")' report.json`
+Sleep 500ms
+Enter
+Sleep 5s
+Type "clear"
+Sleep 500ms
+Enter
+Type `jq '.analysis.dupes[]|[.location,.path,.filename]|join("/")' report.json | xargs ls -lh`
+Sleep 500ms
+Enter
+Sleep 5s
+

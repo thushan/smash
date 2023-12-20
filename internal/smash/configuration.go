@@ -39,6 +39,10 @@ func (app *App) printConfiguration() {
 	theme.Println(b.Sprint("Algorithm:   "), theme.ColourConfig(algorithms.Algorithm(f.Algorithm)))
 	theme.Println(b.Sprint("Locations:   "), theme.ColourConfig(strings.Join(app.Locations, ", ")))
 
+	if !f.HideOutput && f.OutputFile != "" {
+		theme.Println(b.Sprint("Output:      "), theme.ColourConfig(f.OutputFile), "(json)")
+	}
+
 	if len(f.ExcludeDir) > 0 || len(f.ExcludeFile) > 0 {
 		theme.StyleBold.Println("Excluded")
 		if len(f.ExcludeDir) > 0 {

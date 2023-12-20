@@ -29,6 +29,11 @@ go.work
 /.code
 /dist
 
+# output files
+smash
+smash.exe
+smash.out
+
 # temporary files
 report.json
 analysis.json
