@@ -5,12 +5,12 @@ go 1.21
 require (
 	github.com/cespare/xxhash v1.1.0
 	github.com/dustin/go-humanize v1.0.1
-	github.com/pterm/pterm v0.12.71
+	github.com/pterm/pterm v0.12.75
 	github.com/puzpuzpuz/xsync/v3 v3.0.2
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/cobra v1.8.0
 	github.com/thediveo/enumflag/v2 v2.0.5
-	golang.org/x/term v0.15.0
+	golang.org/x/term v0.16.0
 	golang.org/x/tools v0.16.1
 )
 
@@ -27,6 +27,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/exp v0.0.0-20231127185646-65229373498e // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 )
