@@ -1,16 +1,24 @@
 # smash
 
+[![GitHub license](https://img.shields.io/github/license/thushan/smash)](https://github.com/thushan/smash/blob/master/LICENSE)
 [![CI](https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/thushan/smash)](https://goreportcard.com/report/github.com/thushan/smash)
-[![Maintainability](https://api.codeclimate.com/v1/badges/944834a9d91128fa690d/maintainability)](https://codeclimate.com/github/thushan/smash/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/944834a9d91128fa690d/test_coverage)](https://codeclimate.com/github/thushan/smash/test_coverage)
-
-[![GitHub license](https://img.shields.io/github/license/thushan/smash)](https://github.com/thushan/smash/blob/master/LICENSE)
-[![Tag](https://img.shields.io/github/v/tag/thushan/smash?sort=semver)](https://github.com/thushan/smash/tags)
 [![GitHub release](https://img.shields.io/github/release/thushan/smash)](https://github.com/thushan/smash/releases/latest)
 
-Tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments
+CLI tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments
 and computing a hash using a fast non-cryptographic algorithm such as [xxhash](https://xxhash.com/) or [murmur3](https://en.wikipedia.org/wiki/MurmurHash).
+
+Amongst the highlights of `smash`:
+
+* Super fast analysis of large files thanks to slicing.
+* Suited for finding duplicates on bandwidth constrained networks, devices or very large files but plenty capable on smaller ones!
+* Supports a variety of non-cryptographic algorithms (see [algorithms supported](./docs/algorithms.md)).
+* Read-only view of the underlying filesystem when analysing
+* Reports on duplicate files & empty (0 byte) files
+* Outputs a report in json, you can use tools like [jq](https://github.com/jqlang/jq) to operate on (see [examples](#examples) below or [this vhs tape](https://vhs.charm.sh/vhs-4OwN0BJfb3F3CTzGJCFHcs.gif))
+* Used to dedupe multi-TB of astrophysics datasets, images and video content & run regularly to report duplicates
+
+`smash` does not support pruning of duplicates or empty files natively and it's encouraged you vet the output report before pruning via automated tools.
 
 <p align="center">
  <img src="https://vhs.charm.sh/vhs-5uZbZAvk8Y6eq4dihLppbk.gif" alt="Made with VHS"><br/>
@@ -19,13 +27,8 @@ and computing a hash using a fast non-cryptographic algorithm such as [xxhash](h
     </sub>
 </p>
 
-`smash` has a read-only view of the underlying filesystem, outputs empty and duplicate files into a json report that you can use a tool like [jq](https://github.com/jqlang/jq) to operate on. See examples below or [this vhs tape](https://vhs.charm.sh/vhs-4OwN0BJfb3F3CTzGJCFHcs.gif).
-
 The name comes from a prototype tool called SmartHash (written many years ago in C/ASM that's now lost in source & 
-too hard to modernise) which operated on a similar concept (with CRC32 then later MD5).
-
-It is ideally suited to finding duplicates on bandwidth constrained devices (or networks) or very large files but 
-it's ludicrously fast on SSDs/NVMe's where you want to quickly determine duplicate files.
+too hard to modernise). It operated on a similar concept of slicing and hashing (with CRC32 then later MD5).
 
 # Installation
 
@@ -177,7 +180,7 @@ This project was possible thanks to the following projects or folks.
 * [@golangci/golangci-lint](https://github.com/golangci/golangci-lint) - Go Linter
 * [@dkorunic/betteralign](https://github.com/dkorunic/betteralign) - Go alignment checker
 
-Testers - MarkB, JarredT, BenW, DencilW, JayT, ASV, TimW, RyanW, WilliamH, SpencerB, EmadA, ChrisE, AngelaB
+Testers - MarkB, JarredT, BenW, DencilW, JayT, ASV, TimW, RyanW, WilliamH, SpencerB, EmadA, ChrisE, AngelaB, LisaA, YousefI, JeffG, MattP
 
 # Licence
 
