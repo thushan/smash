@@ -15,13 +15,13 @@ Amongst the highlights of `smash`:
 * Supports a variety of non-cryptographic algorithms (see [algorithms supported](./docs/algorithms.md)).
 * Read-only view of the underlying filesystem when analysing
 * Reports on duplicate files & empty (0 byte) files
-* Outputs a report in json, you can use tools like [jq](https://github.com/jqlang/jq) to operate on (see [examples](#examples) below or [this vhs tape](https://vhs.charm.sh/vhs-4OwN0BJfb3F3CTzGJCFHcs.gif))
+* Outputs a report in json, you can use tools like [jq](https://github.com/jqlang/jq) to operate on (see [examples](#examples) below or [the vhs tapes](./docs/demos.md))
 * Used to dedupe multi-TB of astrophysics datasets, images and video content & run regularly to report duplicates
 
 `smash` does not support pruning of duplicates or empty files natively and it's encouraged you vet the output report before pruning via automated tools.
 
 <p align="center">
- <img src="https://vhs.charm.sh/vhs-5uZbZAvk8Y6eq4dihLppbk.gif" alt="Made with VHS"><br/>
+ <img src="https://vhs.charm.sh/vhs-7BJdHGJLipNTwKQjJjDhXV.gif" alt="Made with VHS"><br/>
     <sub>
         <sup>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code> (see our <a href="docs/demos.md">🍿 other demos</a>). Made with <a href="https://vhs.charm.sh" target="_blank">vhs</a>!</sup>
     </sub>
