@@ -40,7 +40,7 @@ currently only support 64-bit binaries.
 Alternatively, you can install it via go:
 
 ```bash
-$ go install github.com/thushan/smash@latest
+$ GOPROXY=direct go install github.com/thushan/smash@latest
 ```
 
 `smash` has been developed on Linux (Pop!_OS & Fedora), tested on macOS, FreeBSD & Windows.
