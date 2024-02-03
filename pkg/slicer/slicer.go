@@ -27,14 +27,17 @@ type SlicerStats struct {
 	SliceSize      uint64
 	FileSize       uint64
 	Slices         int
-	HashedFullFile bool
 	EmptyFile      bool
+	IgnoredFile    bool
+	HashedFullFile bool
 }
 
 type MetaSlice struct {
 	Size uint64
 }
 type Options struct {
+	MinSize         uint64
+	MaxSize         uint64
 	DisableSlicing  bool
 	DisableMeta     bool
 	DisableAutoText bool
@@ -84,11 +87,7 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerSt
 		return stats, err
 	}
 
-	size := fi.Size()
-
-	stats.FileSize = uint64(size)
-	stats.Slices = slicer.slices
-	stats.SliceSize = slicer.sliceSize
+	size := uint64(fi.Size())
 
 	if size == 0 {
 		stats.EmptyFile = true
@@ -96,8 +95,18 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerSt
 		return stats, nil
 	}
 
+	if (options.MinSize > 0 && size < options.MinSize) ||
+		(options.MaxSize > 0 && size > options.MaxSize) {
+		stats.IgnoredFile = true
+		return stats, nil
+	}
+
+	stats.FileSize = size
+	stats.Slices = slicer.slices
+	stats.SliceSize = slicer.sliceSize
+
 	if fr, ok := f.(io.ReaderAt); ok {
-		sr := io.NewSectionReader(fr, 0, size)
+		sr := io.NewSectionReader(fr, 0, int64(size))
 		err := slicer.Slice(sr, options, &stats)
 		return stats, err
 	} else {
@@ -138,6 +147,12 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 		// Zero byte file, nothing we can do
 		stats.EmptyFile = true
 		stats.Hash = nil
+		return nil
+	}
+
+	if (options.MinSize > 0 && size < options.MinSize) ||
+		(options.MaxSize > 0 && size > options.MaxSize) {
+		stats.IgnoredFile = true
 		return nil
 	}
 

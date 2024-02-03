@@ -161,6 +161,8 @@ func (app *App) Exec() error {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
 					_, _ = session.Fails.LoadOrStore(file.Path, err)
+				} else if stats.IgnoredFile {
+					//
 				} else {
 					SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
 				}

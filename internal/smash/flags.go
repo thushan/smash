@@ -7,6 +7,8 @@ type Flags struct {
 	Base            []string `yaml:"base"`
 	ExcludeDir      []string `yaml:"exclude-dir"`
 	ExcludeFile     []string `yaml:"exclude-file"`
+	MinSize         uint64   `yaml:"min-size"`
+	MaxSize         uint64   `yaml:"max-size"`
 	Algorithm       int      `yaml:"algorithm"`
 	MaxThreads      int      `yaml:"max-threads"`
 	MaxWorkers      int      `yaml:"max-workers"`

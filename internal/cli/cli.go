@@ -39,6 +39,8 @@ func init() {
 	flags.StringSliceVarP(&af.ExcludeDir, "exclude-dir", "", nil, "Directories to exclude separated by comma Eg. --exclude-dir=.git,.idea")
 	flags.IntVarP(&af.MaxThreads, "max-threads", "p", runtime.NumCPU(), "Maximum threads to utilise")
 	flags.IntVarP(&af.MaxWorkers, "max-workers", "w", runtime.NumCPU(), "Maximum workers to utilise when smashing")
+	flags.Uint64VarP(&af.MinSize, "min-size", "G", 0, "Minimum file size to consider for hashing (in bytes)")
+	flags.Uint64VarP(&af.MaxSize, "max-size", "L", 0, "Maximum file size to consider for hashing (in bytes)")
 	flags.IntVarP(&af.ProgressUpdate, "progress-update", "", 5, "Update progress every x seconds")
 	flags.IntVarP(&af.ShowTop, "show-top", "", 10, "Show the top x duplicates")
 	flags.BoolVarP(&af.HideTopList, "no-top-list", "", false, "Hides top x duplicates list")
@@ -49,6 +51,7 @@ func init() {
 	flags.BoolVarP(&af.IgnoreEmpty, "ignore-empty", "", true, "Ignore empty/zero byte files")
 	flags.BoolVarP(&af.IgnoreHidden, "ignore-hidden", "", true, "Ignore hidden files & folders Eg. files/folders starting with '.'")
 	flags.BoolVarP(&af.IgnoreSystem, "ignore-system", "", true, "Ignore system files & folders Eg. '$MFT', '.Trash'")
+
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode")
 	flags.BoolVarP(&af.Recurse, "recurse", "r", false, "Recursively search directories for files")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode")
