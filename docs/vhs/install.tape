@@ -31,7 +31,7 @@ Sleep 500ms
 Enter
 
 # smash Linux/drivers
-Type "smash /linux/drivers
+Type "smash /linux/drivers -r
 Sleep 500ms
 Enter
 Sleep 60s

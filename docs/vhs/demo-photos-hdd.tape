@@ -18,7 +18,7 @@ Enter
 Type "# but we want to ignore sort, tmp & events folders in the collection"
 Enter
 Sleep 1s
-Type "./smash /media/thushan/smash/photos/ --exclude-dir=sort,tmp,events -o report.json"
+Type "./smash /media/thushan/smash/photos/ -r --exclude-dir=sort,tmp,events -o report.json"
 Sleep 500ms
 Enter
 Sleep 30s

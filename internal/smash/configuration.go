@@ -38,6 +38,7 @@ func (app *App) printConfiguration() {
 	theme.Println(b.Sprint("Slicing:     "), theme.ColourConfig(enabledOrDisabled(!f.DisableSlicing)), config)
 	theme.Println(b.Sprint("Algorithm:   "), theme.ColourConfig(algorithms.Algorithm(f.Algorithm)))
 	theme.Println(b.Sprint("Locations:   "), theme.ColourConfig(strings.Join(app.Locations, ", ")))
+	theme.Println(b.Sprint("Recursive:   "), theme.ColourConfig(enabledOrDisabled(f.Recurse)))
 
 	if !f.HideOutput && f.OutputFile != "" {
 		theme.Println(b.Sprint("Output:      "), theme.ColourConfig(f.OutputFile), "(json)")

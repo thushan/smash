@@ -50,6 +50,7 @@ func init() {
 	flags.BoolVarP(&af.IgnoreHidden, "ignore-hidden", "", true, "Ignore hidden files & folders Eg. files/folders starting with '.'")
 	flags.BoolVarP(&af.IgnoreSystem, "ignore-system", "", true, "Ignore system files & folders Eg. '$MFT', '.Trash'")
 	flags.BoolVarP(&af.Silent, "silent", "q", false, "Run in silent mode")
+	flags.BoolVarP(&af.Recurse, "recurse", "r", false, "Recursively search directories for files")
 	flags.BoolVarP(&af.Verbose, "verbose", "", false, "Run in verbose mode")
 	flags.BoolVarP(&af.Profile, "profile", "", false, "Enable Go Profiler - see localhost:1984/debug/pprof")
 	flags.BoolVarP(&af.HideProgress, "no-progress", "", false, "Disable progress updates")

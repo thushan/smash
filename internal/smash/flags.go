@@ -20,6 +20,7 @@ type Flags struct {
 	IgnoreSystem    bool     `yaml:"ignore-system"`
 	ShowVersion     bool     `yaml:"version"`
 	ShowNerdStats   bool     `yaml:"nerd-stats"`
+	Recurse         bool     `yaml:"recurse"`
 	ShowDuplicates  bool     `yaml:"show-duplicates"`
 	Silent          bool     `yaml:"silent"`
 	HideTopList     bool     `yaml:"no-top-list"`
