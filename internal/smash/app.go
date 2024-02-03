@@ -79,6 +79,8 @@ func (app *App) Run() error {
 		DisableSlicing:  af.DisableSlicing,
 		DisableMeta:     af.DisableMeta,
 		DisableAutoText: af.DisableAutoText,
+		MinSize:         uint64(af.MinSize),
+		MaxSize:         uint64(af.MaxSize),
 	}
 
 	app.Runtime = &AppRuntime{

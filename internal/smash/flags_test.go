@@ -65,6 +65,73 @@ func TestApp_ValidateArgs(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Should succeed when valid arguments are provided for min and max size",
+			flags: &Flags{
+				MinSize:        100,
+				Verbose:        true,
+				MaxThreads:     5,
+				MaxWorkers:     5,
+				ShowTop:        10,
+				ProgressUpdate: 2,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Should succeed when valid arguments are provided for max size",
+			flags: &Flags{
+				MaxSize:        200,
+				Verbose:        true,
+				MaxThreads:     5,
+				MaxWorkers:     5,
+				ShowTop:        10,
+				ProgressUpdate: 2,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Should succeed when valid arguments are provided for min size",
+			flags: &Flags{
+				MinSize:        200,
+				MaxSize:        0,
+				Verbose:        true,
+				MaxThreads:     5,
+				MaxWorkers:     5,
+				ShowTop:        10,
+				ProgressUpdate: 2,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Should fail when minSize is below zero",
+			flags: &Flags{
+				MinSize: -100,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Should fail when maxSize is below zero",
+			flags: &Flags{
+				MaxSize: -100,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Should fail when maxSize is below minSize",
+			flags: &Flags{
+				MaxSize: 20,
+				MinSize: 200,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Should fail when maxSize is below minSize",
+			flags: &Flags{
+				MaxSize: 20,
+				MinSize: 200,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
