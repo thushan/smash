@@ -63,8 +63,9 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string, ignore
 	return indexer
 }
 
-func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan *FileFS) error {
-	walkErr := fs.WalkDir(f, ".", func(path string, d fs.DirEntry, err error) error {
+func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, recurse bool, files chan *FileFS) error {
+	const RootDir = "."
+	walkErr := fs.WalkDir(f, RootDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			if errors.Is(err, fs.ErrPermission) {
 				return fs.SkipDir
@@ -79,8 +80,9 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, files chan *Fil
 
 			isIgnoreDir := config.IgnoreSystemItems && config.isIgnored(name, config.excludeSysDirFilter)
 			isExludeDir := len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)
+			dontRecurse := !recurse && name != RootDir
 
-			if isHiddenObj || isIgnoreDir || isExludeDir {
+			if isHiddenObj || isIgnoreDir || isExludeDir || dontRecurse {
 				return fs.SkipDir
 			}
 

@@ -106,6 +106,7 @@ func (app *App) Exec() error {
 	slo := app.Runtime.SlicerOptions
 
 	files := app.Runtime.Files
+	recurse := app.Flags.Recurse
 	locations := app.Locations
 	isVerbose := app.Flags.Verbose && !app.Flags.Silent
 	showProgress := (!app.Flags.HideProgress && !app.Flags.Silent) || isVerbose
@@ -121,7 +122,7 @@ func (app *App) Exec() error {
 		}()
 		for _, location := range locations {
 			psi.UpdateText("Indexing location: " + location)
-			err := wk.WalkDirectory(os.DirFS(location), location, files)
+			err := wk.WalkDirectory(os.DirFS(location), location, recurse, files)
 
 			if err != nil {
 				if isVerbose {

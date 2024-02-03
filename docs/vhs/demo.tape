@@ -18,7 +18,7 @@ Enter
 Type "# exlude the git dir and saving to report.json!"
 Enter
 Sleep 1s
-Type "./smash ~/linux/drivers --exclude-dir=git -o report.json"
+Type "./smash ~/linux/drivers -r --exclude-dir=git -o report.json"
 Sleep 500ms
 Enter
 Sleep 10s

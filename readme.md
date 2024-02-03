@@ -72,6 +72,7 @@ Flags:
   -o, --output-file string     Export analysis as JSON (generated automatically otherwise)
       --profile                Enable Go Profiler - see localhost:1984/debug/pprof
       --progress-update int    Update progress every x seconds (default 5)
+  -r, --recurse                Recursively search directories for files
       --show-duplicates        Show full list of duplicates
       --show-top int           Show the top x duplicates (default 10)
   -q, --silent                 Run in silent mode
@@ -85,12 +86,18 @@ See the [full list of algorithms](./docs/algorithms.md) supported.
 
 Examples are given in Unix format, but apply to Windows as well.
 
+> \[!TIP]
+>
+> To recursively smash through directories, use the `--recursive` or `-r` switch.
+>
+> By default, `smash` will only look in the current folder (from v0.7+)
+
 ### Basic
 
 To check for duplicates in a single path (Eg. `~/media/photos`) & output report to `report.json`
 
 ```bash
-$ ./smash ~/media/photos -o report.json
+$ ./smash ~/media/photos -r -o report.json
 ```
 
 You can then look at `report.json` with [jq](https://github.com/jqlang/jq) to check duplicates:
@@ -104,7 +111,7 @@ $ jq '.analysis.dupes[]|[.location,.path,.filename]|join("/")' report.json | xar
 By default, `smash` ignores empty files but can report on them with the `--ignore-empty=false` argument:
 
 ```bash
-$ ./smash ~/media/photos --ignore-empty=false -o report.json
+$ ./smash ~/media/photos -r --ignore-empty=false -o report.json
 ```
 
 You can then look at `report.json` with [jq](https://github.com/jqlang/jq) to check empty files:
@@ -118,7 +125,7 @@ $ jq '.analysis.empty[]|[.location,.path,.filename]|join("/")' report.json | xar
 By default, `smash` shows the top 10 duplicate files in the CLI and leaves the rest for the report, you can change that with the `--show-top=50` argument to show the top 50 instead.
 
 ```bash
-$ ./smash ~/media/photos --show-top=50
+$ ./smash ~/media/photos -r --show-top=50
 ```
 
 ### Multiple Directories
@@ -136,13 +143,13 @@ Smash will find and report all duplicates within any number of directories passe
 You can exclude certain directories or files with the `--exclude-dir` and `--exclude-file` switches including wildcard characters:
 
 ```bash
-$ ./smash --exclude-dir=.git,.svn --exclude-file=.gitignore,*.csv ~/media/photos
+$ ./smash -r --exclude-dir=.git,.svn --exclude-file=.gitignore,*.csv ~/media/photos
 ```
 
 For example, to ignore all hidden files on unix (those that start with `.` such as `.config` or `.gnome` folders):
 
 ```bash
-$ ./smash --exclude-dir=.config,.gnome ~/media/photos
+$ ./smash -r --exclude-dir=.config,.gnome ~/media/photos
 ```
 
 ### Disabling Slicing & Getting Full Hash
@@ -152,7 +159,7 @@ By default, `smash` uses slicing to efficiently slice a file into mulitple segme
 If you prefer not to use slicing for a run, you can disable slicing with:
 
 ```bash
-$ ./smash --disable-slicing ~/media/photos
+$ ./smash -r --disable-slicing ~/media/photos
 ```
 
 ### Changing Hashing Algorithms
@@ -163,7 +170,7 @@ of algorithms [as documented](./docs/algorithms.md).
 To use another supported algorithm, use the `--algorithm` switch:
 
 ```bash
-$ ./smash --algorithm:murmur3 ~/media/photos
+$ ./smash -r --algorithm:murmur3 ~/media/photos
 ```
 
 # Acknowledgements
