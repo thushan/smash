@@ -11,8 +11,8 @@ func TestIndexDirectoryWithFilesInRoot(t *testing.T) {
 		"DSC19841.ARW",
 		"DSC19842.ARW",
 	}
-
-	walkedFiles := walkDirectoryTestRunner(mockFiles, nil, nil, true, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, nil, nil, true, walkOptions, t)
 
 	expected := mockFiles
 	actual := walkedFiles
@@ -35,7 +35,8 @@ func TestIndexDirectoryWithFilesAcrossFolders(t *testing.T) {
 		"subfolder-2/DSC19848.ARW",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, nil, nil, true, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, nil, nil, true, walkOptions, t)
 
 	expected := mockFiles
 	actual := walkedFiles
@@ -62,7 +63,8 @@ func TestIndexDirectoryWithDirExclusionsNoRecurse(t *testing.T) {
 		"subfolder-2/DSC19848.ARW",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, false, t)
+	walkOptions := WalkConfig{Recurse: false}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, walkOptions, t)
 
 	expected := []string{
 		mockFiles[0],
@@ -92,7 +94,8 @@ func TestIndexDirectoryWithDirExclusions(t *testing.T) {
 		"subfolder-2/DSC19848.ARW",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, walkOptions, t)
 
 	expected := []string{
 		mockFiles[0],
@@ -120,7 +123,8 @@ func TestIndexDirectoryWithFileExclusions(t *testing.T) {
 		"exclude.me",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, walkOptions, t)
 
 	expected := []string{
 		mockFiles[0],
@@ -150,7 +154,8 @@ func TestIndexDirectoryWithFileAndDirExclusions(t *testing.T) {
 		"exclude-dir/random.file",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, walkOptions, t)
 
 	expected := []string{
 		mockFiles[0],
@@ -179,7 +184,8 @@ func TestIndexDirectoryWithHiddenFilesThatShouldBeIndexed(t *testing.T) {
 		".config/smash/config.json",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, false, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, false, walkOptions, t)
 
 	expected := []string{
 		mockFiles[3],
@@ -211,7 +217,8 @@ func TestIndexDirectoryWithHiddenFiles(t *testing.T) {
 		".config/smash/config.json",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, walkOptions, t)
 
 	expected := []string{
 		mockFiles[0],
@@ -238,7 +245,8 @@ func TestIndexDirectoryWhichContainsSystemFiles(t *testing.T) {
 		"desktop.ini",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, walkOptions, t)
 
 	expected := []string{
 		mockFiles[0],
@@ -265,7 +273,8 @@ func TestIndexDirectoryWhichContainsWindowsSystemFiles(t *testing.T) {
 		"$MFT/random.file",
 	}
 
-	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, true, t)
+	walkOptions := WalkConfig{Recurse: true}
+	walkedFiles := walkDirectoryTestRunner(mockFiles, exclude_dir, exclude_file, true, walkOptions, t)
 
 	expected := []string{
 		mockFiles[0],
@@ -290,16 +299,16 @@ func channelFileToSliceOfFiles(ch <-chan *FileFS) []string {
 	return result
 }
 
-func walkDirectoryTestRunner(files []string, excludeDir []string, excludeFiles []string, ignoreHiddenItems bool, recursive bool, t *testing.T) []string {
+func walkDirectoryTestRunner(files []string, excludeDir []string, excludeFiles []string, ignoreHiddenItems bool, options WalkConfig, t *testing.T) []string {
 	fr := "mock://"
 	fs := createMockFS(files)
 	ch := make(chan *FileFS)
-	rc := recursive
+	wo := options
 
 	go func() {
 		defer close(ch)
 		indexer := NewConfigured(excludeDir, excludeFiles, ignoreHiddenItems, true)
-		err := indexer.WalkDirectory(fs, fr, rc, ch)
+		err := indexer.WalkDirectory(fs, fr, wo, ch)
 		if err != nil {
 			t.Errorf("WalkDirectory returned an error: %v", err)
 		}

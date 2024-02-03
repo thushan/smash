@@ -28,6 +28,9 @@ type IndexerConfig struct {
 	IgnoreHiddenItems bool
 	IgnoreSystemItems bool
 }
+type WalkConfig struct {
+	Recurse bool
+}
 
 func New() *IndexerConfig {
 	return &IndexerConfig{
@@ -63,7 +66,7 @@ func NewConfigured(excludeDirFilter []string, excludeFileFilter []string, ignore
 	return indexer
 }
 
-func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, recurse bool, files chan *FileFS) error {
+func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, options WalkConfig, files chan *FileFS) error {
 	const RootDir = "."
 	walkErr := fs.WalkDir(f, RootDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -80,7 +83,7 @@ func (config *IndexerConfig) WalkDirectory(f fs.FS, root string, recurse bool, f
 
 			isIgnoreDir := config.IgnoreSystemItems && config.isIgnored(name, config.excludeSysDirFilter)
 			isExludeDir := len(config.ExcludeDirFilter) > 0 && config.dirMatcher.MatchString(path)
-			dontRecurse := !recurse && name != RootDir
+			dontRecurse := !options.Recurse && name != RootDir
 
 			if isHiddenObj || isIgnoreDir || isExludeDir || dontRecurse {
 				return fs.SkipDir
