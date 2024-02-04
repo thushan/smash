@@ -21,7 +21,7 @@ Amongst the highlights of `smash`:
 `smash` does not support pruning of duplicates or empty files natively and it's encouraged you vet the output report before pruning via automated tools.
 
 <p align="center">
- <img src="https://vhs.charm.sh/vhs-7BJdHGJLipNTwKQjJjDhXV.gif" alt="Made with VHS"><br/>
+ <img src="https://vhs.charm.sh/vhs-6UTX5Yc6CIQ6Y3lzulLKYF.gif" alt="Made with VHS"><br/>
     <sub>
         <sup>Find duplicates in the <a href="https://github.com/torvalds/linux">linux/drivers</a> source tree with <code>smash</code> (see our <a href="docs/demos.md">🍿 other demos</a>). Made with <a href="https://vhs.charm.sh" target="_blank">vhs</a>!</sup>
     </sub>
@@ -34,27 +34,30 @@ too hard to modernise). It operated on a similar concept of slicing and hashing 
 
 [![Operating Systems](https://img.shields.io/badge/platform-windows%20%7C%20macos%20%7C%20linux%20%7C%20freebsd-informational?style=for-the-badge)](https://github.com/thushan/smash/releases/latest)
 
-You can download the latest binaries from the [Releases](https://github.com/thushan/smash/releases) page and extract & use on your chosen operating system. We
-currently only support 64-bit binaries.
-
-Easiest way to install the [latest Github Release](https://github.com/thushan/smash/releases) is via our [simple installer script](https://raw.githubusercontent.com/thushan/smash/installer-scripts/install.sh) - currently supports, Linux, macos, FreeBSD & Windows:
+You can download the latest binaries from the [Releases](https://github.com/thushan/smash/releases) or via our [simple installer script](https://raw.githubusercontent.com/thushan/smash/installer-scripts/install.sh) - currently supports, Linux, macos, FreeBSD & Windows:
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/thushan/smash/main/install.sh)
 ```
 
-It will download the latest release and extract it to the current directory in a folder by the filename.
+It will download the latest release and extract it to the current directory in a folder.
 
 Alternatively, you can install it via go:
 
 ```bash
-$ GOPROXY=direct go install github.com/thushan/smash@latest
+go install github.com/thushan/smash@latest
 ```
 
 `smash` has been developed on Linux (Pop!_OS & Fedora), tested on macOS, FreeBSD & Windows.
 
 # Usage
 
+> \[!IMPORTANT]
+>
+> Starting from v0.9.0+, `smash` will only look for duplicates in the current folder,
+> to smash sub-folders, use the `--recurse` or `-r` switch.
+>
+ 
 ```
 Usage:
   smash [flags] [locations-to-smash]
@@ -164,7 +167,7 @@ $ ./smash -r --exclude-dir=.config,.gnome ~/media/photos
 
 ### Disabling Slicing & Getting Full Hash
 
-By default, `smash` uses slicing to efficiently slice a file into mulitple segments and hash parts of the file. 
+By default, `smash` uses slicing to efficiently slice a file into multiple segments and hash parts of the file. 
 
 If you prefer not to use slicing for a run, you can disable slicing with:
 
@@ -199,6 +202,6 @@ This project was possible thanks to the following projects or folks.
 
 Testers - MarkB, JarredT, BenW, DencilW, JayT, ASV, TimW, RyanW, WilliamH, SpencerB, EmadA, ChrisE, AngelaB, LisaA, YousefI, JeffG, MattP
 
-# Licence
+# License
 
-Copyright (c) Thushan Fernando and licensed under Apache Licence 2.0
+Copyright (c) Thushan Fernando and licensed under Apache License 2.0
