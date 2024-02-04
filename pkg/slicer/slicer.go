@@ -27,14 +27,17 @@ type SlicerStats struct {
 	SliceSize      uint64
 	FileSize       uint64
 	Slices         int
-	HashedFullFile bool
 	EmptyFile      bool
+	IgnoredFile    bool
+	HashedFullFile bool
 }
 
 type MetaSlice struct {
 	Size uint64
 }
 type Options struct {
+	MinSize         uint64
+	MaxSize         uint64
 	DisableSlicing  bool
 	DisableMeta     bool
 	DisableAutoText bool
@@ -44,6 +47,8 @@ const DefaultSlices = 4
 const DefaultSliceSize = 8 * 1024
 const DefaultThreshold = 100 * 1024
 const DefaultMinimumSize = (DefaultSlices + 2) * DefaultSliceSize
+const DefaultMinSize = 0
+const DefaultMaxSize = 0
 
 func New(algorithm algorithms.Algorithm) Slicer {
 	return NewConfigured(algorithm, DefaultSlices, DefaultSliceSize, DefaultThreshold)
@@ -84,11 +89,7 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerSt
 		return stats, err
 	}
 
-	size := fi.Size()
-
-	stats.FileSize = uint64(size)
-	stats.Slices = slicer.slices
-	stats.SliceSize = slicer.sliceSize
+	size := uint64(fi.Size())
 
 	if size == 0 {
 		stats.EmptyFile = true
@@ -96,8 +97,17 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerSt
 		return stats, nil
 	}
 
+	if !shouldAnalyse(size, options.MinSize, options.MaxSize) {
+		stats.IgnoredFile = true
+		return stats, nil
+	}
+
+	stats.FileSize = size
+	stats.Slices = slicer.slices
+	stats.SliceSize = slicer.sliceSize
+
 	if fr, ok := f.(io.ReaderAt); ok {
-		sr := io.NewSectionReader(fr, 0, size)
+		sr := io.NewSectionReader(fr, 0, int64(size))
 		err := slicer.Slice(sr, options, &stats)
 		return stats, err
 	} else {
@@ -138,6 +148,11 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 		// Zero byte file, nothing we can do
 		stats.EmptyFile = true
 		stats.Hash = nil
+		return nil
+	}
+
+	if !shouldAnalyse(size, options.MinSize, options.MaxSize) {
+		stats.IgnoredFile = true
 		return nil
 	}
 
@@ -223,4 +238,16 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 	}
 	stats.Hash = algo.Sum(nil)
 	return nil
+}
+func shouldAnalyse(fileSize, minSize, maxSize uint64) bool {
+	if minSize == DefaultMinSize && maxSize == DefaultMaxSize {
+		return true
+	}
+	if minSize != DefaultMinSize && fileSize < minSize {
+		return false
+	}
+	if maxSize != DefaultMaxSize && fileSize > maxSize {
+		return false
+	}
+	return true
 }
