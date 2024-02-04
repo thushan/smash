@@ -40,7 +40,7 @@ currently only support 64-bit binaries.
 Easiest way to install the [latest Github Release](https://github.com/thushan/smash/releases) is via our [simple installer script](https://raw.githubusercontent.com/thushan/smash/installer-scripts/install.sh) - currently supports, Linux, macos, FreeBSD & Windows:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/thushan/smash/installer-scripts/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/thushan/smash/main/install.sh)
 ```
 
 It will download the latest release and extract it to the current directory in a folder by the filename.
