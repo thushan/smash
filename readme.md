@@ -63,8 +63,10 @@ Flags:
       --ignore-empty           Ignore empty/zero byte files (default true)
       --ignore-hidden          Ignore hidden files & folders Eg. files/folders starting with '.' (default true)
       --ignore-system          Ignore system files & folders Eg. '$MFT', '.Trash' (default true)
+  -L, --max-size int           Maximum file size to consider for hashing (in bytes)
   -p, --max-threads int        Maximum threads to utilise (default 16)
   -w, --max-workers int        Maximum workers to utilise when smashing (default 16)
+  -G, --min-size int           Minimum file size to consider for hashing (in bytes)
       --nerd-stats             Show nerd stats
       --no-output              Disable report output
       --no-progress            Disable progress updates
