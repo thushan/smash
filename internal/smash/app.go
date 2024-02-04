@@ -157,15 +157,15 @@ func (app *App) Exec() error {
 				startTime := time.Now().UnixMilli()
 				stats, err := sl.SliceFS(*file.FileSystem, file.Path, slo)
 				elapsedMs := time.Now().UnixMilli() - startTime
-
-				if err != nil {
+				switch {
+				case err != nil:
 					if isVerbose {
 						theme.WarnSkipWithContext(file.FullName, err)
 					}
 					_, _ = session.Fails.LoadOrStore(file.Path, err)
-				} else if stats.IgnoredFile {
-					//
-				} else {
+				case stats.IgnoredFile:
+					// Ignored counter
+				default:
 					SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
 				}
 			}
