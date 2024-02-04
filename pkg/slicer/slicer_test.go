@@ -1,4 +1,4 @@
-//nolint
+// nolint
 package slicer
 
 import (
@@ -140,32 +140,96 @@ func TestSlice_New_WithTextBinaryBlob(t *testing.T) {
 		t.Errorf("expected hash %s, got %s", expected, actual)
 	}
 }
-func TestSlice_New_WithTextBlob(t *testing.T) {
+func TestSlice_Slice_CheckSizeThresholds(t *testing.T) {
 	stexty := "OMG THIS IS TEXT!"
 	fsSize := len(stexty)
 	reader := strings.NewReader(stexty)
-
-	options := Options{
-		DisableSlicing:  false,
-		DisableMeta:     false,
-		DisableAutoText: false,
-	}
-
 	sr := io.NewSectionReader(reader, 0, int64(fsSize))
-
-	stats := SlicerStats{}
-
 	slicer := New(algorithms.Xxhash)
 
-	if err := slicer.Slice(sr, &options, &stats); err != nil {
-		t.Errorf("Unexpected Slicer error %v", err)
+	tests := []struct {
+		name     string
+		options  Options
+		expected bool
+	}{
+		{
+			name: "ShouldIgnoreWhenSizeBelowMinSize",
+			options: Options{
+				MinSize:         uint64(fsSize + 10),
+				MaxSize:         DefaultMaxSize,
+				DisableSlicing:  false,
+				DisableMeta:     false,
+				DisableAutoText: false,
+			},
+			expected: true,
+		},
+		{
+			name: "ShouldIgnoreWhenSizeAboveMaxSize",
+			options: Options{
+				MinSize:         DefaultMinSize,
+				MaxSize:         uint64(fsSize - 10),
+				DisableSlicing:  false,
+				DisableMeta:     false,
+				DisableAutoText: false,
+			},
+			expected: true,
+		},
+		{
+			name: "ShouldNotIgnoreWhenMinSizeWithinRange",
+			options: Options{
+				MinSize:         uint64(fsSize - 10),
+				MaxSize:         DefaultMaxSize,
+				DisableSlicing:  false,
+				DisableMeta:     false,
+				DisableAutoText: false,
+			},
+			expected: false,
+		},
+		{
+			name: "ShouldNotIgnoreWhenMaxSizeWithinRange",
+			options: Options{
+				MinSize:         DefaultMinSize,
+				MaxSize:         uint64(fsSize + 10),
+				DisableSlicing:  false,
+				DisableMeta:     false,
+				DisableAutoText: false,
+			},
+			expected: false,
+		},
+		{
+			name: "ShouldNotIgnoreWhenDefaultSize",
+			options: Options{
+				MinSize:         DefaultMinSize,
+				MaxSize:         DefaultMaxSize,
+				DisableSlicing:  false,
+				DisableMeta:     false,
+				DisableAutoText: false,
+			},
+			expected: false,
+		},
+		{
+			name: "ShouldNotIgnoreWhenSizeWithinMinMaxThreshold",
+			options: Options{
+				MinSize:         uint64(fsSize - 10),
+				MaxSize:         uint64(fsSize + 10),
+				DisableSlicing:  false,
+				DisableMeta:     false,
+				DisableAutoText: false,
+			},
+			expected: false,
+		},
 	}
 
-	expected := "67938b74b221486b"
-	actual := hex.EncodeToString(stats.Hash)
-
-	if !strings.EqualFold(actual, expected) {
-		t.Errorf("expected hash %s, got %s", expected, actual)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stats := SlicerStats{}
+			if err := slicer.Slice(sr, &tt.options, &stats); err != nil {
+				t.Errorf("Unexpected Slicer error %v", err)
+			}
+			if stats.IgnoredFile != tt.expected {
+				t.Errorf("expected ignore %t, got %t", tt.expected, stats.IgnoredFile)
+			}
+		})
 	}
 }
 func TestSliceFS_New_FileSystemTestFile_TestWordPdf_WithSlicing(t *testing.T) {

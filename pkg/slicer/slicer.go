@@ -47,6 +47,8 @@ const DefaultSlices = 4
 const DefaultSliceSize = 8 * 1024
 const DefaultThreshold = 100 * 1024
 const DefaultMinimumSize = (DefaultSlices + 2) * DefaultSliceSize
+const DefaultMinSize = 0
+const DefaultMaxSize = 0
 
 func New(algorithm algorithms.Algorithm) Slicer {
 	return NewConfigured(algorithm, DefaultSlices, DefaultSliceSize, DefaultThreshold)
@@ -95,8 +97,7 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerSt
 		return stats, nil
 	}
 
-	if (options.MinSize > 0 && size < options.MinSize) ||
-		(options.MaxSize > 0 && size > options.MaxSize) {
+	if !shouldAnalyse(size, options.MinSize, options.MaxSize) {
 		stats.IgnoredFile = true
 		return stats, nil
 	}
@@ -150,8 +151,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 		return nil
 	}
 
-	if (options.MinSize > 0 && size < options.MinSize) ||
-		(options.MaxSize > 0 && size > options.MaxSize) {
+	if !shouldAnalyse(size, options.MinSize, options.MaxSize) {
 		stats.IgnoredFile = true
 		return nil
 	}
@@ -238,4 +238,16 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 	}
 	stats.Hash = algo.Sum(nil)
 	return nil
+}
+func shouldAnalyse(fileSize, minSize, maxSize uint64) bool {
+	if minSize == DefaultMinSize && maxSize == DefaultMaxSize {
+		return true
+	}
+	if minSize != DefaultMinSize && fileSize < minSize {
+		return false
+	}
+	if maxSize != DefaultMaxSize && fileSize > maxSize {
+		return false
+	}
+	return true
 }
