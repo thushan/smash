@@ -1,16 +1,17 @@
-// nolint
+//nolint
 package slicer
 
 import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/thushan/smash/internal/algorithms"
 	"io"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/thushan/smash/internal/algorithms"
 )
 
 func TestSlice_New_OffsetMapWith1MbBlob(t *testing.T) {
