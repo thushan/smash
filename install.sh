@@ -43,7 +43,7 @@ function extract_tar() {
     local filename=$1
     if [[ -x "$(command -v tar)" ]]; then
         echo "${CCyan}RUN${ENDMARKER} tar -xvf ${CYellow}'${filename}'${ENDMARKER}"
-        tar -xvf ${filename}
+        tar -xvf ${filename} -C ${filename%.*}/
         if [ $? -eq 0 ]; then
             echo "${CCyan}RAN${ENDMARKER} Extracted ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}'${filename}/'${ENDMARKER}"
             rm -f ${filename}
