@@ -30,7 +30,7 @@ function extract_zip() {
         unzip -o "${filename}" -d "${filename%.*}/"
         if [ $? -eq 0 ]; then
             echo "${CCyan}RAN${ENDMARKER} Extracted ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}'${filename}/'${ENDMARKER}"
-            rm -f ${filename}
+            rm -f "${filename}"
             echo "${CCyan}DEL${ENDMARKER} rm ${CYellow}'${filename}'${ENDMARKER}"
         else
             fatal "Failed to extract ${filename}"
@@ -43,10 +43,10 @@ function extract_tar() {
     local filename=$1
     if [[ -x "$(command -v tar)" ]]; then
         echo "${CCyan}RUN${ENDMARKER} tar -xvf ${CYellow}'${filename}'${ENDMARKER}"
-        tar -xvf ${filename} -C ${filename%.*}/
+        tar -xvf "${filename}" --one-top-level
         if [ $? -eq 0 ]; then
             echo "${CCyan}RAN${ENDMARKER} Extracted ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}'${filename}/'${ENDMARKER}"
-            rm -f ${filename}
+            rm -f "${filename}"
             echo "${CCyan}DEL${ENDMARKER} rm ${CYellow}'${filename}'${ENDMARKER}"
         else
             fatal "Failed to extract ${filename}"
@@ -105,15 +105,15 @@ url="https://github.com/thushan/$repo/releases/download/${latest_release}/${file
 
 echo "${CCyan}GET${ENDMARKER} via ${CBlue}'${url}'${ENDMARKER}"
 # Download the release
-curl --silent -L $url -o $file
+curl --silent -L "$url" -o "$file"
 
 # Check if the download was successful
 if [ $? -eq 0 ]; then
     echo "${CCyan}GOT${ENDMARKER} ${CGreen}smash ${latest_release}${ENDMARKER} Downloaded to ${CYellow}'${file}'${ENDMARKER}"
     if [[ "$ext" == "zip" ]]; then
-        extract_zip $file
+        extract_zip "$file"
     else
-        extract_tar $file
+        extract_tar "$file"
     fi
 else
     fatal "Failed to download ${url}"
