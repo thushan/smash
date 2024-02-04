@@ -1,2 +1,4 @@
-*.go -text diff=golang
-*.md linguist-detectable
+*.go    -text diff=golang
+*.md    linguist-detectable
+*.sh    text eol=lf
+*.ps1   text eol=crlf

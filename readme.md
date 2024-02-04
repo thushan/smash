@@ -37,6 +37,14 @@ too hard to modernise). It operated on a similar concept of slicing and hashing 
 You can download the latest binaries from the [Releases](https://github.com/thushan/smash/releases) page and extract & use on your chosen operating system. We
 currently only support 64-bit binaries.
 
+Easiest way to install the [latest Github Release](https://github.com/thushan/smash/releases) is via our [simple installer script](https://raw.githubusercontent.com/thushan/smash/installer-scripts/install.sh) - currently supports, Linux, macos, FreeBSD & Windows:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/thushan/smash/installer-scripts/install.sh)
+```
+
+It will download the latest release and extract it to the current directory in a folder by the filename.
+
 Alternatively, you can install it via go:
 
 ```bash
