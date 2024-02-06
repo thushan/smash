@@ -34,13 +34,13 @@ too hard to modernise). It operated on a similar concept of slicing and hashing 
 
 [![Operating Systems](https://img.shields.io/badge/platform-windows%20%7C%20macos%20%7C%20linux%20%7C%20freebsd-informational?style=for-the-badge)](https://github.com/thushan/smash/releases/latest)
 
-You can download the latest binaries from the [Releases](https://github.com/thushan/smash/releases) or via our [simple installer script](https://raw.githubusercontent.com/thushan/smash/installer-scripts/install.sh) - currently supports, Linux, macos, FreeBSD & Windows:
+You can download the latest binaries from [Github Releases](https://github.com/thushan/smash/releases) or via our [simple installer script](https://raw.githubusercontent.com/thushan/smash/main/install.sh) - which currently supports Linux, macos, FreeBSD & Windows:
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/thushan/smash/main/install.sh)
 ```
 
-It will download the latest release and extract it to the current directory in a folder.
+It will download the latest version & extract it to its own folder for you.
 
 Alternatively, you can install it via go:
 
@@ -106,7 +106,7 @@ Examples are given in Unix format, but apply to Windows as well.
 >
 > To recursively smash through directories, use the `--recursive` or `-r` switch.
 >
-> By default, `smash` will only look in the current folder (from v0.7+)
+> By default, `smash` will only look in the current folder (from v0.9+)
 
 ### Basic
 
@@ -149,7 +149,7 @@ $ ./smash ~/media/photos -r --show-top=50
 To check across multiple directories - which can be different drives, or mounts (Eg. `~/media/photos` and `/mnt/my-usb-drive/photos`):
 
 ```bash
-$ ./smash ~/media/photos /mnt/my-usb-drive/photos
+$ ./smash -r ~/media/photos /mnt/my-usb-drive/photos
 ```
 
 Smash will find and report all duplicates within any number of directories passed in.
