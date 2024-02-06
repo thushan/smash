@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+#########################
+# Smash Installer script
+# -----------------------
+# Simple & lightweight
+#
+# <github.com/thushan>
+#########################
 CRed=$(tput setaf 1)
 CBlue=$(tput setaf 4)
 CCyan=$(tput setaf 6)
@@ -12,7 +19,8 @@ repo=smash
 name=smash
 
 echo "----------------------"
-echo "${CGreen}${name} Installer v1.0.0${ENDMARKER}"
+echo "${CGreen}${name} Installer v1.0.1${ENDMARKER}"
+echo "${CBlue} <github.com/thushan>${ENDMARKER}"
 echo "----------------------"
 
 
@@ -25,11 +33,12 @@ function fatal() {
 
 function extract_zip() {
     local filename=$1
+    local file_path="${filename%.*}"
     if [[ -x "$(command -v unzip)" ]]; then
         echo "${CCyan}RUN${ENDMARKER} unzip -xvf ${CYellow}'${filename}'${ENDMARKER}"
-        unzip -o "${filename}" -d "${filename%.*}/"
+        unzip -o "${filename}" -d "${file_path}/"
         if [ $? -eq 0 ]; then
-            echo "${CCyan}RAN${ENDMARKER} Extracted ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}'${filename}/'${ENDMARKER}"
+            echo "${CCyan}RAN${ENDMARKER} Extracted ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}${file_path}/${ENDMARKER}"
             rm -f "${filename}"
             echo "${CCyan}DEL${ENDMARKER} rm ${CYellow}'${filename}'${ENDMARKER}"
         else
@@ -41,11 +50,12 @@ function extract_zip() {
 }
 function extract_tar() {
     local filename=$1
+    local file_path="${filename%.*}"
     if [[ -x "$(command -v tar)" ]]; then
         echo "${CCyan}RUN${ENDMARKER} tar -xvf ${CYellow}'${filename}'${ENDMARKER}"
         tar -xvf "${filename}" --one-top-level
         if [ $? -eq 0 ]; then
-            echo "${CCyan}RAN${ENDMARKER} Extracted ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}'${filename}/'${ENDMARKER}"
+            echo "${CCyan}RAN${ENDMARKER} Extracted ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}${file_path}/${ENDMARKER}"
             rm -f "${filename}"
             echo "${CCyan}DEL${ENDMARKER} rm ${CYellow}'${filename}'${ENDMARKER}"
         else
@@ -60,15 +70,19 @@ function extract_tar() {
 if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux-musl" ]] ; then
   os="linux"
   ext="tar.gz"
+  exe=""
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   os="macos"
   ext="zip"
+  exe=""
 elif [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
   os="windows"
   ext="zip"
+  exe=".exe"
 elif [[ "$OSTYPE" == "freebsd"* ]]; then
   os="freebsd"
   ext="tar.gz"
+  exe=""
 else
   fatal "Unsupported OS Type $OSTYPE"
 fi
@@ -108,15 +122,19 @@ echo "${CCyan}GET${ENDMARKER} via ${CBlue}'${url}'${ENDMARKER}"
 curl --silent -L "$url" -o "$file"
 
 # Check if the download was successful
-if [ $? -eq 0 ]; then
-    echo "${CCyan}GOT${ENDMARKER} ${CGreen}smash ${latest_release}${ENDMARKER} Downloaded to ${CYellow}'${file}'${ENDMARKER}"
-    if [[ "$ext" == "zip" ]]; then
-        extract_zip "$file"
-    else
-        extract_tar "$file"
-    fi
-else
+if [ $? -ne 0 ]; then
     fatal "Failed to download ${url}"
 fi
 
-echo "${CCyan}YAY${ENDMARKER} Installed ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}'${file}'${ENDMARKER}"
+file_size=$(du -h "$file" | cut -f1)
+file_path="${file%.*}"
+
+echo "${CCyan}GOT${ENDMARKER} ${CGreen}smash ${latest_release}${ENDMARKER} Downloaded ${CYellow}'${file}'${ENDMARKER} ($file_size)"
+if [[ "$ext" == "zip" ]]; then
+    extract_zip "$file"
+else
+    extract_tar "$file"
+fi
+
+echo "${CCyan}YAY${ENDMARKER} Installed ${CGreen}smash ${latest_release}${ENDMARKER} to ${CYellow}${file_path}/${ENDMARKER}"
+echo "${CCyan}OMG${ENDMARKER} You can now ${CGreen}$ ${file_path}/smash${exe}${ENDMARKER} those directories!"
