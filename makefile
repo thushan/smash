@@ -23,8 +23,10 @@ build:
 	go build -ldflags " -X github.com/thushan/smash/internal/smash.Date=$(TODAY) \
                       -X github.com/thushan/smash/internal/smash.User=make \
                       -X github.com/thushan/smash/internal/smash.Version=$(VERSION) \
-                      -X github.com/thushan/smash/internal/smash.Commit=$(GCOMMIT)" \
-                      -o dist/$(BINARY_NAME) .
+                      -X github.com/thushan/smash/internal/smash.Commit=$(GCOMMIT) \
+                      -s -w" \
+            -trimpath \
+            -o dist/$(BINARY_NAME) .
 
 .PHONY: release
 release:
