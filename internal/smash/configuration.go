@@ -5,8 +5,6 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/thushan/smash/pkg/slicer"
-
 	"github.com/thushan/smash/internal/theme"
 
 	"github.com/thushan/smash/internal/algorithms"
@@ -20,9 +18,9 @@ func (app *App) printConfiguration() {
 	theme.StyleHeading.Println("---| Configuration")
 
 	if app.Flags.Verbose {
-		slices := theme.ColourConfig(slicer.DefaultSlices)
-		size := theme.ColourConfig(humanize.Bytes(slicer.DefaultSliceSize))
-		threshold := theme.ColourConfig(humanize.Bytes(slicer.DefaultThreshold))
+		slices := theme.ColourConfig(f.Slices)
+		size := theme.ColourConfig(humanize.Bytes(uint64(f.SliceSize)))
+		threshold := theme.ColourConfig(humanize.Bytes(uint64(f.SliceThreshold)))
 
 		config = "(Slices: " + slices + " | Size: " + size + " | Threshold: " + threshold + ")"
 

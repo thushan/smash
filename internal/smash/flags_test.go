@@ -2,6 +2,8 @@ package smash
 
 import (
 	"testing"
+
+	"github.com/thushan/smash/pkg/slicer"
 )
 
 func TestApp_ValidateArgs(t *testing.T) {
@@ -62,6 +64,9 @@ func TestApp_ValidateArgs(t *testing.T) {
 				MaxWorkers:     5,
 				ShowTop:        10,
 				ProgressUpdate: 2,
+				SliceSize:      slicer.DefaultSliceSize,
+				SliceThreshold: slicer.DefaultThreshold,
+				Slices:         slicer.DefaultSlices,
 			},
 			wantErr: false,
 		},
@@ -74,6 +79,9 @@ func TestApp_ValidateArgs(t *testing.T) {
 				MaxWorkers:     5,
 				ShowTop:        10,
 				ProgressUpdate: 2,
+				SliceSize:      slicer.DefaultSliceSize,
+				SliceThreshold: slicer.DefaultThreshold,
+				Slices:         slicer.DefaultSlices,
 			},
 			wantErr: false,
 		},
@@ -86,6 +94,9 @@ func TestApp_ValidateArgs(t *testing.T) {
 				MaxWorkers:     5,
 				ShowTop:        10,
 				ProgressUpdate: 2,
+				SliceSize:      slicer.DefaultSliceSize,
+				SliceThreshold: slicer.DefaultThreshold,
+				Slices:         slicer.DefaultSlices,
 			},
 			wantErr: false,
 		},
@@ -99,6 +110,9 @@ func TestApp_ValidateArgs(t *testing.T) {
 				MaxWorkers:     5,
 				ShowTop:        10,
 				ProgressUpdate: 2,
+				SliceSize:      slicer.DefaultSliceSize,
+				SliceThreshold: slicer.DefaultThreshold,
+				Slices:         slicer.DefaultSlices,
 			},
 			wantErr: false,
 		},
@@ -129,6 +143,42 @@ func TestApp_ValidateArgs(t *testing.T) {
 			flags: &Flags{
 				MaxSize: 20,
 				MinSize: 200,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Should fail when Slices is below DefaultSlices",
+			flags: &Flags{
+				Slices:         0,
+				SliceSize:      1000,
+				SliceThreshold: 500,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Should fail when Slices is above MaxSlices",
+			flags: &Flags{
+				Slices:         100,
+				SliceSize:      1000,
+				SliceThreshold: 500,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Should fail when SliceSize is below DefaultSliceSize",
+			flags: &Flags{
+				Slices:         10,
+				SliceSize:      0,
+				SliceThreshold: 500,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Should fail when SliceThreshold is below DefaultThreshold",
+			flags: &Flags{
+				Slices:         10,
+				SliceSize:      1000,
+				SliceThreshold: 0,
 			},
 			wantErr: true,
 		},

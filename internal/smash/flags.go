@@ -1,6 +1,11 @@
 package smash
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/thushan/smash/pkg/slicer"
+)
 
 type Flags struct {
 	OutputFile      string   `yaml:"output"`
@@ -9,6 +14,9 @@ type Flags struct {
 	ExcludeFile     []string `yaml:"exclude-file"`
 	MinSize         int64    `yaml:"min-size"`
 	MaxSize         int64    `yaml:"max-size"`
+	SliceThreshold  int64    `yaml:"slice-threshold"`
+	SliceSize       int64    `yaml:"slice-size"`
+	Slices          int      `yaml:"slices"`
 	Algorithm       int      `yaml:"algorithm"`
 	MaxThreads      int      `yaml:"max-threads"`
 	MaxWorkers      int      `yaml:"max-workers"`
@@ -60,6 +68,18 @@ func (app *App) validateArgs() error {
 	}
 	if f.ProgressUpdate < 1 {
 		return errors.New("updateseconds cannot be less than 1")
+	}
+	if f.Slices < slicer.DefaultSlices {
+		return fmt.Errorf("defaultSlices cannot be less than %q", slicer.DefaultSlices)
+	}
+	if f.Slices > slicer.MaxSlices {
+		return fmt.Errorf("defaultSlices cannot be greater than %q", slicer.MaxSlices)
+	}
+	if f.SliceSize < slicer.DefaultSliceSize {
+		return fmt.Errorf("slicesize cannot be less than %q bytes ", slicer.DefaultSliceSize)
+	}
+	if f.SliceThreshold < slicer.DefaultThreshold {
+		return fmt.Errorf("slicethreshold cannot be less than %q bytes ", slicer.DefaultThreshold)
 	}
 
 	return nil

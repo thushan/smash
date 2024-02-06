@@ -89,6 +89,9 @@ Flags:
       --show-duplicates        Show full list of duplicates
       --show-top int           Show the top x duplicates (default 10)
   -q, --silent                 Run in silent mode
+      --slice-size int         Size of a Slice (in bytes) (default 8192)        
+      --slice-threshold int    Threshold to use for slicing (in bytes) - if file is smaller than this, it won't be sliced (default 102400)
+      --slices int             Number of Slices to use (default 4)
       --verbose                Run in verbose mode
   -v, --version                Show version information
 ```
