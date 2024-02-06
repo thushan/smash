@@ -73,7 +73,7 @@ func (app *App) Run() error {
 		EndTime:   -1,
 	}
 
-	sl := slicer.New(algorithms.Algorithm(af.Algorithm))
+	sl := slicer.NewConfigured(algorithms.Algorithm(af.Algorithm), af.Slices, uint64(af.SliceSize), uint64(af.SliceThreshold))
 	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
 	slo := slicer.Options{
 		DisableSlicing:  af.DisableSlicing,

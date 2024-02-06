@@ -43,6 +43,7 @@ type Options struct {
 	DisableAutoText bool
 }
 
+const MaxSlices = 128
 const DefaultSlices = 4
 const DefaultSliceSize = 8 * 1024
 const DefaultThreshold = 100 * 1024
@@ -53,11 +54,11 @@ const DefaultMaxSize = 0
 func New(algorithm algorithms.Algorithm) Slicer {
 	return NewConfigured(algorithm, DefaultSlices, DefaultSliceSize, DefaultThreshold)
 }
-func NewConfigured(algorithm algorithms.Algorithm, slices int, size, maxSlice uint64) Slicer {
+func NewConfigured(algorithm algorithms.Algorithm, slices int, size, threshold uint64) Slicer {
 	return Slicer{
 		slices:       slices,
 		sliceSize:    size,
-		threshold:    maxSlice,
+		threshold:    threshold,
 		algorithm:    algorithm,
 		defaultBytes: []byte{},
 	}
@@ -72,11 +73,6 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerSt
 			return
 		}
 		_ = fs.Close()
-		/*
-			if ferr := fs.Close(); ferr != nil {
-				theme.Error.Println(theme.ColourFilename(name), ferr)
-			}
-		*/
 	}(f)
 
 	if err != nil {

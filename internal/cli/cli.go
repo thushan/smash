@@ -6,13 +6,13 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/thushan/smash/internal/theme"
-
 	"github.com/thushan/smash/internal/algorithms"
+	"github.com/thushan/smash/internal/smash"
+	"github.com/thushan/smash/internal/theme"
+	"github.com/thushan/smash/pkg/slicer"
 
 	"github.com/spf13/cobra"
 	"github.com/thediveo/enumflag/v2"
-	"github.com/thushan/smash/internal/smash"
 )
 
 var (
@@ -60,6 +60,9 @@ func init() {
 	flags.BoolVarP(&af.ShowNerdStats, "nerd-stats", "", false, "Show nerd stats")
 	flags.BoolVarP(&af.ShowVersion, "version", "v", false, "Show version information")
 	flags.StringVarP(&af.OutputFile, "output-file", "o", "", "Export analysis as JSON (generated automatically like ./report-*.json)")
+	flags.IntVarP(&af.Slices, "slices", "", slicer.DefaultSlices, "Number of Slices to use")
+	flags.Int64VarP(&af.SliceSize, "slice-size", "", slicer.DefaultSliceSize, "Size of a Slice (in bytes)")
+	flags.Int64VarP(&af.SliceThreshold, "slice-threshold", "", slicer.DefaultThreshold, "Threshold to use for slicing (in bytes) - if file is smaller than this, it won't be sliced")
 }
 
 func Main() {
