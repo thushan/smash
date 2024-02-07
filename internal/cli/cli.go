@@ -9,6 +9,7 @@ import (
 	"github.com/thushan/smash/internal/algorithms"
 	"github.com/thushan/smash/internal/smash"
 	"github.com/thushan/smash/internal/theme"
+	"github.com/thushan/smash/pkg/indexer"
 	"github.com/thushan/smash/pkg/slicer"
 
 	"github.com/spf13/cobra"
@@ -75,20 +76,30 @@ func Main() {
 }
 
 func runE(command *cobra.Command, args []string) error {
-	var locations []string
+
+	var locations []indexer.LocationFS
+
 	if len(args) == 0 {
 		// If no path found take the current path
 		if wd, err := os.Getwd(); err != nil {
-			locations = []string{"."}
+			locations = []indexer.LocationFS{{
+				FS:   os.DirFS("."),
+				Name: ".",
+				Kind: indexer.Local,
+			}}
 		} else {
-			locations = []string{wd}
+			locations = []indexer.LocationFS{{
+				FS:   os.DirFS(wd),
+				Name: wd,
+				Kind: indexer.Local,
+			}}
 		}
 	} else {
 		locations = verifyLocations(append(args, af.Base...), af.Silent)
 	}
 
 	if len(locations) == 0 {
-		return errors.New("No valid locations to smash :(")
+		return errors.New("no valid locations to smash :(")
 	}
 
 	a := smash.App{
@@ -99,8 +110,8 @@ func runE(command *cobra.Command, args []string) error {
 	return a.Run()
 }
 
-func verifyLocations(locations []string, silent bool) []string {
-	vl := locations[:0]
+func verifyLocations(locations []string, silent bool) []indexer.LocationFS {
+	var vl []indexer.LocationFS
 	for _, location := range locations {
 		if _, err := os.Stat(location); os.IsNotExist(err) {
 			if !silent {
@@ -108,7 +119,8 @@ func verifyLocations(locations []string, silent bool) []string {
 			}
 			continue
 		}
-		vl = append(vl, location)
+		l := indexer.NewLocationFS(indexer.Local, location, os.DirFS(location))
+		vl = append(vl, *l)
 	}
 	return vl
 }
