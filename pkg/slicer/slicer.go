@@ -3,10 +3,10 @@ package slicer
 import (
 	"encoding/gob"
 	"errors"
+	"github.com/thushan/smash/internal/algorithms"
 	"io"
 	"io/fs"
-
-	"github.com/thushan/smash/internal/algorithms"
+	"os"
 )
 
 type Slicer struct {
@@ -63,10 +63,28 @@ func NewConfigured(algorithm algorithms.Algorithm, slices int, size, threshold u
 		defaultBytes: []byte{},
 	}
 }
-func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerStats, error) {
+func (slicer *Slicer) SliceFS(fileSystem fs.FS, name string, options *Options) (SlicerStats, error) {
 
 	stats := SlicerStats{Hash: slicer.defaultBytes, Filename: name}
-	f, err := fs.Open(name)
+	fio, ferr := fs.Stat(fileSystem, name)
+
+	if ferr != nil {
+		return stats, ferr
+	}
+
+	size := uint64(fio.Size())
+	isEmptyFile := size == 0
+
+	if !shouldAnalyseBasedOnSize(size, options.MinSize, options.MaxSize) ||
+		shouldIgnoreFileMode(fio) ||
+		isEmptyFile {
+		stats.IgnoredFile = true
+		stats.EmptyFile = isEmptyFile
+		stats.Hash = nil
+		return stats, nil
+	}
+
+	f, err := fileSystem.Open(name)
 	defer func(fs io.Closer) {
 		if fs == nil {
 			// Ignore ReadOnly issues.
@@ -77,25 +95,6 @@ func (slicer *Slicer) SliceFS(fs fs.FS, name string, options *Options) (SlicerSt
 
 	if err != nil {
 		return stats, err
-	}
-
-	fi, err := f.Stat()
-
-	if err != nil {
-		return stats, err
-	}
-
-	size := uint64(fi.Size())
-
-	if size == 0 {
-		stats.EmptyFile = true
-		stats.Hash = nil
-		return stats, nil
-	}
-
-	if !shouldAnalyse(size, options.MinSize, options.MaxSize) {
-		stats.IgnoredFile = true
-		return stats, nil
 	}
 
 	stats.FileSize = size
@@ -139,16 +138,13 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 	*/
 
 	size := uint64(sr.Size())
+	isEmptyFile := size == 0
 
-	if size == 0 {
-		// Zero byte file, nothing we can do
-		stats.EmptyFile = true
-		stats.Hash = nil
-		return nil
-	}
-
-	if !shouldAnalyse(size, options.MinSize, options.MaxSize) {
+	if !shouldAnalyseBasedOnSize(size, options.MinSize, options.MaxSize) ||
+		isEmptyFile {
 		stats.IgnoredFile = true
+		stats.EmptyFile = isEmptyFile
+		stats.Hash = nil
 		return nil
 	}
 
@@ -235,7 +231,7 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 	stats.Hash = algo.Sum(nil)
 	return nil
 }
-func shouldAnalyse(fileSize, minSize, maxSize uint64) bool {
+func shouldAnalyseBasedOnSize(fileSize, minSize, maxSize uint64) bool {
 	if minSize == DefaultMinSize && maxSize == DefaultMaxSize {
 		return true
 	}
@@ -246,4 +242,8 @@ func shouldAnalyse(fileSize, minSize, maxSize uint64) bool {
 		return false
 	}
 	return true
+}
+func shouldIgnoreFileMode(fio os.FileInfo) bool {
+	return fio.Mode()&os.ModeNamedPipe != 0 ||
+		fio.Mode()&os.ModeSocket != 0
 }
