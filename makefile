@@ -10,6 +10,9 @@ TODAY=$(shell date --iso-8601)
 .PHONY: all
 all: lint test build
 
+.PHONY: ready
+ready: lint test
+
 .PHONY: lint
 lint:
 	golangci-lint run -c .golangci.yml ./...

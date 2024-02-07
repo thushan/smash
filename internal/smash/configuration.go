@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/thushan/smash/internal/theme"
-
 	"github.com/thushan/smash/internal/algorithms"
+	"github.com/thushan/smash/internal/theme"
+	"github.com/thushan/smash/pkg/indexer"
 )
 
 func (app *App) printConfiguration() {
@@ -35,7 +35,7 @@ func (app *App) printConfiguration() {
 
 	theme.Println(b.Sprint("Slicing:     "), theme.ColourConfig(enabledOrDisabled(!f.DisableSlicing)), config)
 	theme.Println(b.Sprint("Algorithm:   "), theme.ColourConfig(algorithms.Algorithm(f.Algorithm)))
-	theme.Println(b.Sprint("Locations:   "), theme.ColourConfig(strings.Join(app.Locations, ", ")))
+	theme.Println(b.Sprint("Locations:   "), theme.ColourConfig(buildLocations(app.Locations)))
 	theme.Println(b.Sprint("Recursive:   "), theme.ColourConfig(enabledOrDisabled(f.Recurse)))
 
 	if !f.HideOutput && f.OutputFile != "" {
@@ -51,6 +51,14 @@ func (app *App) printConfiguration() {
 			theme.Println(b.Sprint("      Files: "), theme.ColourConfigA(strings.Join(f.ExcludeFile, ", ")))
 		}
 	}
+}
+
+func buildLocations(locations []indexer.LocationFS) string {
+	locs := make([]string, len(locations))
+	for i, location := range locations {
+		locs[i] = location.Name
+	}
+	return strings.Join(locs, ", ")
 }
 
 func enabledOrDisabled(value bool) string {

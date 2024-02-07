@@ -28,7 +28,7 @@ type App struct {
 	Runtime   *AppRuntime
 	Summary   *RunSummary
 	Args      []string
-	Locations []string
+	Locations []indexer.LocationFS
 }
 type AppSession struct {
 	Dupes     *xsync.MapOf[string, *DuplicateFiles]
@@ -123,14 +123,14 @@ func (app *App) Exec() error {
 			psi.Success("Indexing locations...Done!")
 		}()
 		for _, location := range locations {
-			psi.UpdateText("Indexing location: " + location)
-			err := wk.WalkDirectory(os.DirFS(location), location, walkOptions, files)
+			psi.UpdateText("Indexing location: " + location.Name)
+			err := wk.WalkDirectory(location.FS, location.Name, walkOptions, files)
 
 			if err != nil {
 				if isVerbose {
-					theme.WarnSkipWithContext(location, err)
+					theme.WarnSkipWithContext(location.Name, err)
 				}
-				_, _ = session.Fails.LoadAndStore(location, err)
+				_, _ = session.Fails.LoadAndStore(location.Name, err)
 			}
 		}
 	}()
