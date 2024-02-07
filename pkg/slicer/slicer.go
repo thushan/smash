@@ -3,10 +3,11 @@ package slicer
 import (
 	"encoding/gob"
 	"errors"
-	"github.com/thushan/smash/internal/algorithms"
 	"io"
 	"io/fs"
 	"os"
+
+	"github.com/thushan/smash/internal/algorithms"
 )
 
 type Slicer struct {
@@ -245,5 +246,7 @@ func shouldAnalyseBasedOnSize(fileSize, minSize, maxSize uint64) bool {
 }
 func shouldIgnoreFileMode(fio os.FileInfo) bool {
 	return fio.Mode()&os.ModeNamedPipe != 0 ||
-		fio.Mode()&os.ModeSocket != 0
+		fio.Mode()&os.ModeSocket != 0 ||
+		fio.Mode()&os.ModeDevice != 0 ||
+		fio.Mode()&os.ModeSymlink != 0
 }
