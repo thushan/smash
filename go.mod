@@ -11,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/thediveo/enumflag/v2 v2.0.5
 	golang.org/x/term v0.17.0
-	golang.org/x/tools v0.17.0
+	golang.org/x/tools v0.18.0
 )
 
 require (
