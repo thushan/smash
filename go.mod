@@ -10,7 +10,7 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/cobra v1.8.1
 	github.com/thediveo/enumflag/v2 v2.0.5
-	golang.org/x/term v0.19.0
+	golang.org/x/term v0.22.0
 	golang.org/x/tools v0.23.0
 )
 
