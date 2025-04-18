@@ -6,7 +6,7 @@ require (
 	github.com/cespare/xxhash v1.1.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/pterm/pterm v0.12.80
-	github.com/puzpuzpuz/xsync/v3 v3.4.0
+	github.com/puzpuzpuz/xsync/v3 v3.5.1
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/cobra v1.9.1
 	github.com/thediveo/enumflag/v2 v2.0.5
