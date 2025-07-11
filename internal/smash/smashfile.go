@@ -6,7 +6,7 @@ import (
 
 	"github.com/thushan/smash/pkg/indexer"
 
-	"github.com/puzpuzpuz/xsync/v3"
+	"github.com/puzpuzpuz/xsync/v4"
 
 	"github.com/dustin/go-humanize"
 	"github.com/thushan/smash/pkg/slicer"
@@ -33,7 +33,7 @@ type EmptyFiles struct {
 	sync.RWMutex
 }
 
-func SummariseSmashedFile(stats slicer.SlicerStats, ffs *indexer.FileFS, ms int64, duplicates *xsync.MapOf[string, *DuplicateFiles], empty *EmptyFiles) {
+func SummariseSmashedFile(stats slicer.SlicerStats, ffs *indexer.FileFS, ms int64, duplicates *xsync.Map[string, *DuplicateFiles], empty *EmptyFiles) {
 	file := File{
 		Hash:        hex.EncodeToString(stats.Hash),
 		Filename:    ffs.Name,

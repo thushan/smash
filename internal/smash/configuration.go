@@ -19,8 +19,17 @@ func (app *App) printConfiguration() {
 
 	if app.Flags.Verbose {
 		slices := theme.ColourConfig(f.Slices)
-		size := theme.ColourConfig(humanize.Bytes(uint64(f.SliceSize)))
-		threshold := theme.ColourConfig(humanize.Bytes(uint64(f.SliceThreshold)))
+		var size, threshold string
+		if f.SliceSize >= 0 {
+			size = theme.ColourConfig(humanize.Bytes(uint64(f.SliceSize)))
+		} else {
+			size = theme.ColourConfig("invalid")
+		}
+		if f.SliceThreshold >= 0 {
+			threshold = theme.ColourConfig(humanize.Bytes(uint64(f.SliceThreshold)))
+		} else {
+			threshold = theme.ColourConfig("invalid")
+		}
 
 		config = "(Slices: " + slices + " | Size: " + size + " | Threshold: " + threshold + ")"
 

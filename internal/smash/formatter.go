@@ -63,7 +63,11 @@ func displayFiles(files []File) {
 		dupes := files[1:]
 		var dupeSize string
 		if len(files) > 2 {
-			totalDupeSize := uint64(len(files)-1) * root.FileSize
+			fileCount := uint64(len(files)) - 1
+			if fileCount <= 0 {
+				fileCount = 0
+			}
+			totalDupeSize := fileCount * root.FileSize
 			dupeSize = "(" + theme.ColourFileSizeDupe(humanize.Bytes(totalDupeSize)) + ")"
 		} else {
 			dupeSize = " "
@@ -112,7 +116,9 @@ func (app *App) generateRunSummary(totalFiles int64) {
 			topFiles.Add(analysis.Item{Key: hash, Size: root.FileSize})
 
 			totalDuplicates += duplicateFiles
-			totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
+			if duplicateFiles >= 0 {
+				totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
+			}
 		}
 		return true
 	})

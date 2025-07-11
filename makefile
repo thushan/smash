@@ -8,10 +8,10 @@ GCOMMIT=$(shell git rev-parse --short HEAD)
 TODAY=$(shell date --iso-8601)
 
 .PHONY: all
-all: lint test build
+all: ready build
 
 .PHONY: ready
-ready: lint test
+ready: fmt lint test align
 
 .PHONY: lint
 lint:
@@ -30,6 +30,14 @@ build:
                       -s -w" \
             -trimpath \
             -o dist/$(BINARY_NAME) .
+
+.PHONY: fmt
+fmt:
+	@go fmt ./...
+
+.PHONY: align
+align:
+	@which betteralign > /dev/null && betteralign -apply ./... || echo "betteralign not installed, skipping..."
 
 .PHONY: release
 release:

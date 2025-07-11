@@ -9,7 +9,7 @@ import (
 	"github.com/thushan/smash/pkg/nerdstats"
 	"github.com/thushan/smash/pkg/profiler"
 
-	"github.com/puzpuzpuz/xsync/v3"
+	"github.com/puzpuzpuz/xsync/v4"
 
 	"golang.org/x/term"
 
@@ -31,8 +31,8 @@ type App struct {
 	Locations []indexer.LocationFS
 }
 type AppSession struct {
-	Dupes     *xsync.MapOf[string, *DuplicateFiles]
-	Fails     *xsync.MapOf[string, error]
+	Dupes     *xsync.Map[string, *DuplicateFiles]
+	Fails     *xsync.Map[string, error]
 	Empty     *EmptyFiles
 	StartTime int64
 	EndTime   int64
@@ -63,8 +63,8 @@ func (app *App) Run() error {
 	}
 
 	app.Session = &AppSession{
-		Dupes: xsync.NewMapOf[string, *DuplicateFiles](),
-		Fails: xsync.NewMapOf[string, error](),
+		Dupes: xsync.NewMap[string, *DuplicateFiles](),
+		Fails: xsync.NewMap[string, error](),
 		Empty: &EmptyFiles{
 			Files:   []File{},
 			RWMutex: sync.RWMutex{},
@@ -73,6 +73,12 @@ func (app *App) Run() error {
 		EndTime:   -1,
 	}
 
+	if af.SliceSize < 0 || af.SliceThreshold < 0 {
+		return fmt.Errorf("slice size and threshold must be non-negative")
+	}
+	if af.MinSize < 0 || af.MaxSize < 0 {
+		return fmt.Errorf("min size and max size must be non-negative")
+	}
 	sl := slicer.NewConfigured(algorithms.Algorithm(af.Algorithm), af.Slices, uint64(af.SliceSize), uint64(af.SliceThreshold))
 	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
 	slo := slicer.Options{
@@ -144,7 +150,7 @@ func (app *App) Exec() error {
 	updateProgressTicker := make(chan bool)
 
 	if showProgress {
-		app.updateDupeCount(updateProgressTicker, pss, *totalFiles)
+		app.updateDupeCount(updateProgressTicker, pss, totalFiles)
 	}
 
 	for i := 0; i < app.Flags.MaxWorkers; i++ {
@@ -207,7 +213,7 @@ func (app *App) Exec() error {
 	return nil
 }
 
-func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles xsync.Counter) {
+func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles *xsync.Counter) {
 	if app.Flags.HideProgress {
 		return
 	}

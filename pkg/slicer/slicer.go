@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"sync"
 
 	"github.com/thushan/smash/internal/algorithms"
 )
@@ -52,6 +53,28 @@ const DefaultMinimumSize = (DefaultSlices + 2) * DefaultSliceSize
 const DefaultMinSize = 0
 const DefaultMaxSize = 0
 
+var sliceBufferPool = sync.Pool{
+	New: func() interface{} {
+		return make([]byte, DefaultSliceSize)
+	},
+}
+
+func getSliceBuffer(size uint64) []byte {
+	if size == DefaultSliceSize {
+		bufInterface := sliceBufferPool.Get()
+		if buf, ok := bufInterface.([]byte); ok {
+			return buf
+		}
+	}
+	return make([]byte, size)
+}
+
+func putSliceBuffer(buf []byte) {
+	if cap(buf) == DefaultSliceSize {
+		sliceBufferPool.Put(buf)
+	}
+}
+
 func New(algorithm algorithms.Algorithm) Slicer {
 	return NewConfigured(algorithm, DefaultSlices, DefaultSliceSize, DefaultThreshold)
 }
@@ -73,7 +96,11 @@ func (slicer *Slicer) SliceFS(fileSystem fs.FS, name string, options *Options) (
 		return stats, ferr
 	}
 
-	size := uint64(fio.Size())
+	fileSize := fio.Size()
+	if fileSize < 0 {
+		return stats, errors.New("file size cannot be negative")
+	}
+	size := uint64(fileSize)
 	isEmptyFile := size == 0
 
 	if !shouldAnalyseBasedOnSize(size, options.MinSize, options.MaxSize) ||
@@ -86,24 +113,21 @@ func (slicer *Slicer) SliceFS(fileSystem fs.FS, name string, options *Options) (
 	}
 
 	f, err := fileSystem.Open(name)
-	defer func(fs io.Closer) {
-		if fs == nil {
-			// Ignore ReadOnly issues.
-			return
-		}
-		_ = fs.Close()
-	}(f)
-
 	if err != nil {
 		return stats, err
 	}
+	defer func(fs io.Closer) {
+		if fs != nil {
+			_ = fs.Close()
+		}
+	}(f)
 
 	stats.FileSize = size
 	stats.Slices = slicer.slices
 	stats.SliceSize = slicer.sliceSize
 
 	if fr, ok := f.(io.ReaderAt); ok {
-		sr := io.NewSectionReader(fr, 0, int64(size))
+		sr := io.NewSectionReader(fr, 0, fileSize)
 		err := slicer.Slice(sr, options, &stats)
 		return stats, err
 	} else {
@@ -138,7 +162,11 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 			file_tail :=  1,015,808
 	*/
 
-	size := uint64(sr.Size())
+	srSize := sr.Size()
+	if srSize < 0 {
+		return errors.New("section reader size cannot be negative")
+	}
+	size := uint64(srSize)
 	isEmptyFile := size == 0
 
 	if !shouldAnalyseBasedOnSize(size, options.MinSize, options.MaxSize) ||
@@ -156,7 +184,11 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 
 	// checks
 	canSliceFile := !options.DisableAutoText && slicingSupported(sr, size)
-	greaterThanMinimumFileSize := uint64(slicer.slices+2)*slicer.sliceSize > size
+	slicesPlus2 := slicer.slices + 2
+	if slicesPlus2 < 0 {
+		return errors.New("slices overflow")
+	}
+	greaterThanMinimumFileSize := uint64(slicesPlus2)*slicer.sliceSize > size
 	greaterThanMinimumThreshold := size < slicer.threshold
 	invalidNumberOfSlices := slicer.slices <= 0
 	// fullHash only those times we have to
@@ -176,13 +208,27 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 			return err
 		}
 	} else {
-		slice := make([]byte, slicer.sliceSize)
+		slice := getSliceBuffer(slicer.sliceSize)
+		defer putSliceBuffer(slice)
+
 		midSize := size - (slicer.sliceSize * 2)
-		sliceOffset := int64((midSize / uint64(slicer.slices)) - slicer.sliceSize)
+		if slicer.slices <= 0 {
+			return errors.New("invalid number of slices")
+		}
+		divResult := midSize / uint64(slicer.slices)
+		if divResult < slicer.sliceSize {
+			return errors.New("slice offset would be negative")
+		}
+		sliceOffsetCalc := divResult - slicer.sliceSize
+		const maxInt64 = 1<<63 - 1
+		if sliceOffsetCalc > maxInt64 {
+			return errors.New("slice offset overflow")
+		}
+		sliceOffset := int64(sliceOffsetCalc)
 
 		stats.SliceOffset = sliceOffset
 		stats.MidSize = midSize
-		stats.SliceOffsets = make(map[int]int64)
+		stats.SliceOffsets = make(map[int]int64, slicer.slices+2)
 
 		// head
 		stats.SliceOffsets[0] = 0
@@ -209,7 +255,10 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 		}
 
 		// tail
-		tailOffset := int64(-slicer.sliceSize)
+		if slicer.sliceSize > maxInt64 {
+			return errors.New("slice size too large for tail offset")
+		}
+		tailOffset := -int64(slicer.sliceSize)
 		if offset, err := sr.Seek(tailOffset, io.SeekEnd); err != nil {
 			return err
 		} else {
