@@ -52,6 +52,32 @@ go install github.com/thushan/smash@latest
 
 `smash` has been developed on Linux (Pop!_OS & Fedora), tested on macOS, FreeBSD & Windows.
 
+## Docker
+
+You can also run `smash` using Docker. Multi-architecture images (amd64/arm64) are available on GitHub Container Registry:
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/thushan/smash:latest
+
+# Scan current directory
+docker run --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r /data
+
+# Scan with output file
+docker run --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r --silent -o /data/report.json /data
+
+# Scan multiple directories
+docker run --rm \
+  -v "$HOME/Documents:/docs:ro" \
+  -v "$HOME/Pictures:/pics:ro" \
+  ghcr.io/thushan/smash:latest -r /docs /pics
+
+# Use a specific version
+docker pull ghcr.io/thushan/smash:v0.5.0
+```
+
+The Docker image is based on Alpine Linux for a minimal footprint (~8MB) and runs as a non-root user for security.
+
 # Usage
 
 ```bash
