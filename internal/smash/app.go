@@ -29,6 +29,7 @@ type App struct {
 	Summary   *RunSummary
 	Args      []string
 	Locations []indexer.LocationFS
+	Output    *OutputManager
 }
 type AppSession struct {
 	Dupes     *xsync.Map[string, *DuplicateFiles]
@@ -49,6 +50,9 @@ const ReportOutputTemplate = "report-*.json"
 func (app *App) Run() error {
 
 	af := app.Flags
+	
+	// Initialize output manager first
+	app.Output = NewOutputManager(af)
 
 	if !af.Silent {
 		PrintVersionInfo(af.ShowVersion)
@@ -109,14 +113,17 @@ func (app *App) Exec() error {
 
 	files := app.Runtime.Files
 	locations := app.Locations
-	isVerbose := app.Flags.Verbose && !app.Flags.Silent
+	isVerbose := app.Output.IsVerbose()
 	walkOptions := indexer.WalkConfig{Recurse: app.Flags.Recurse}
-	showProgress := (!app.Flags.HideProgress && !app.Flags.Silent) || isVerbose
 
-	pap := theme.MultiWriter()
-	psi, _ := theme.IndexingSpinner().WithWriter(pap.NewWriter()).Start("Indexing locations...")
-
-	pap.Start()
+	var pap *pterm.MultiPrinter
+	if app.Output.ShouldShowProgress() {
+		mp := theme.MultiWriter()
+		pap = &mp
+		pap.Start()
+	}
+	
+	psi := app.Output.StartSpinner(theme.IndexingSpinner(), "Indexing locations...", pap)
 	go func() {
 		defer func() {
 			close(files)
@@ -137,13 +144,13 @@ func (app *App) Exec() error {
 
 	totalFiles := xsync.NewCounter()
 
-	pss, _ := theme.SmashingSpinner().WithWriter(pap.NewWriter()).Start("Finding duplicates...")
+	pss := app.Output.StartSpinner(theme.SmashingSpinner(), "Finding duplicates...", pap)
 
 	var wg sync.WaitGroup
 
 	updateProgressTicker := make(chan bool)
 
-	if showProgress {
+	if app.Output.ShouldShowProgress() {
 		app.updateDupeCount(updateProgressTicker, pss, totalFiles)
 	}
 
@@ -164,7 +171,10 @@ func (app *App) Exec() error {
 					}
 					_, _ = session.Fails.LoadOrStore(file.Path, err)
 				case stats.IgnoredFile:
-					// Ignored counter
+					// Check if it's an empty file that should be tracked
+					if stats.EmptyFile {
+						SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
+					}
 				default:
 					SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
 				}
@@ -174,18 +184,22 @@ func (app *App) Exec() error {
 	wg.Wait()
 
 	// Signal we're done
-	updateProgressTicker <- true
+	if app.Output.ShouldShowProgress() {
+		updateProgressTicker <- true
+	}
 	app.Session.EndTime = time.Now().UnixNano()
 
 	midStats := nerdstats.Snapshot()
 
 	pss.Success("Finding duplicates...Done!")
 
-	psr, _ := theme.FinaliseSpinner().WithWriter(pap.NewWriter()).Start("Finding smash hits...")
+	psr := app.Output.StartSpinner(theme.FinaliseSpinner(), "Finding smash hits...", pap)
 	app.generateRunSummary(totalFiles.Value())
 	psr.Success("Finding smash hits...Done!")
 
-	pap.Stop()
+	if pap != nil {
+		pap.Stop()
+	}
 
 	app.PrintRunAnalysis(app.Flags.IgnoreEmpty)
 
@@ -195,9 +209,11 @@ func (app *App) Exec() error {
 
 	endStats := nerdstats.Snapshot()
 
-	PrintRunSummary(*app.Summary, app.Flags)
+	if !app.Output.IsSilent() {
+		PrintRunSummary(*app.Summary, app.Flags)
+	}
 
-	if app.Flags.ShowNerdStats {
+	if app.Flags.ShowNerdStats && !app.Output.IsSilent() {
 		theme.StyleHeading.Println("---| Nerd Stats")
 		PrintNerdStats(startStats, "> Initial")
 		PrintNerdStats(midStats, "> Post-Analysis")
@@ -207,8 +223,8 @@ func (app *App) Exec() error {
 	return nil
 }
 
-func (app *App) updateDupeCount(updateProgressTicker chan bool, pss *pterm.SpinnerPrinter, totalFiles *xsync.Counter) {
-	if app.Flags.HideProgress {
+func (app *App) updateDupeCount(updateProgressTicker chan bool, pss SpinnerHandle, totalFiles *xsync.Counter) {
+	if !app.Output.ShouldShowProgress() {
 		return
 	}
 	go func() {
@@ -233,12 +249,14 @@ func (app *App) checkTerminal() {
 }
 
 func (app *App) ExportReport() {
-	if app.Flags.HideOutput {
+	if !app.Output.ShouldGenerateReport() {
 		return
 	}
 
 	if filename, err := app.Export(app.Flags.OutputFile); err != nil {
-		theme.Error.Println("Failed to export report because ", err)
+		if !app.Output.IsSilent() {
+			theme.Error.Println("Failed to export report because ", err)
+		}
 	} else {
 		app.Summary.ReportFilename = filename
 	}

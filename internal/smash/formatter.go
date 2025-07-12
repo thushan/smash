@@ -13,12 +13,16 @@ const (
 )
 
 func (app *App) printVerbose(message ...any) {
-	if app.Flags.Verbose {
+	if app.Output.IsVerbose() {
 		theme.Verbose.Println(message...)
 	}
 }
 
 func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
+	if app.Output.IsSilent() {
+		return
+	}
+	
 	duplicates := app.Session.Dupes
 	emptyFiles := app.Session.Empty.Files
 	topFiles := app.Summary.TopFiles
