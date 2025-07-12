@@ -30,8 +30,8 @@ go.work
 /dist
 
 # output files
-smash
-smash.exe
+/smash
+/smash.exe
 smash.out
 
 # temporary files
