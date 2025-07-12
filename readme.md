@@ -1,25 +1,27 @@
-# smash
+<div align="center">
+  <p>
+    <img src="assets/banner.png" width="392" height="146" alt="Smash - Deduplicate files fast!" /> <br/>
+    <a href="https://github.com/thushan/smash/blob/master/LICENSE"><img src="https://img.shields.io/github/license/thushan/smash" alt="License"></a>
+    <a href="https://github.com/thushan/smash/actions/workflows/ci.yml"><img src="https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+    <a href="https://goreportcard.com/report/github.com/thushan/smash"><img src="https://goreportcard.com/badge/github.com/thushan/smash" alt="Go Report Card"></a>
+    <a href="https://github.com/thushan/smash/releases/latest"><img src="https://img.shields.io/github/release/thushan/smash" alt="Latest Release"></a>
+  </p>
+</div>
 
-[![GitHub license](https://img.shields.io/github/license/thushan/smash)](https://github.com/thushan/smash/blob/master/LICENSE)
-[![CI](https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/thushan/smash)](https://goreportcard.com/report/github.com/thushan/smash)
-[![GitHub release](https://img.shields.io/github/release/thushan/smash)](https://github.com/thushan/smash/releases/latest)
+**Smash** is a high-performance CLI tool for detecting duplicate files — fast. It works by **slicing files or blobs into segments** and hashing them with blazing-fast, non-cryptographic algorithms like [xxhash](https://xxhash.com/) or [murmur3](https://en.wikipedia.org/wiki/MurmurHash).
 
-CLI tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments
-and computing a hash using a fast non-cryptographic algorithm such as [xxhash](https://xxhash.com/) or [murmur3](https://en.wikipedia.org/wiki/MurmurHash).
+Built for speed and scale, `smash` is ideal for everything from low-bandwidth deduplication to analysing multi-terabyte datasets.
 
-Amongst the highlights of `smash`:
+### Key Features
+* **Fast**: Handles large files quickly via [slicing](./docs/slicing.md)
+* **Efficient**: Optimised for low I/O and bandwidth-constrained environments
+* **Smart hashing**: Supports [multiple algorithms](./docs/algorithms.md) like `xxhash`, `murmur3`, and more
+* **Safe**: Performs read-only scans of the filesystem
+* **Comprehensive**: Detects duplicate and empty (0-byte) files
+* **Machine-friendly**: JSON output compatible with tools like [`jq`](https://github.com/jqlang/jq) — [examples](#examples), [demos](./docs/demos.md)
+* **Proven**: Used to dedupe multi-terabyte astrophysics, image, and video datasets
 
-* Super fast analysis of large files thanks to [slicing](./docs/slicing.md).
-* Suited for finding duplicates on bandwidth constrained networks, devices or very large files but plenty capable on smaller ones!
-* Supports a variety of non-cryptographic algorithms (see [algorithms supported](./docs/algorithms.md)).
-* Read-only view of the underlying filesystem when analysing
-* Reports on duplicate files & empty (0 byte) files
-* Outputs a report in json, you can use tools like [jq](https://github.com/jqlang/jq) to operate on (see [examples](#examples) below or [the vhs tapes](./docs/demos.md))
-* Used to dedupe multi-TB of astrophysics datasets, images and video content & run regularly to report duplicates
-
-`smash` does not support pruning of duplicates or empty files natively and it's encouraged you vet the output report before pruning via automated tools.
-
+`smash` does **not** delete duplicates. It generates detailed reports for you to safely review and act on.
 <p align="center">
  <img src="https://vhs.charm.sh/vhs-6UTX5Yc6CIQ6Y3lzulLKYF.gif" alt="Made with VHS"><br/>
     <sub>
