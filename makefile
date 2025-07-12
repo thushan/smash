@@ -11,7 +11,7 @@ TODAY=$(shell date --iso-8601)
 all: ready build
 
 .PHONY: ready
-ready: fmt lint test align
+ready: fmt lint test-concurrent align
 
 .PHONY: lint
 lint:
@@ -20,6 +20,10 @@ lint:
 .PHONY: test
 test:
 	go test -v ./...
+
+.PHONY: test-concurrent
+test-concurrent:
+	go test -v -race -covermode atomic -coverprofile=covprofile ./...
 
 .PHONY: build
 build:

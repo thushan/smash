@@ -2,7 +2,6 @@ package smash
 
 import (
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -10,8 +9,6 @@ import (
 	"github.com/thushan/smash/pkg/profiler"
 
 	"github.com/puzpuzpuz/xsync/v4"
-
-	"golang.org/x/term"
 
 	"github.com/pterm/pterm"
 	"github.com/thushan/smash/internal/theme"
@@ -102,7 +99,6 @@ func (app *App) Run() error {
 	}
 
 	app.setMaxThreads()
-	app.checkTerminal()
 
 	return app.Exec()
 }
@@ -277,13 +273,6 @@ func (app *App) updateDupeCount(updateProgressTicker chan bool, pss SpinnerHandl
 		}
 	}()
 
-}
-
-func (app *App) checkTerminal() {
-	if !term.IsTerminal(int(os.Stdout.Fd())) {
-		pterm.DisableColor()
-		pterm.DisableStyling()
-	}
 }
 
 func (app *App) ExportReport() {

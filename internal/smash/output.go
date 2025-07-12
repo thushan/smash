@@ -1,7 +1,14 @@
 package smash
 
 import (
+	"sync"
+
 	"github.com/pterm/pterm"
+)
+
+var (
+	ptermMutex      sync.Mutex
+	ptermConfigured bool
 )
 
 // OutputConfig contains the resolved output configuration
@@ -44,18 +51,26 @@ func NewOutputManager(flags *Flags) *OutputManager {
 		GenerateReport: !flags.HideOutput,
 	}
 
-	// Configure pterm based on environment
-	if !config.UseColor {
-		pterm.DisableColor()
-	}
+	// Configure pterm based on environment with mutex protection
+	ptermMutex.Lock()
+	defer ptermMutex.Unlock()
 
-	if !env.IsTerminal || env.IsCI || env.IsTesting {
-		pterm.DisableStyling()
-	}
+	// In test environments, always reconfigure to ensure isolation
+	if !ptermConfigured || env.IsTesting {
+		if !config.UseColor {
+			pterm.DisableColor()
+		}
 
-	// Disable all pterm output in test environments
-	if env.IsTesting {
-		pterm.DisableOutput()
+		if !env.IsTerminal || env.IsCI || env.IsTesting {
+			pterm.DisableStyling()
+		}
+
+		// Disable all pterm output in test environments or silent mode
+		if env.IsTesting || config.Silent {
+			pterm.DisableOutput()
+		}
+
+		ptermConfigured = true
 	}
 
 	return &OutputManager{
