@@ -46,7 +46,7 @@ func TestAlgorithmNew(t *testing.T) {
 			if h == nil {
 				t.Fatal("New() returned nil")
 			}
-			
+
 			// Verify it implements hash.Hash
 			if _, ok := h.(hash.Hash); !ok {
 				t.Error("returned value does not implement hash.Hash")
@@ -108,25 +108,25 @@ func TestAlgorithmReset(t *testing.T) {
 	for _, algo := range algorithms {
 		t.Run(algo.String(), func(t *testing.T) {
 			h := algo.New()
-			
+
 			// Hash first data
 			h.Write(data1)
 			sum1 := h.Sum(nil)
-			
+
 			// Reset and hash second data
 			h.Reset()
 			h.Write(data2)
 			sum2 := h.Sum(nil)
-			
+
 			// Hash second data with fresh hasher
 			h2 := algo.New()
 			h2.Write(data2)
 			sum2Fresh := h2.Sum(nil)
-			
+
 			if bytes.Equal(sum1, sum2) {
 				t.Error("reset did not clear state")
 			}
-			
+
 			if !bytes.Equal(sum2, sum2Fresh) {
 				t.Error("reset hasher produced different result than fresh hasher")
 			}
@@ -145,21 +145,21 @@ func TestAlgorithmIncrementalHashing(t *testing.T) {
 	}
 
 	fullData := []byte("The quick brown fox jumps over the lazy dog")
-	
+
 	for _, algo := range algorithms {
 		t.Run(algo.String(), func(t *testing.T) {
 			// Single write
 			h1 := algo.New()
 			h1.Write(fullData)
 			sum1 := h1.Sum(nil)
-			
+
 			// Incremental writes
 			h2 := algo.New()
 			h2.Write(fullData[:10])
 			h2.Write(fullData[10:20])
 			h2.Write(fullData[20:])
 			sum2 := h2.Sum(nil)
-			
+
 			if !bytes.Equal(sum1, sum2) {
 				t.Errorf("incremental hashing produced different result: %x != %x", sum1, sum2)
 			}
@@ -170,7 +170,7 @@ func TestAlgorithmIncrementalHashing(t *testing.T) {
 func TestAlgorithmKnownValues(t *testing.T) {
 	// Test against known hash values
 	data := []byte("test")
-	
+
 	tests := []struct {
 		algo     Algorithm
 		expected string
@@ -179,18 +179,18 @@ func TestAlgorithmKnownValues(t *testing.T) {
 		{Sha256, "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"},
 		// Note: xxhash and murmur3 values depend on seed/implementation
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.algo.String(), func(t *testing.T) {
 			h := tt.algo.New()
 			h.Write(data)
 			sum := h.Sum(nil)
-			
+
 			// Skip non-deterministic algorithms
 			if tt.expected == "" {
 				return
 			}
-			
+
 			got := fmt.Sprintf("%x", sum)
 			if got != tt.expected {
 				t.Errorf("expected %s, got %s", tt.expected, got)

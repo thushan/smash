@@ -52,7 +52,7 @@ func benchmarkSliceFullHash(b *testing.B, data []byte) {
 		reader := bytes.NewReader(data)
 		sr := io.NewSectionReader(reader, 0, int64(len(data)))
 		stats := SlicerStats{}
-		
+
 		if err := slicer.Slice(sr, options, &stats); err != nil {
 			b.Fatal(err)
 		}
@@ -70,7 +70,7 @@ func benchmarkSliceWithSlicing(b *testing.B, data []byte) {
 		reader := bytes.NewReader(data)
 		sr := io.NewSectionReader(reader, 0, int64(len(data)))
 		stats := SlicerStats{}
-		
+
 		if err := slicer.Slice(sr, options, &stats); err != nil {
 			b.Fatal(err)
 		}
@@ -104,7 +104,7 @@ func BenchmarkSliceAlgorithms(b *testing.B) {
 				reader := bytes.NewReader(data)
 				sr := io.NewSectionReader(reader, 0, int64(len(data)))
 				stats := SlicerStats{}
-				
+
 				if err := slicer.Slice(sr, options, &stats); err != nil {
 					b.Fatal(err)
 				}
@@ -128,7 +128,7 @@ func BenchmarkSliceConcurrent(b *testing.B) {
 			reader := bytes.NewReader(data)
 			sr := io.NewSectionReader(reader, 0, int64(len(data)))
 			stats := SlicerStats{}
-			
+
 			if err := slicer.Slice(sr, options, &stats); err != nil {
 				b.Fatal(err)
 			}
@@ -138,10 +138,10 @@ func BenchmarkSliceConcurrent(b *testing.B) {
 
 func BenchmarkSliceMemoryAllocation(b *testing.B) {
 	sizes := []int{
-		8 * 1024,      // 8KB
-		64 * 1024,     // 64KB
-		512 * 1024,    // 512KB
-		1024 * 1024,   // 1MB
+		8 * 1024,    // 8KB
+		64 * 1024,   // 64KB
+		512 * 1024,  // 512KB
+		1024 * 1024, // 1MB
 	}
 
 	for _, size := range sizes {
@@ -159,7 +159,7 @@ func BenchmarkSliceMemoryAllocation(b *testing.B) {
 				reader := bytes.NewReader(data)
 				sr := io.NewSectionReader(reader, 0, int64(len(data)))
 				stats := SlicerStats{}
-				
+
 				if err := slicer.Slice(sr, options, &stats); err != nil {
 					b.Fatal(err)
 				}
@@ -194,7 +194,7 @@ func benchmarkSliceData(b *testing.B, data []byte) {
 		reader := bytes.NewReader(data)
 		sr := io.NewSectionReader(reader, 0, int64(len(data)))
 		stats := SlicerStats{}
-		
+
 		if err := slicer.Slice(sr, options, &stats); err != nil {
 			b.Fatal(err)
 		}

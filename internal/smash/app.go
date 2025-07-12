@@ -27,9 +27,9 @@ type App struct {
 	Session   *AppSession
 	Runtime   *AppRuntime
 	Summary   *RunSummary
+	Output    *OutputManager
 	Args      []string
 	Locations []indexer.LocationFS
-	Output    *OutputManager
 }
 type AppSession struct {
 	Dupes     *xsync.Map[string, *DuplicateFiles]
@@ -50,7 +50,7 @@ const ReportOutputTemplate = "report-*.json"
 func (app *App) Run() error {
 
 	af := app.Flags
-	
+
 	// Initialize output manager first
 	app.Output = NewOutputManager(af)
 
@@ -77,6 +77,13 @@ func (app *App) Run() error {
 		EndTime:   -1,
 	}
 
+	// Validate and convert slice parameters
+	if af.SliceSize < 0 || af.SliceThreshold < 0 {
+		return fmt.Errorf("slice size and threshold must be non-negative")
+	}
+	if af.MinSize < 0 || af.MaxSize < 0 {
+		return fmt.Errorf("min size and max size must be non-negative")
+	}
 	sl := slicer.NewConfigured(algorithms.Algorithm(af.Algorithm), af.Slices, uint64(af.SliceSize), uint64(af.SliceThreshold))
 	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
 	slo := slicer.Options{
@@ -100,29 +107,53 @@ func (app *App) Run() error {
 	return app.Exec()
 }
 func (app *App) Exec() error {
-
 	if err := app.validateArgs(); err != nil {
 		return err
 	}
+
 	startStats := nerdstats.Snapshot()
-	session := app.Session
 
+	// Setup progress display
+	pap := app.setupProgressDisplay()
+
+	// Start indexing
+	app.startIndexing(pap)
+
+	// Process files
+	totalFiles := app.processFiles(pap)
+
+	// Finalize analysis
+	app.finalizeAnalysis(pap, totalFiles)
+
+	// Clean up progress display
+	if pap != nil {
+		pap.Stop()
+	}
+
+	// Print results and statistics
+	app.printResultsAndStats(startStats)
+
+	return nil
+}
+
+func (app *App) setupProgressDisplay() *pterm.MultiPrinter {
+	if !app.Output.ShouldShowProgress() {
+		return nil
+	}
+	mp := theme.MultiWriter()
+	pap := &mp
+	pap.Start()
+	return pap
+}
+
+func (app *App) startIndexing(pap *pterm.MultiPrinter) {
 	wk := app.Runtime.IndexerConfig
-	sl := app.Runtime.Slicer
-	slo := app.Runtime.SlicerOptions
-
 	files := app.Runtime.Files
 	locations := app.Locations
 	isVerbose := app.Output.IsVerbose()
 	walkOptions := indexer.WalkConfig{Recurse: app.Flags.Recurse}
+	session := app.Session
 
-	var pap *pterm.MultiPrinter
-	if app.Output.ShouldShowProgress() {
-		mp := theme.MultiWriter()
-		pap = &mp
-		pap.Start()
-	}
-	
 	psi := app.Output.StartSpinner(theme.IndexingSpinner(), "Indexing locations...", pap)
 	go func() {
 		defer func() {
@@ -141,77 +172,85 @@ func (app *App) Exec() error {
 			}
 		}
 	}()
+}
+
+func (app *App) processFiles(pap *pterm.MultiPrinter) int64 {
+	sl := app.Runtime.Slicer
+	slo := app.Runtime.SlicerOptions
+	files := app.Runtime.Files
+	isVerbose := app.Output.IsVerbose()
+	session := app.Session
 
 	totalFiles := xsync.NewCounter()
-
 	pss := app.Output.StartSpinner(theme.SmashingSpinner(), "Finding duplicates...", pap)
 
-	var wg sync.WaitGroup
-
 	updateProgressTicker := make(chan bool)
-
 	if app.Output.ShouldShowProgress() {
 		app.updateDupeCount(updateProgressTicker, pss, totalFiles)
 	}
 
+	var wg sync.WaitGroup
 	for i := 0; i < app.Flags.MaxWorkers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for file := range files {
 				totalFiles.Inc()
-
-				startTime := time.Now().UnixMilli()
-				stats, err := sl.SliceFS(*file.FileSystem, file.Path, slo)
-				elapsedMs := time.Now().UnixMilli() - startTime
-				switch {
-				case err != nil:
-					if isVerbose {
-						theme.WarnSkipWithContext(file.FullName, err)
-					}
-					_, _ = session.Fails.LoadOrStore(file.Path, err)
-				case stats.IgnoredFile:
-					// Check if it's an empty file that should be tracked
-					if stats.EmptyFile {
-						SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
-					}
-				default:
-					SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
-				}
+				app.processFile(file, sl, slo, session, isVerbose)
 			}
 		}()
 	}
 	wg.Wait()
 
-	// Signal we're done
 	if app.Output.ShouldShowProgress() {
 		updateProgressTicker <- true
 	}
-	app.Session.EndTime = time.Now().UnixNano()
-
-	midStats := nerdstats.Snapshot()
 
 	pss.Success("Finding duplicates...Done!")
+	return totalFiles.Value()
+}
+
+func (app *App) processFile(file *indexer.FileFS, sl *slicer.Slicer, slo *slicer.Options, session *AppSession, isVerbose bool) {
+	startTime := time.Now().UnixMilli()
+	stats, err := sl.SliceFS(*file.FileSystem, file.Path, slo)
+	elapsedMs := time.Now().UnixMilli() - startTime
+
+	switch {
+	case err != nil:
+		if isVerbose {
+			theme.WarnSkipWithContext(file.FullName, err)
+		}
+		_, _ = session.Fails.LoadOrStore(file.Path, err)
+	case stats.IgnoredFile:
+		// Check if it's an empty file that should be tracked
+		if stats.EmptyFile {
+			SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
+		}
+	default:
+		SummariseSmashedFile(stats, file, elapsedMs, session.Dupes, session.Empty)
+	}
+}
+
+func (app *App) finalizeAnalysis(pap *pterm.MultiPrinter, totalFiles int64) {
+	app.Session.EndTime = time.Now().UnixNano()
 
 	psr := app.Output.StartSpinner(theme.FinaliseSpinner(), "Finding smash hits...", pap)
-	app.generateRunSummary(totalFiles.Value())
+	app.generateRunSummary(totalFiles)
 	psr.Success("Finding smash hits...Done!")
+}
 
-	if pap != nil {
-		pap.Stop()
-	}
-
+func (app *App) printResultsAndStats(startStats nerdstats.NerdStats) {
 	app.PrintRunAnalysis(app.Flags.IgnoreEmpty)
 
-	exportStats := nerdstats.Snapshot()
-
+	midStats := nerdstats.Snapshot()
 	app.ExportReport()
-
-	endStats := nerdstats.Snapshot()
+	exportStats := nerdstats.Snapshot()
 
 	if !app.Output.IsSilent() {
 		PrintRunSummary(*app.Summary, app.Flags)
 	}
+
+	endStats := nerdstats.Snapshot()
 
 	if app.Flags.ShowNerdStats && !app.Output.IsSilent() {
 		theme.StyleHeading.Println("---| Nerd Stats")
@@ -220,7 +259,6 @@ func (app *App) Exec() error {
 		PrintNerdStats(exportStats, "> Post-Summary")
 		PrintNerdStats(endStats, "> Post-Report")
 	}
-	return nil
 }
 
 func (app *App) updateDupeCount(updateProgressTicker chan bool, pss SpinnerHandle, totalFiles *xsync.Counter) {

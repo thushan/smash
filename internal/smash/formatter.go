@@ -22,7 +22,7 @@ func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
 	if app.Output.IsSilent() {
 		return
 	}
-	
+
 	duplicates := app.Session.Dupes
 	emptyFiles := app.Session.Empty.Files
 	topFiles := app.Summary.TopFiles
@@ -67,12 +67,17 @@ func displayFiles(files []File) {
 		dupes := files[1:]
 		var dupeSize string
 		if len(files) > 2 {
-			fileCount := uint64(len(files)) - 1
-			if fileCount <= 0 {
-				fileCount = 0
+			// Since len(files) > 2, we know len(files) >= 3
+			// Calculate duplicate count safely
+			duplicateCount := len(files) - 1
+			if duplicateCount > 0 && duplicateCount < len(files) {
+				// #nosec G115 -- duplicateCount is guaranteed positive by the checks above
+				fileCount := uint64(duplicateCount)
+				totalDupeSize := fileCount * root.FileSize
+				dupeSize = "(" + theme.ColourFileSizeDupe(humanize.Bytes(totalDupeSize)) + ")"
+			} else {
+				dupeSize = " "
 			}
-			totalDupeSize := fileCount * root.FileSize
-			dupeSize = "(" + theme.ColourFileSizeDupe(humanize.Bytes(totalDupeSize)) + ")"
 		} else {
 			dupeSize = " "
 		}
