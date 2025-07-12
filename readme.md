@@ -63,18 +63,37 @@ docker pull ghcr.io/thushan/smash:latest
 # Scan current directory
 docker run --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r /data
 
-# Scan with output file
+# Scan with output file (saves to current directory)
 docker run --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r --silent -o /data/report.json /data
 
-# Scan multiple directories
+# Use the built-in /output directory (container includes a writable /output)
+docker run --rm -v "$PWD:/data" -v "$PWD/output:/output" ghcr.io/thushan/smash:latest \
+  -r --silent -o /output/report.json /data
+
+# Or create your own output directory
+mkdir -p my-reports
+docker run --rm -v "$PWD:/data" -v "$PWD/my-reports:/output" ghcr.io/thushan/smash:latest \
+  -r --silent -o /output/report.json /data
+
+# Scan multiple directories with output
 docker run --rm \
   -v "$HOME/Documents:/docs:ro" \
   -v "$HOME/Pictures:/pics:ro" \
-  ghcr.io/thushan/smash:latest -r /docs /pics
+  -v "$PWD/output:/output" \
+  ghcr.io/thushan/smash:latest -r -o /output/report.json /docs /pics
+
+# Windows PowerShell example
+docker run --rm -v "${PWD}:/data" -v "${PWD}/output:/output" ghcr.io/thushan/smash:latest `
+  -r --silent -o /output/report.json /data
 
 # Use a specific version
-docker pull ghcr.io/thushan/smash:v0.5.0
+docker pull ghcr.io/thushan/smash:v1.0.0
 ```
+
+**Important notes:**
+- Output files must be written to mounted volumes (e.g., `/data` or `/output`)
+- Use `:ro` for read-only mounts when you only need to scan directories
+- The container runs as non-root user, so ensure output directories are writable
 
 The Docker image is based on Alpine Linux for a minimal footprint (~8MB) and runs as a non-root user for security.
 
