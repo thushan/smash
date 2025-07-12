@@ -66,6 +66,11 @@ func getSliceBuffer(size uint64) []byte {
 			return buf
 		}
 	}
+	// Prevent panic from unreasonable sizes
+	const maxReasonableSize = 1 << 30 // 1GB
+	if size > maxReasonableSize {
+		return nil
+	}
 	return make([]byte, size)
 }
 
@@ -209,6 +214,9 @@ func (slicer *Slicer) Slice(sr *io.SectionReader, options *Options, stats *Slice
 		}
 	} else {
 		slice := getSliceBuffer(slicer.sliceSize)
+		if slice == nil {
+			return errors.New("slice size too large to allocate buffer")
+		}
 		defer putSliceBuffer(slice)
 
 		midSize := size - (slicer.sliceSize * 2)

@@ -51,11 +51,11 @@ func (app *App) validateArgs() error {
 	if f.MaxWorkers < 0 {
 		return errors.New("maxworkers cannot be below zero")
 	}
-	if f.MinSize < 0 {
-		return errors.New("minSize cannot be below zero")
+	if f.SliceSize < 0 || f.SliceThreshold < 0 {
+		return errors.New("slice size and threshold must be non-negative")
 	}
-	if f.MaxSize < 0 {
-		return errors.New("maxSize cannot be below zero")
+	if f.MinSize < 0 || f.MaxSize < 0 {
+		return errors.New("min size and max size must be non-negative")
 	}
 	if f.MaxSize != 0 && f.MinSize > f.MaxSize {
 		return errors.New("minSize cannot be greater than maxSize")

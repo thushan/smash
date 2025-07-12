@@ -73,12 +73,6 @@ func (app *App) Run() error {
 		EndTime:   -1,
 	}
 
-	if af.SliceSize < 0 || af.SliceThreshold < 0 {
-		return fmt.Errorf("slice size and threshold must be non-negative")
-	}
-	if af.MinSize < 0 || af.MaxSize < 0 {
-		return fmt.Errorf("min size and max size must be non-negative")
-	}
 	sl := slicer.NewConfigured(algorithms.Algorithm(af.Algorithm), af.Slices, uint64(af.SliceSize), uint64(af.SliceThreshold))
 	wk := indexer.NewConfigured(af.ExcludeDir, af.ExcludeFile, af.IgnoreHidden, af.IgnoreSystem)
 	slo := slicer.Options{
