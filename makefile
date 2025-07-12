@@ -45,7 +45,11 @@ align:
 
 .PHONY: release
 release:
-	MSYS_NO_PATHCONV=1 docker run -ti -v "$(PWD):/app" -w "/app" goreleaser/goreleaser:latest release --snapshot --clean
+	MSYS_NO_PATHCONV=1 docker run -ti -v "$(PWD):/app" -v "//var/run/docker.sock:/var/run/docker.sock" -w "/app" goreleaser/goreleaser:latest release --snapshot --clean
+
+.PHONY: release-local
+release-local:
+	MSYS_NO_PATHCONV=1 docker run -ti -v "$(PWD):/app" -w "/app" goreleaser/goreleaser:latest release --snapshot --clean --skip=docker
 
 .PHONY: clean
 clean:

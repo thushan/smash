@@ -154,6 +154,15 @@ jq '.analysis.summary.spaceWasted' report.json
 
 See the [User Guide](./docs/user-guide.md) for detailed examples and advanced usage.
 
+# Contributing
+
+We welcome contributions! Please see our [Developer Guide](./docs/developer.md) for information on:
+- Building from source
+- Running tests
+- Development workflow
+- Docker development
+- Release process
+
 # Acknowledgements
 
 This project was possible thanks to the following projects or folks.
