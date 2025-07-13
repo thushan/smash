@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/puzpuzpuz/xsync/v3"
+	"github.com/puzpuzpuz/xsync/v4"
 	"github.com/thushan/smash/pkg/analysis"
 )
 
@@ -137,7 +137,7 @@ func summariseRunAnalysis(session *AppSession) ReportFiles {
 	}
 }
 
-func summariseSmashFails(fails *xsync.MapOf[string, error]) []ReportFailSummary {
+func summariseSmashFails(fails *xsync.Map[string, error]) []ReportFailSummary {
 	summary := make([]ReportFailSummary, fails.Size())
 	var index = 0
 	fails.Range(func(key string, value error) bool {
@@ -151,7 +151,7 @@ func summariseSmashFails(fails *xsync.MapOf[string, error]) []ReportFailSummary 
 	return summary
 }
 
-func transformDupes(duplicates *xsync.MapOf[string, *DuplicateFiles]) []ReportDuplicateSummary {
+func transformDupes(duplicates *xsync.Map[string, *DuplicateFiles]) []ReportDuplicateSummary {
 	dupes := make([]ReportDuplicateSummary, duplicates.Size())
 	var index = 0
 	duplicates.Range(func(hash string, dupe *DuplicateFiles) bool {

@@ -2,6 +2,7 @@ package slicer
 
 import (
 	"io"
+	"sync"
 	"unicode/utf8"
 
 	"golang.org/x/tools/godoc/util"
@@ -9,11 +10,12 @@ import (
 
 const MaxReadBytes = 1024
 
-var detectBuffer []byte
-
-func init() {
-	detectBuffer = make([]byte, MaxReadBytes)
+var detectBufferPool = sync.Pool{
+	New: func() interface{} {
+		return make([]byte, MaxReadBytes)
+	},
 }
+
 func slicingSupported(sr *io.SectionReader, size uint64) bool {
 
 	if size < utf8.UTFMax {
@@ -21,7 +23,14 @@ func slicingSupported(sr *io.SectionReader, size uint64) bool {
 		return false
 	}
 
-	if _, err := sr.Read(detectBuffer); err != nil && util.IsText(detectBuffer) {
+	bufInterface := detectBufferPool.Get()
+	buf, ok := bufInterface.([]byte)
+	if !ok {
+		return false
+	}
+	defer detectBufferPool.Put(buf)
+
+	if _, err := sr.Read(buf); err != nil && util.IsText(buf) {
 		return false
 	} else {
 		return true

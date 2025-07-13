@@ -8,10 +8,10 @@ GCOMMIT=$(shell git rev-parse --short HEAD)
 TODAY=$(shell date --iso-8601)
 
 .PHONY: all
-all: lint test build
+all: ready build
 
 .PHONY: ready
-ready: lint test
+ready: fmt lint test-concurrent align
 
 .PHONY: lint
 lint:
@@ -20,6 +20,10 @@ lint:
 .PHONY: test
 test:
 	go test -v ./...
+
+.PHONY: test-concurrent
+test-concurrent:
+	go test -v -race -covermode atomic -coverprofile=covprofile ./...
 
 .PHONY: build
 build:
@@ -31,9 +35,21 @@ build:
             -trimpath \
             -o dist/$(BINARY_NAME) .
 
+.PHONY: fmt
+fmt:
+	@go fmt ./...
+
+.PHONY: align
+align:
+	@which betteralign > /dev/null && betteralign -apply ./... || echo "betteralign not installed, skipping..."
+
 .PHONY: release
 release:
-	MSYS_NO_PATHCONV=1 docker run -ti -v "$(PWD):/app" -w "/app" goreleaser/goreleaser:latest release --snapshot --clean
+	MSYS_NO_PATHCONV=1 docker run -ti -v "$(PWD):/app" -v "//var/run/docker.sock:/var/run/docker.sock" -w "/app" goreleaser/goreleaser:latest release --snapshot --clean
+
+.PHONY: release-local
+release-local:
+	MSYS_NO_PATHCONV=1 docker run -ti -v "$(PWD):/app" -w "/app" goreleaser/goreleaser:latest release --snapshot --clean --skip=docker
 
 .PHONY: clean
 clean:

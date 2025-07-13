@@ -58,3 +58,46 @@ changelog:
   filters:
     exclude:
       - "^Merge"
+
+dockers:
+  - image_templates:
+      - "ghcr.io/thushan/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "ghcr.io/thushan/{{ .ProjectName }}:latest-amd64"
+    use: buildx
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Fast duplicate file finder"
+      - "--label=org.opencontainers.image.url=https://github.com/thushan/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.source=https://github.com/thushan/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+  - image_templates:
+      - "ghcr.io/thushan/{{ .ProjectName }}:{{ .Version }}-arm64"
+      - "ghcr.io/thushan/{{ .ProjectName }}:latest-arm64"
+    use: buildx
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Fast duplicate file finder"
+      - "--label=org.opencontainers.image.url=https://github.com/thushan/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.source=https://github.com/thushan/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+    goarch: arm64
+
+docker_manifests:
+  - name_template: "ghcr.io/thushan/{{ .ProjectName }}:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/thushan/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "ghcr.io/thushan/{{ .ProjectName }}:{{ .Version }}-arm64"
+  - name_template: "ghcr.io/thushan/{{ .ProjectName }}:latest"
+    image_templates:
+      - "ghcr.io/thushan/{{ .ProjectName }}:latest-amd64"
+      - "ghcr.io/thushan/{{ .ProjectName }}:latest-arm64"

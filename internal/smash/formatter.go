@@ -13,12 +13,16 @@ const (
 )
 
 func (app *App) printVerbose(message ...any) {
-	if app.Flags.Verbose {
+	if app.Output.IsVerbose() {
 		theme.Verbose.Println(message...)
 	}
 }
 
 func (app *App) PrintRunAnalysis(ignoreEmptyFiles bool) {
+	if app.Output.IsSilent() {
+		return
+	}
+
 	duplicates := app.Session.Dupes
 	emptyFiles := app.Session.Empty.Files
 	topFiles := app.Summary.TopFiles
@@ -63,8 +67,17 @@ func displayFiles(files []File) {
 		dupes := files[1:]
 		var dupeSize string
 		if len(files) > 2 {
-			totalDupeSize := uint64(len(files)-1) * root.FileSize
-			dupeSize = "(" + theme.ColourFileSizeDupe(humanize.Bytes(totalDupeSize)) + ")"
+			// Since len(files) > 2, we know len(files) >= 3
+			// Calculate duplicate count safely
+			duplicateCount := len(files) - 1
+			if duplicateCount > 0 && duplicateCount < len(files) {
+				// #nosec G115 -- duplicateCount is guaranteed positive by the checks above
+				fileCount := uint64(duplicateCount)
+				totalDupeSize := fileCount * root.FileSize
+				dupeSize = "(" + theme.ColourFileSizeDupe(humanize.Bytes(totalDupeSize)) + ")"
+			} else {
+				dupeSize = " "
+			}
 		} else {
 			dupeSize = " "
 		}
@@ -112,7 +125,9 @@ func (app *App) generateRunSummary(totalFiles int64) {
 			topFiles.Add(analysis.Item{Key: hash, Size: root.FileSize})
 
 			totalDuplicates += duplicateFiles
-			totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
+			if duplicateFiles >= 0 {
+				totalDuplicateSize += root.FileSize * uint64(duplicateFiles)
+			}
 		}
 		return true
 	})

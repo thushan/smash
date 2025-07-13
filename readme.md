@@ -1,25 +1,27 @@
-# smash
+<div align="center">
+  <p>
+    <img src="assets/banner.png" width="392" height="146" alt="Smash - Deduplicate files fast!" /> <br/>
+    <a href="https://github.com/thushan/smash/blob/master/LICENSE"><img src="https://img.shields.io/github/license/thushan/smash" alt="License"></a>
+    <a href="https://github.com/thushan/smash/actions/workflows/ci.yml"><img src="https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+    <a href="https://goreportcard.com/report/github.com/thushan/smash"><img src="https://goreportcard.com/badge/github.com/thushan/smash" alt="Go Report Card"></a>
+    <a href="https://github.com/thushan/smash/releases/latest"><img src="https://img.shields.io/github/release/thushan/smash" alt="Latest Release"></a>
+  </p>
+</div>
 
-[![GitHub license](https://img.shields.io/github/license/thushan/smash)](https://github.com/thushan/smash/blob/master/LICENSE)
-[![CI](https://github.com/thushan/smash/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thushan/smash/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/thushan/smash)](https://goreportcard.com/report/github.com/thushan/smash)
-[![GitHub release](https://img.shields.io/github/release/thushan/smash)](https://github.com/thushan/smash/releases/latest)
+**Smash** is a high-performance CLI tool for detecting duplicate files — fast. It works by **slicing files or blobs into segments** and hashing them with blazing-fast, non-cryptographic algorithms like [xxhash](https://xxhash.com/) or [murmur3](https://en.wikipedia.org/wiki/MurmurHash).
 
-CLI tool to `smash` through to find duplicate files efficiently by slicing a file (or blob) into multiple segments
-and computing a hash using a fast non-cryptographic algorithm such as [xxhash](https://xxhash.com/) or [murmur3](https://en.wikipedia.org/wiki/MurmurHash).
+Built for speed and scale, `smash` is ideal for everything from low-bandwidth deduplication to analysing multi-terabyte datasets.
 
-Amongst the highlights of `smash`:
+### Key Features
+* **Fast**: Handles large files quickly via [slicing](./docs/slicing.md)
+* **Efficient**: Optimised for low I/O and bandwidth-constrained environments
+* **Smart hashing**: Supports [multiple algorithms](./docs/algorithms.md) like `xxhash`, `murmur3`, and more
+* **Safe**: Performs read-only scans of the filesystem
+* **Comprehensive**: Detects duplicate and empty (0-byte) files
+* **Machine-friendly**: JSON output compatible with tools like [`jq`](https://github.com/jqlang/jq) — [examples](#examples), [demos](./docs/demos.md)
+* **Proven**: Used to dedupe multi-terabyte astrophysics, image, and video datasets
 
-* Super fast analysis of large files thanks to slicing.
-* Suited for finding duplicates on bandwidth constrained networks, devices or very large files but plenty capable on smaller ones!
-* Supports a variety of non-cryptographic algorithms (see [algorithms supported](./docs/algorithms.md)).
-* Read-only view of the underlying filesystem when analysing
-* Reports on duplicate files & empty (0 byte) files
-* Outputs a report in json, you can use tools like [jq](https://github.com/jqlang/jq) to operate on (see [examples](#examples) below or [the vhs tapes](./docs/demos.md))
-* Used to dedupe multi-TB of astrophysics datasets, images and video content & run regularly to report duplicates
-
-`smash` does not support pruning of duplicates or empty files natively and it's encouraged you vet the output report before pruning via automated tools.
-
+`smash` does **not** delete duplicates. It generates detailed reports for you to safely review and act on.
 <p align="center">
  <img src="https://vhs.charm.sh/vhs-6UTX5Yc6CIQ6Y3lzulLKYF.gif" alt="Made with VHS"><br/>
     <sub>
@@ -50,144 +52,141 @@ go install github.com/thushan/smash@latest
 
 `smash` has been developed on Linux (Pop!_OS & Fedora), tested on macOS, FreeBSD & Windows.
 
+## Docker
+
+You can also run `smash` using Docker. Multi-architecture images (amd64/arm64) are available on GitHub Container Registry:
+
+> [!TIP]
+> Use the `-t` flag to allocate a pseudo-TTY for better output formatting with Docker.
+> 
+> We use the `--rm` flag to automatically remove the container after it exits, keeping 
+> your environment clean in these examples.
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/thushan/smash:latest
+
+# Scan current directory
+docker run -t --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r /data
+
+# Scan with output file (saves to current directory)
+docker run -t --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r --silent -o /data/report.json /data
+
+# Use the built-in /output directory (container includes a writable /output)
+docker run -t --rm -v "$PWD:/data" -v "$PWD/output:/output" ghcr.io/thushan/smash:latest \
+  -r --silent -o /output/report.json /data
+
+# Or create your own output directory
+mkdir -p my-reports
+docker run -t --rm -v "$PWD:/data" -v "$PWD/my-reports:/output" ghcr.io/thushan/smash:latest \
+  -r --silent -o /output/report.json /data
+
+# Scan multiple directories with output
+docker run -t --rm \
+  -v "$HOME/Documents:/docs:ro" \
+  -v "$HOME/Pictures:/pics:ro" \
+  -v "$PWD/output:/output" \
+  ghcr.io/thushan/smash:latest -r -o /output/report.json /docs /pics
+
+# Windows PowerShell example
+docker run --rm -v "${PWD}:/data" -v "${PWD}/output:/output" ghcr.io/thushan/smash:latest `
+  -r --silent -o /output/report.json /data
+
+# Use a specific version
+docker pull ghcr.io/thushan/smash:v1.0.0
+```
+
+**Important notes:**
+- Output files must be written to mounted volumes (e.g., `/data` or `/output`)
+- Use `:ro` for read-only mounts when you only need to scan directories
+- The container runs as non-root user, so ensure output directories are writable
+
+The Docker image is based on Alpine Linux for a minimal footprint (~8MB) and runs as a non-root user for security.
+
 # Usage
 
-> \[!IMPORTANT]
->
-> Starting from v0.9.0+, `smash` will only look for duplicates in the current folder,
-> to smash sub-folders, use the `--recurse` or `-r` switch.
->
- 
-```
-Usage:
-  smash [flags] [locations-to-smash]
-
-Flags:
-      --algorithm algorithm    Algorithm to use to hash files. Supported: xxhash, murmur3, md5, sha512, sha256 (full list, see readme) (default xxhash)
-      --base strings           Base directories to use for comparison Eg. --base=/c/dos,/c/dos/run/,/run/dos/run
-      --disable-autotext       Disable detecting text-files to opt for a full hash for those
-      --disable-meta           Disable storing of meta-data to improve hashing mismatches
-      --disable-slicing        Disable slicing & hash the full file instead
-      --exclude-dir strings    Directories to exclude separated by comma Eg. --exclude-dir=.git,.idea
-      --exclude-file strings   Files to exclude separated by comma Eg. --exclude-file=.gitignore,*.csv
-  -h, --help                   help for smash
-      --ignore-empty           Ignore empty/zero byte files (default true)
-      --ignore-hidden          Ignore hidden files & folders Eg. files/folders starting with '.' (default true)
-      --ignore-system          Ignore system files & folders Eg. '$MFT', '.Trash' (default true)
-  -L, --max-size int           Maximum file size to consider for hashing (in bytes)
-  -p, --max-threads int        Maximum threads to utilise (default 16)
-  -w, --max-workers int        Maximum workers to utilise when smashing (default 16)
-  -G, --min-size int           Minimum file size to consider for hashing (in bytes)
-      --nerd-stats             Show nerd stats
-      --no-output              Disable report output
-      --no-progress            Disable progress updates
-      --no-top-list            Hides top x duplicates list
-  -o, --output-file string     Export analysis as JSON (generated automatically otherwise)
-      --profile                Enable Go Profiler - see localhost:1984/debug/pprof
-      --progress-update int    Update progress every x seconds (default 5)
-  -r, --recurse                Recursively search directories for files
-      --show-duplicates        Show full list of duplicates
-      --show-top int           Show the top x duplicates (default 10)
-  -q, --silent                 Run in silent mode
-      --slice-size int         Size of a Slice (in bytes) (default 8192)        
-      --slice-threshold int    Threshold to use for slicing (in bytes) - if file is smaller than this, it won't be sliced (default 102400)
-      --slices int             Number of Slices to use (default 4)
-      --verbose                Run in verbose mode
-  -v, --version                Show version information
-```
-
-See the [full list of algorithms](./docs/algorithms.md) supported.
-
-## Examples
-
-Examples are given in Unix format, but apply to Windows as well.
-
-> \[!TIP]
->
-> To recursively smash through directories, use the `--recursive` or `-r` switch.
->
-> By default, `smash` will only look in the current folder (from v0.9+)
-
-### Basic
-
-To check for duplicates in a single path (Eg. `~/media/photos`) & output report to `report.json`
-
 ```bash
-$ ./smash ~/media/photos -r -o report.json
+# Basic usage - scan current directory
+smash
+
+# Recursive scan
+smash -r
+
+# Scan multiple directories
+smash -r ~/Documents ~/Downloads
+
+# Silent mode with report
+smash -r --silent -o report.json ~/data
 ```
 
-You can then look at `report.json` with [jq](https://github.com/jqlang/jq) to check duplicates:
+For detailed usage, see the [User Guide](./docs/user-guide.md).
 
-```bash 
-$ jq '.analysis.dupes[]|[.location,.path,.filename]|join("/")' report.json | xargs wc -l
-```
+## Command Line Options
 
-### Show Empty Files
+Key flags:
+- `-r, --recurse` - Scan subdirectories (required for recursive scanning)
+- `-o, --output-file` - Save results to JSON file
+- `--silent` - Suppress all output except errors
+- `--algorithm` - Choose hash algorithm (default: xxhash)
+- `--exclude-dir` - Skip directories (comma-separated)
+- `--exclude-file` - Skip files (comma-separated patterns)
 
-By default, `smash` ignores empty files but can report on them with the `--ignore-empty=false` argument:
+Run `smash --help` for complete options.
 
+## Quick Examples
+
+### Find Duplicates
 ```bash
-$ ./smash ~/media/photos -r --ignore-empty=false -o report.json
+# In photos directory
+smash -r ~/photos -o duplicates.json
+
+# Across multiple drives
+smash -r ~/Documents /mnt/backup/Documents
+
+# Large video files only
+smash -r --min-size=104857600 ~/Videos
 ```
 
-You can then look at `report.json` with [jq](https://github.com/jqlang/jq) to check empty files:
-
-```bash 
-$ jq '.analysis.empty[]|[.location,.path,.filename]|join("/")' report.json | xargs wc -l
-```
-
-### Show Top 50 Duplicates
-
-By default, `smash` shows the top 10 duplicate files in the CLI and leaves the rest for the report, you can change that with the `--show-top=50` argument to show the top 50 instead.
-
+### Filter and Exclude
 ```bash
-$ ./smash ~/media/photos -r --show-top=50
+# Skip git and node_modules
+smash -r --exclude-dir=.git,node_modules ~/projects
+
+# Include empty files
+smash -r --ignore-empty=false ~/data
 ```
 
-### Multiple Directories
-
-To check across multiple directories - which can be different drives, or mounts (Eg. `~/media/photos` and `/mnt/my-usb-drive/photos`):
-
+### Performance Tuning
 ```bash
-$ ./smash -r ~/media/photos /mnt/my-usb-drive/photos
+# For network drives
+smash -r --max-workers=4 /mnt/nas
+
+# For many small files
+smash -r --disable-slicing ~/documents
 ```
 
-Smash will find and report all duplicates within any number of directories passed in.
-
-### Exclude Files or Directories
-
-You can exclude certain directories or files with the `--exclude-dir` and `--exclude-file` switches including wildcard characters:
-
+### Working with Reports
 ```bash
-$ ./smash -r --exclude-dir=.git,.svn --exclude-file=.gitignore,*.csv ~/media/photos
+# Generate report
+smash -r ~/data -o report.json
+
+# List all duplicates
+jq -r '.analysis.dupes[].files[].path' report.json
+
+# Show space wasted
+jq '.analysis.summary.spaceWasted' report.json
 ```
 
-For example, to ignore all hidden files on unix (those that start with `.` such as `.config` or `.gnome` folders):
+See the [User Guide](./docs/user-guide.md) for detailed examples and advanced usage.
 
-```bash
-$ ./smash -r --exclude-dir=.config,.gnome ~/media/photos
-```
+# Contributing
 
-### Disabling Slicing & Getting Full Hash
-
-By default, `smash` uses slicing to efficiently slice a file into multiple segments and hash parts of the file. 
-
-If you prefer not to use slicing for a run, you can disable slicing with:
-
-```bash
-$ ./smash -r --disable-slicing ~/media/photos
-```
-
-### Changing Hashing Algorithms
-
-By default, smash uses `xxhash`, an extremely fast non-cryptographic hash algorithm. However, you can choose a variety
-of algorithms [as documented](./docs/algorithms.md).
-
-To use another supported algorithm, use the `--algorithm` switch:
-
-```bash
-$ ./smash -r --algorithm:murmur3 ~/media/photos
-```
+We welcome contributions! Please see our [Developer Guide](./docs/developer.md) for information on:
+- Building from source
+- Running tests
+- Development workflow
+- Docker development
+- Release process
 
 # Acknowledgements
 
