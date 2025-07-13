@@ -56,27 +56,33 @@ go install github.com/thushan/smash@latest
 
 You can also run `smash` using Docker. Multi-architecture images (amd64/arm64) are available on GitHub Container Registry:
 
+> [!TIP]
+> Use the `-t` flag to allocate a pseudo-TTY for better output formatting with Docker.
+> 
+> We use the `--rm` flag to automatically remove the container after it exits, keeping 
+> your environment clean in these examples.
+
 ```bash
 # Pull the latest image
 docker pull ghcr.io/thushan/smash:latest
 
 # Scan current directory
-docker run --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r /data
+docker run -t --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r /data
 
 # Scan with output file (saves to current directory)
-docker run --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r --silent -o /data/report.json /data
+docker run -t --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r --silent -o /data/report.json /data
 
 # Use the built-in /output directory (container includes a writable /output)
-docker run --rm -v "$PWD:/data" -v "$PWD/output:/output" ghcr.io/thushan/smash:latest \
+docker run -t --rm -v "$PWD:/data" -v "$PWD/output:/output" ghcr.io/thushan/smash:latest \
   -r --silent -o /output/report.json /data
 
 # Or create your own output directory
 mkdir -p my-reports
-docker run --rm -v "$PWD:/data" -v "$PWD/my-reports:/output" ghcr.io/thushan/smash:latest \
+docker run -t --rm -v "$PWD:/data" -v "$PWD/my-reports:/output" ghcr.io/thushan/smash:latest \
   -r --silent -o /output/report.json /data
 
 # Scan multiple directories with output
-docker run --rm \
+docker run -t --rm \
   -v "$HOME/Documents:/docs:ro" \
   -v "$HOME/Pictures:/pics:ro" \
   -v "$PWD/output:/output" \

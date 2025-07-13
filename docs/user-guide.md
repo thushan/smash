@@ -11,6 +11,7 @@ It is designed to help users effectively manage duplicate files across various s
 - [Working with Large Files](#working-with-large-files)
 - [Report Analysis](#report-analysis)
 - [Common Use Cases](#common-use-cases)
+- [Using Docker](#using-docker)
 - [Troubleshooting](#troubleshooting)
 
 ## Basic Operations
@@ -257,6 +258,185 @@ smash -r \
   --exclude-dir=.git,src \
   --min-size=1048576 \
   ~/projects
+```
+
+## Using Docker
+
+Smash can be run in a Docker container, which is useful for consistent environments, CI/CD pipelines, or when you don't want to install the binary directly. The official Docker image is available on GitHub Container Registry.
+
+### Docker Basics
+
+> [!TIP]
+> Use the `-t` flag to allocate a pseudo-TTY for better output formatting with Docker.
+> 
+> Leave it out if you don't need TTY support (e.g., in scripts/pipelines).
+>
+> We use the `--rm` flag to automatically remove the container after it exits, keeping
+> your environment clean in these examples.
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/thushan/smash:latest
+
+# Basic scan of current directory
+docker run -t --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r /data
+
+# Scan with JSON output
+docker run -t --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r -o /data/report.json /data
+```
+
+### Volume Mounting
+
+Docker containers are isolated from your host filesystem. You need to mount directories as volumes to scan them:
+
+```bash
+# Mount current directory as /data (read-only recommended for scanning)
+docker run -t --rm -v "$PWD:/data:ro" ghcr.io/thushan/smash:latest -r /data
+
+# Mount multiple directories
+docker run -t --rm \
+  -v "$HOME/Documents:/docs:ro" \
+  -v "$HOME/Pictures:/pics:ro" \
+  ghcr.io/thushan/smash:latest -r /docs /pics
+
+# Windows PowerShell syntax
+docker run -t --rm -v "${PWD}:/data:ro" ghcr.io/thushan/smash:latest -r /data
+```
+
+### Output File Handling
+
+When generating reports, the output file must be written to a mounted volume. The container includes a built-in `/output` directory that is already writable, but you need to mount it to a host directory to access the reports:
+
+```bash
+# Create a local output directory and mount it
+mkdir -p ./output
+docker run -t --rm \
+  -v "$PWD:/data:ro" \
+  -v "$PWD/output:/output" \
+  ghcr.io/thushan/smash:latest -r -o /output/report.json /data
+
+# Now you can read the report on your host
+cat ./output/report.json | jq '.analysis.summary'
+
+# Use different output directories for different scans
+mkdir -p ./reports/photos ./reports/documents
+docker run -t --rm \
+  -v "$HOME/Pictures:/data:ro" \
+  -v "$PWD/reports/photos:/output" \
+  ghcr.io/thushan/smash:latest -r -o /output/duplicates.json /data
+
+# Alternative: write directly to mounted data directory
+docker run -t --rm \
+  -v "$PWD:/data" \
+  ghcr.io/thushan/smash:latest -r -o /data/report.json /data
+# Note: This requires the data mount to NOT be read-only
+```
+
+> [!NOTE]
+> The `/output` directory inside the container is pre-configured with appropriate permissions for the non-root user. 
+> When mounting to a host directory, ensure the host directory exists and is accessible.
+
+### Advanced Docker Usage
+
+#### Custom Algorithm and Filtering
+```bash
+docker run -t --rm -v "$PWD:/data:ro" ghcr.io/thushan/smash:latest \
+  -r --algorithm=murmur3 \
+  --exclude-dir=.git,node_modules \
+  --min-size=1048576 \
+  -o /data/large-files.json /data
+```
+
+#### Performance Tuning in Docker
+```bash
+# Limit resources for container
+docker run -t --rm \
+  --cpus="2.0" \
+  --memory="1g" \
+  -v "$PWD:/data:ro" \
+  ghcr.io/thushan/smash:latest \
+  -r --max-workers=8 --max-threads=8 /data
+```
+
+#### Using Specific Versions
+```bash
+# Use a specific version tag
+docker pull ghcr.io/thushan/smash:v1.0.0
+docker run -t --rm -v "$PWD:/data:ro" ghcr.io/thushan/smash:v1.0.0 -r /data
+```
+
+### Docker in CI/CD
+
+For CI/CD pipelines, Docker provides a consistent environment:
+
+```yaml
+# GitHub Actions example
+- name: Find duplicates
+  run: |
+    docker run --rm \
+      -v ${{ github.workspace }}:/workspace:ro \
+      -v ${{ github.workspace }}/reports:/output \
+      ghcr.io/thushan/smash:latest \
+      -r --silent -o /output/duplicates.json /workspace
+```
+
+```bash
+# GitLab CI example
+find-duplicates:
+  image: ghcr.io/thushan/smash:latest
+  script:
+    - smash -r --silent -o duplicates.json .
+  artifacts:
+    paths:
+      - duplicates.json
+```
+
+### Docker Compose
+
+For complex setups, you can use Docker Compose:
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  smash:
+    image: ghcr.io/thushan/smash:latest
+    volumes:
+      - ./data:/data:ro
+      - ./reports:/output
+    command: -r --silent -o /output/report.json /data
+```
+
+Run with: `docker-compose run --rm smash`
+
+### Docker Tips and Best Practices
+
+1. **Use `-t` for interactive runs** - This ensures proper output formatting and colours, but can be omitted in scripts/pipelines.
+2. **Use `--rm` to auto-cleanup** - Prevents accumulation of stopped containers
+3. **Mount as read-only (`:ro`)** - Smash only reads files, so use `:ro` for safety
+4. **Create output directories first** - Ensure output directories exist and are writable
+5. **Use specific versions in production** - Pin to specific tags rather than `latest`
+
+### Docker Troubleshooting
+
+**No coloured output**
+```bash
+# Always use -t flag
+docker run -t --rm -v "$PWD:/data" ghcr.io/thushan/smash:latest -r /data
+```
+
+**Permission denied errors**
+```bash
+# Ensure output directory is writable
+chmod 755 ./reports
+docker run -t --rm -v "$PWD:/data:ro" -v "$PWD/reports:/output" \
+  ghcr.io/thushan/smash:latest -r -o /output/report.json /data
+```
+
+**Can't find files**
+```bash
+# Check your volume mounts - paths inside container are different
+docker run -t --rm -v "$HOME/Documents:/docs" ghcr.io/thushan/smash:latest ls /docs
 ```
 
 ## Troubleshooting
